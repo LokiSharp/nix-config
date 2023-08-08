@@ -9,6 +9,8 @@
 
     mitmproxy
     protobuf
+
+    pkgs-unstable.jetbrains-toolbox
   ];
 
   programs = {
@@ -20,5 +22,17 @@
       enableBashIntegration = true;
       enableNushellIntegration = true;
     };
+  };
+
+  programs.vscode = {
+    package = pkgs-unstable.vscode;
+    enable = true;
+    extensions = (with pkgs-unstable;
+      with vscode-extensions; [
+        matklad.rust-analyzer
+        ms-python.python
+        ms-vscode.cpptools
+        #ms-vscode-remote.remote-ssh # won't work with vscodium
+      ]);
   };
 }

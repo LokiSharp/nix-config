@@ -16,7 +16,9 @@ nixpkgs.lib.nixosSystem {
     }
     vscode-server.nixosModules.default
     ({ config, pkgs, ... }: {
+      services.vscode-server.nodejsPackage = pkgs.nodejs-18_x;
       services.vscode-server.enable = true;
+      services.vscode-server.enableFHS = true;
     })
   ];
 }

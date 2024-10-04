@@ -1,11 +1,12 @@
-{ nixpkgs, home-manager, specialArgs, home-module, vscode-server }:
+{ inputs, specialArgs, home-module }:
 let
   username = specialArgs.username;
+  inherit (inputs) nixpkgs home-manager vscode-server;
 in
 nixpkgs.lib.nixosSystem {
   inherit specialArgs;
   modules = [
-    ../host/configuration.nix
+    ../hosts/desktop-nixos/configuration.nix
     home-manager.nixosModules.home-manager
     {
       home-manager.useGlobalPkgs = true;
@@ -16,7 +17,6 @@ nixpkgs.lib.nixosSystem {
     }
     vscode-server.nixosModules.default
     ({ config, pkgs, ... }: {
-      services.vscode-server.nodejsPackage = pkgs.nodejs-18_x;
       services.vscode-server.enable = true;
       services.vscode-server.enableFHS = true;
     })

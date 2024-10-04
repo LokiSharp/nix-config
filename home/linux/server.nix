@@ -8,7 +8,7 @@
   home = {
     username = username;
     homeDirectory = "/home/${username}";
-    stateVersion = "23.05";
+    stateVersion = "24.05";
   };
 
   # Let Home Manager install and manage itself.

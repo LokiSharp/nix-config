@@ -57,11 +57,14 @@
   };
 
   environment.systemPackages = with pkgs; [
+    vim
     neovim
     wget
     curl
     git
     git-lfs
+    nixpkgs-fmt
+    nixpkgs-lint
   ];
 
   environment.variables.EDITOR = "nvim";

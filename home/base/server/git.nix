@@ -1,4 +1,4 @@
-{ config, lib, pkgs, userfullname, useremail, ... }: {
+{ config, lib, pkgs, myvars, ... }: {
   # `programs.git` will generate the config file: ~/.config/git/config
   # to make git use this config file, `~/.gitconfig` should not exist!
   #
@@ -11,8 +11,8 @@
     enable = true;
     lfs.enable = true;
 
-    userName = userfullname;
-    userEmail = useremail;
+    userName = myvars.userfullname;
+    userEmail = myvars.useremail;
 
     includes = [
       {

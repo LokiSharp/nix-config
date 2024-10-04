@@ -2,36 +2,35 @@ inputs @ { self
 , ...
 }:
 let
-  username = "loki-sharp";
-  userfullname = "LokiSharp";
-  useremail = "loki.sharp@gmail.com";
+  inherit (inputs.nixpkgs) lib;
+  mylib = import ../lib { inherit lib; };
+  myvars = import ../vars { inherit lib; };
 
   nixosSystem = import ../lib/nixosSystem.nix;
   home-module = import ../home/linux/desktop.nix;
-  x64_system = "x86_64-linux";
+  genSpecialArgs = system:
+    inputs
+    // {
+      inherit mylib myvars;
+
+      # use unstable branch for some packages to get the latest updates
+      pkgs-unstable = import inputs.nixpkgs-unstable {
+        inherit system;
+        config.allowUnfree = true;
+      };
+      pkgs-stable = import inputs.nixpkgs-stable {
+        inherit system;
+        config.allowUnfree = true;
+      };
+    };
 in
 {
   nixosConfigurations =
     let
-      system = x64_system;
-
-      specialArgs =
-        {
-          inherit username userfullname useremail inputs;
-
-          pkgs-stable = import inputs.nixpkgs-stable {
-            system = x64_system;
-            config.allowUnfree = true;
-          };
-
-          pkgs-unstable = import inputs.nixpkgs-unstable {
-            system = x64_system;
-            config.allowUnfree = true;
-          };
-        };
+      specialArgs = genSpecialArgs "x86_64-linux";
 
       args = {
-        inherit inputs specialArgs home-module;
+        inherit inputs mylib myvars specialArgs home-module;
       };
     in
     {

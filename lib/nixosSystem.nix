@@ -1,6 +1,6 @@
-{ inputs, specialArgs, home-module }:
+{ inputs, mylib, myvars, specialArgs, home-module, ... }:
 let
-  username = specialArgs.username;
+  username = myvars.username;
   inherit (inputs) nixpkgs home-manager vscode-server;
 in
 nixpkgs.lib.nixosSystem {
@@ -13,7 +13,7 @@ nixpkgs.lib.nixosSystem {
       home-manager.useUserPackages = true;
 
       home-manager.extraSpecialArgs = specialArgs;
-      home-manager.users."${username}" = home-module;
+      home-manager.users."${myvars.username}" = home-module;
     }
     vscode-server.nixosModules.default
     ({ config, pkgs, ... }: {

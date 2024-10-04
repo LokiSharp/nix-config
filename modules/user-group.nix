@@ -1,24 +1,24 @@
-{ username, userfullname, ... }: {
-  nix.settings.trusted-users = [ username ];
+{ myvars, config, ... }: {
+  nix.settings.trusted-users = [ myvars.username ];
+  users.mutableUsers = false;
 
   users.groups = {
-    "${username}" = { };
+    "${myvars.username}" = { };
     docker = { };
   };
 
-  users.users."${username}" = {
-    home = "/home/${username}";
+  users.users."${myvars.username}" = {
+    inherit (myvars) initialHashedPassword;
+    home = "/home/${myvars.username}";
     isNormalUser = true;
-    description = userfullname;
-    extraGroups = [ username "users" "networkmanager" "wheel" ];
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFpz4P1xXhjZLhgw01BAr4zfzlKzN8+3KPUu1iTBvV22"
-    ];
+    description = myvars.userfullname;
+    extraGroups = [ myvars.username "users" "networkmanager" "wheel" "docker" ];
+    openssh.authorizedKeys.keys = myvars.sshAuthorizedKeys;
   };
 
   security.sudo.extraRules = [
     {
-      users = [ username ];
+      users = [ myvars.username ];
       commands = [
         {
           command = "/run/current-system/sw/bin/nix-store";
@@ -31,4 +31,9 @@
       ];
     }
   ];
+
+  users.users.root = {
+    initialHashedPassword = config.users.users."${myvars.username}".initialHashedPassword;
+    openssh.authorizedKeys.keys = config.users.users."${myvars.username}".openssh.authorizedKeys.keys;
+  };
 }

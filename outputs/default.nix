@@ -40,7 +40,22 @@ in
   # Add attribute sets into outputs, for debugging
   debugAttrs = { inherit nixosSystems allSystems allSystemNames; };
 
-
+  # NixOS Hosts
   nixosConfigurations =
     lib.attrsets.mergeAttrsList (map (it: it.nixosConfigurations or { }) nixosSystemValues);
+
+  # Packages
+  packages = forAllSystems (
+    system: allSystems.${system}.packages or { }
+  );
+
+  # Eval Tests for all NixOS & darwin systems.
+  evalTests = lib.lists.all (it: it.evalTests == { }) allSystemValues;
+
+  checks = forAllSystems (
+    system: {
+      # eval-tests per system
+      eval-tests = allSystems.${system}.evalTests == { };
+    }
+  );
 }

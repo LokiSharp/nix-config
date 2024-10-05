@@ -1,4 +1,13 @@
-{ inputs, pkgs, ... }: {
+{ pkgs
+, ...
+}: {
+  imports = [
+    ./base
+    ../base.nix
+
+    ./desktop
+  ];
+
   services.xserver = {
     enable = true;
     displayManager.gdm.enable = true;

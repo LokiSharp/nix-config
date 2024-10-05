@@ -1,4 +1,4 @@
-{ config, lib, pkgs, modulesPath, username, ... }:
+{ config, lib, pkgs, modulesPath, ... }:
 
 {
   imports =
@@ -6,37 +6,44 @@
       (modulesPath + "/profiles/qemu-guest.nix")
     ];
 
-  security.sudo.extraRules = [
-    {
-      users = [ username ];
-      commands = [
-        {
-          command = "ALL";
-          options = [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
+  # Use the EFI boot loader.
+  boot.loader.efi.canTouchEfiVariables = true;
+  # depending on how you configured your disk mounts, change this to /boot or /boot/efi.
+  boot.loader.efi.efiSysMountPoint = "/boot";
+  boot.loader.systemd-boot.enable = true;
 
-  boot = {
-    growPartition = true;
-    initrd.availableKernelModules = [ "uhci_hcd" "ehci_pci" "ahci" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod" ];
-    initrd.kernelModules = [ ];
-    kernelModules = [ "kvm-intel" ];
-    extraModulePackages = [ ];
-  };
+  boot.growPartition = true;
+  boot.initrd.availableKernelModules = [ "uhci_hcd" "ehci_pci" "ahci" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod" ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ "kvm-intel" ];
+  boot.extraModulePackages = [ ];
 
   fileSystems."/" =
     {
-      device = "/dev/disk/by-label/NIXROOT";
-      autoResize = true;
-      fsType = "ext4";
+      device = "/dev/disk/by-partlabel/primary";
+      fsType = "btrfs";
+      options = [ "subvol=root" "compress=zstd" ];
+    };
+
+  fileSystems."/home" =
+    {
+      device = "/dev/disk/by-partlabel/primary";
+      fsType = "btrfs";
+      options = [ "subvol=home" "compress=zstd" ];
+    };
+
+  fileSystems."/nix" =
+    {
+      device = "/dev/disk/by-partlabel/primary";
+      fsType = "btrfs";
+      options = [ "subvol=nix" "compress=zstd" "noatime" ];
     };
 
   fileSystems."/boot" =
     {
-      device = "/dev/disk/by-label/NIXBOOT";
+      device = "/dev/disk/by-partlabel/ESP";
       fsType = "vfat";
+      options = [ "fmask=0022" "dmask=0022" ];
     };
 
   swapDevices = [ ];

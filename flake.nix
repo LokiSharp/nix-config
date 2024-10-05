@@ -7,6 +7,15 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    haumea = {
+      url = "github:nix-community/haumea/v0.2.2";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    # generate iso/qcow2/docker/... image from nixos configuration
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager = {
       url = "github:nix-community/home-manager/release-24.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -16,11 +25,6 @@
   };
 
   nixConfig = {
-    experimental-features = [ "nix-command" "flakes" ];
-    substituters = [
-      "https://mirror.sjtu.edu.cn/nix-channels/store"
-      "https://cache.nixos.org/"
-    ];
     extra-substituters = [
       "https://nix-community.cachix.org"
     ];

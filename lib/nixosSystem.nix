@@ -1,24 +1,34 @@
-{ inputs, mylib, myvars, specialArgs, home-module, ... }:
+{ inputs
+, lib
+, system
+, genSpecialArgs
+, nixos-modules
+, home-modules ? [ ]
+, specialArgs ? (genSpecialArgs system)
+, myvars
+, ...
+}:
 let
-  username = myvars.username;
-  inherit (inputs) nixpkgs home-manager vscode-server;
+  inherit (inputs) nixpkgs home-manager nixos-generators;
 in
 nixpkgs.lib.nixosSystem {
-  inherit specialArgs;
-  modules = [
-    ../hosts/desktop-nixos/configuration.nix
-    home-manager.nixosModules.home-manager
-    {
-      home-manager.useGlobalPkgs = true;
-      home-manager.useUserPackages = true;
+  inherit system specialArgs;
+  modules =
+    nixos-modules
+    ++ [
+      nixos-generators.nixosModules.all-formats
+    ]
+    ++ (
+      lib.optionals ((lib.lists.length home-modules) > 0)
+        [
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
 
-      home-manager.extraSpecialArgs = specialArgs;
-      home-manager.users."${myvars.username}" = home-module;
-    }
-    vscode-server.nixosModules.default
-    ({ config, pkgs, ... }: {
-      services.vscode-server.enable = true;
-      services.vscode-server.enableFHS = true;
-    })
-  ];
+            home-manager.extraSpecialArgs = specialArgs;
+            home-manager.users."${myvars.username}".imports = home-modules;
+          }
+        ]
+    );
 }

@@ -1,6 +1,0 @@
-{
-  imports = [
-    ../server
-    ./development.nix
-  ];
-}

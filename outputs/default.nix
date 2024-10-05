@@ -1,4 +1,5 @@
 inputs @ { self
+, nixpkgs
 , ...
 }:
 let
@@ -6,8 +7,6 @@ let
   mylib = import ../lib { inherit lib; };
   myvars = import ../vars { inherit lib; };
 
-  nixosSystem = import ../lib/nixosSystem.nix;
-  home-module = import ../home/linux/desktop.nix;
   genSpecialArgs = system:
     inputs
     // {
@@ -23,17 +22,25 @@ let
         config.allowUnfree = true;
       };
     };
+
+  args = { inherit inputs lib mylib myvars genSpecialArgs; };
+  nixosSystems = {
+    x86_64-linux = import ./x86_64-linux (args // { system = "x86_64-linux"; });
+  };
+
+  allSystems = nixosSystems;
+  allSystemNames = builtins.attrNames allSystems;
+  nixosSystemValues = builtins.attrValues nixosSystems;
+  allSystemValues = nixosSystemValues;
+
+  # Helper function to generate a set of attributes for each system
+  forAllSystems = func: (nixpkgs.lib.genAttrs allSystemNames func);
 in
 {
-  nixosConfigurations =
-    let
-      specialArgs = genSpecialArgs "x86_64-linux";
+  # Add attribute sets into outputs, for debugging
+  debugAttrs = { inherit nixosSystems allSystems allSystemNames; };
 
-      args = {
-        inherit inputs mylib myvars specialArgs home-module;
-      };
-    in
-    {
-      DESKTOP-NixOS = nixosSystem args;
-    };
+
+  nixosConfigurations =
+    lib.attrsets.mergeAttrsList (map (it: it.nixosConfigurations or { }) nixosSystemValues);
 }

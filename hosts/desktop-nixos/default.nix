@@ -1,21 +1,17 @@
-{ config, pkgs, myvars, ... }: {
-  imports =
-    [
-      ./hardware-configuration.nix
-      ../../modules/core-desktop.nix
-      ../../modules/user-group.nix
-      ../../modules/gnome.nix
-    ];
+{ myvars, ... }:
+let
+  hostName = "DESKTOP-NixOS";
+in
+{
+  imports = [
+    ./hardware-configuration.nix
+  ];
 
-  boot.loader = {
-    efi = {
-      canTouchEfiVariables = true;
-      efiSysMountPoint = "/boot";
-    };
-    systemd-boot.enable = true;
+  networking = {
+    inherit hostName;
+
+    networkmanager.enable = true;
   };
-
-  networking.hostName = "VM-NixOS";
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

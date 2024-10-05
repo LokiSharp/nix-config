@@ -1,13 +1,4 @@
-{ config, lib, pkgs, ... }: {
-  imports = [
-    ./core-server.nix
-  ];
-
-  nixpkgs.config.allowUnfree = lib.mkForce true;
-
-  services.gnome.gnome-keyring.enable = true;
-  security.pam.services.greetd.enableGnomeKeyring = true;
-
+{ pkgs, ... }: {
   fonts = {
     enableDefaultPackages = false;
     fontDir.enable = true;

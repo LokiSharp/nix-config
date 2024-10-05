@@ -1,12 +1,7 @@
 { pkgs, ... }: {
   home.packages = with pkgs; [
-    neofetch
-    ranger
-    btop
-
-    zip
-    xz
-    unzip
+    nixpkgs-fmt
+    nixpkgs-lint
   ];
 
   programs = {

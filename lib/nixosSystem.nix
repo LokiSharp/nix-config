@@ -9,7 +9,7 @@
 , ...
 }:
 let
-  inherit (inputs) nixpkgs home-manager nixos-generators;
+  inherit (inputs) nixpkgs home-manager nixos-generators vscode-server;
 in
 nixpkgs.lib.nixosSystem {
   inherit system specialArgs;
@@ -29,6 +29,12 @@ nixpkgs.lib.nixosSystem {
             home-manager.extraSpecialArgs = specialArgs;
             home-manager.users."${myvars.username}".imports = home-modules;
           }
+	        
+          vscode-server.nixosModules.default
+          ({ config, pkgs, ... }: {
+            services.vscode-server.enable = true;
+            services.vscode-server.enableFHS = true;
+          })
         ]
     );
 }

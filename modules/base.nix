@@ -1,6 +1,5 @@
 { pkgs
 , myvars
-, nuenv
 , nixpkgs
 , lib
 , ...

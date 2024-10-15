@@ -9,6 +9,8 @@ in
 
   networking = {
     inherit hostName;
+    inherit (myvars.networking) defaultGateway nameservers;
+    inherit (myvars.networking.hostsInterface.${hostName}) interfaces;
 
     networkmanager.enable = true;
   };

@@ -1,9 +1,11 @@
 { myvars, ... }: {
 
   imports = [
-    ../base/home.nix
+    ../base/core
     ../base/tui
+    ../base/home.nix
 
     ./base
+    ./tui
   ];
 }

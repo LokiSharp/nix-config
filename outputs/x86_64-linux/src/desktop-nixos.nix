@@ -31,12 +31,12 @@ let
   modules = {
     nixos-modules =
       [
-        { }
+        { modules.desktop.wayland.enable = true; }
       ]
       ++ base-modules.nixos-modules;
     home-modules =
       [
-        { }
+        { modules.desktop.hyprland.enable = true; }
       ]
       ++ base-modules.home-modules;
   };

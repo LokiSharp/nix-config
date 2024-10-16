@@ -21,11 +21,17 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    anyrun = {
+      url = "github:Kirottu/anyrun";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     vscode-server.url = "github:nix-community/nixos-vscode-server";
   };
 
   nixConfig = {
     extra-substituters = [
+      "https://anyrun.cachix.org"
       "https://nix-community.cachix.org"
     ];
     extra-trusted-public-keys = [

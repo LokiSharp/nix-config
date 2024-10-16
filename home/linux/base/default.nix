@@ -1,5 +1,3 @@
-{
-  imports = [
-    ./system-tools.nix
-  ];
+{ mylib, ... }: {
+  imports = mylib.scanPaths ./.;
 }

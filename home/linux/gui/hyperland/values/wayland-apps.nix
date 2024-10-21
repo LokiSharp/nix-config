@@ -34,5 +34,16 @@
       # then other windows will suffer. Also, should the server process crash, all windows will be gone.
       server.enable = true;
     };
+
+    vscode = {
+      package = pkgs.vscode;
+      enable = true;
+      extensions = (with pkgs;
+        with vscode-extensions; [
+          rust-lang.rust-analyzer
+          ms-vscode.cpptools
+          ms-vscode-remote.remote-ssh
+        ]);
+    };
   };
 }

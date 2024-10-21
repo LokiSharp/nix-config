@@ -36,4 +36,31 @@ in
     source = "${package}/bin/Hyprland";
     executable = true;
   };
+
+
+  # hyprland configs, based on https://github.com/notwidow/hyprland
+  xdg.configFile = {
+    "hypr/mako" = {
+      source = ../conf/mako;
+      recursive = true;
+    };
+    "hypr/scripts" = {
+      source = ../conf/scripts;
+      recursive = true;
+    };
+    "hypr/waybar" = {
+      source = ../conf/waybar;
+      recursive = true;
+    };
+    "hypr/wlogout" = {
+      source = ../conf/wlogout;
+      recursive = true;
+    };
+
+    # music player - mpd
+    "mpd" = {
+      source = ../conf/mpd;
+      recursive = true;
+    };
+  };
 }

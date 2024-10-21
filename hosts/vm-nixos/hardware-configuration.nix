@@ -53,4 +53,5 @@
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   services.qemuGuest.enable = lib.mkDefault true;
   services.spice-vdagentd.enable = lib.mkDefault true;
+  environment.systemPackages = with pkgs; [ virglrenderer ];
 }

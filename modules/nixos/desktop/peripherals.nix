@@ -1,5 +1,4 @@
 { pkgs, ... }: {
-  sound.enable = true;
   #============================= Audio(PipeWire) =======================
 
   # List packages installed in system profile. To search, run:

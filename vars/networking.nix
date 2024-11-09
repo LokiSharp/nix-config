@@ -15,6 +15,18 @@
       iface = "enp6s18";
       ipv4 = "10.0.0.11";
     };
+    VM-Kubevirt-Node-1 = {
+      iface = "enp6s18";
+      ipv4 = "10.0.0.210";
+    };
+    VM-Kubevirt-Node-2 = {
+      iface = "enp6s18";
+      ipv4 = "10.0.0.220";
+    };
+    VM-Kubevirt-Node-3 = {
+      iface = "enp6s18";
+      ipv4 = "10.0.0.230";
+    };
   };
 
   hostsInterface = lib.attrsets.mapAttrs

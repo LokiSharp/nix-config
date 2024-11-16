@@ -27,6 +27,10 @@
       iface = "enp6s18";
       ipv4 = "10.0.0.230";
     };
+    Server-NixOS = {
+      iface = "enp6s18";
+      ipv4 = "10.0.0.12";
+    };
   };
 
   hostsInterface = lib.attrsets.mapAttrs

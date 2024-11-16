@@ -102,6 +102,16 @@ in
           };
         })
 
+        (mkIf cfg.server.operation.enable {
+          age.secrets = {
+            "alertmanager.env" =
+              {
+                file = "${mysecrets}/server/alertmanager.env.age";
+              }
+              // high_security;
+          };
+        })
+
         (mkIf cfg.server.application.enable {
           age.secrets = {
             "minio.env" = {

@@ -28,6 +28,7 @@ let
       ])
       ++ [
         { modules.secrets.server.application.enable = true; }
+        { modules.secrets.server.operation.enable = true; }
         { modules.secrets.server.webserver.enable = true; }
       ];
     home-modules = map mylib.relativeToRoot [

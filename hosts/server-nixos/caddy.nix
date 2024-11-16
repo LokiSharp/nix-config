@@ -69,6 +69,22 @@ in
         }
       }
     '';
+    # Monitoring
+    virtualHosts."prometheus.slk.moe".extraConfig = ''
+      ${hostCommonConfig}
+      encode zstd gzip
+      reverse_proxy http://localhost:9090
+    '';
+    # Do not redirect to https for api path
+    virtualHosts."http://prometheus.slk.moe/api/v1/write".extraConfig = ''
+      encode zstd gzip
+      reverse_proxy http://localhost:9090
+    '';
+    virtualHosts."alertmanager.slk.moe".extraConfig = ''
+      ${hostCommonConfig}
+      encode zstd gzip
+      reverse_proxy http://localhost:9093
+    '';
   };
   networking.firewall.allowedTCPPorts = [ 80 443 ];
 

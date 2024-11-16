@@ -273,10 +273,10 @@
     "mysecrets": {
       "flake": false,
       "locked": {
-        "lastModified": 1731764549,
-        "narHash": "sha256-E3aGHGfPXiZnu/CErAJgDpJdmuyjd133nag+OL4df8U=",
+        "lastModified": 1731775542,
+        "narHash": "sha256-uWT44Oy6Gv5Wv7IiHZPyyvIEfZMAl2673XWmPnqzTv4=",
         "ref": "refs/heads/master",
-        "rev": "e9efcdbd61f00c50793a15efc0e389047b0a181a",
+        "rev": "11cfec8e76bc3743ed7a6cff455235304a8b571c",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/LokiSharp/nix-secrets.git"

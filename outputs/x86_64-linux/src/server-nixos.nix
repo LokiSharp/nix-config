@@ -27,6 +27,7 @@ let
         "hosts/${name}"
       ])
       ++ [
+        { modules.secrets.server.application.enable = true; }
         { modules.secrets.server.webserver.enable = true; }
       ];
     home-modules = map mylib.relativeToRoot [

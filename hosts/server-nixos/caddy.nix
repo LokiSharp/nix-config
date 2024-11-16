@@ -37,6 +37,38 @@ in
         precompressed zstd br gzip
       }
     '';
+    virtualHosts."minio.slk.moe".extraConfig = ''
+      ${hostCommonConfig}
+      encode zstd gzip
+      reverse_proxy http://localhost:9096 {
+        header_up Host {http.request.host}
+        header_up X-Real-IP {http.request.remote.host}
+        header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
+        header_up X-Forwarded-Proto {scheme}
+        transport http {
+            dial_timeout 300s
+            read_timeout 300s
+            write_timeout 300s
+        }
+      }
+    '';
+    virtualHosts."minio-ui.slk.moe".extraConfig = ''
+      ${hostCommonConfig}
+      encode zstd gzip
+      reverse_proxy http://localhost:9097 {
+        header_up Host {http.request.host}
+        header_up X-Real-IP {http.request.remote.host}
+        header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
+        header_up X-Forwarded-Proto {scheme}
+        header_up Upgrade {http.request.header.Upgrade}
+        header_up Connection {http.request.header.Connection}
+        transport http {
+            dial_timeout 300s
+            read_timeout 300s
+            write_timeout 300s
+        }
+      }
+    '';
   };
   networking.firewall.allowedTCPPorts = [ 80 443 ];
 

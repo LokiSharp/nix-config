@@ -102,6 +102,16 @@ in
           };
         })
 
+        (mkIf cfg.server.application.enable {
+          age.secrets = {
+            "minio.env" = {
+              file = "${mysecrets}/server/minio.env.age";
+              mode = "0400";
+              owner = "minio";
+            };
+          };
+        })
+
         (mkIf cfg.server.webserver.enable {
           age.secrets = {
             "caddy-ecc-server.key" = {

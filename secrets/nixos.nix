@@ -109,6 +109,11 @@ in
               mode = "0400";
               owner = "caddy";
             };
+            "postgres-ecc-server.key" = {
+              file = "${mysecrets}/certs/ecc-server.key.age";
+              mode = "0400";
+              owner = "postgres";
+            };
           };
         })
       ]);

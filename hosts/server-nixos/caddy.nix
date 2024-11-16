@@ -69,6 +69,18 @@ in
         }
       }
     '';
+
+    virtualHosts."sftpgo.slk.moe".extraConfig = ''
+      ${hostCommonConfig}
+      encode zstd gzip
+      reverse_proxy http://localhost:3302
+    '';
+    virtualHosts."webdav.slk.moe".extraConfig = ''
+      ${hostCommonConfig}
+      encode zstd gzip
+      reverse_proxy http://localhost:3303
+    '';
+
     # Monitoring
     virtualHosts."grafana.slk.moe".extraConfig = ''
       ${hostCommonConfig}

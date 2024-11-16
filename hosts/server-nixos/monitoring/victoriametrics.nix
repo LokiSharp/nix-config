@@ -51,6 +51,20 @@
               }
             ];
           }
+
+          {
+            job_name = "sftpgo-embedded-exporter";
+            scrape_interval = "30s";
+            metrics_path = "/metrics";
+            static_configs = [
+              {
+                targets = [ "${myvars.networking.hostsAddr.Server-NixOS.ipv4}:10000" ];
+                labels.type = "app";
+                labels.app = "sftpgo";
+                labels.host = "Server-NixOS";
+              }
+            ];
+          }
         ]
         # --- Hosts --- #
         ++ (

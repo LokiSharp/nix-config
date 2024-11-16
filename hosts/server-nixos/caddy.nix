@@ -70,6 +70,11 @@ in
       }
     '';
     # Monitoring
+    virtualHosts."grafana.slk.moe".extraConfig = ''
+      ${hostCommonConfig}
+      encode zstd gzip
+      reverse_proxy http://localhost:3351
+    '';
     virtualHosts."prometheus.slk.moe".extraConfig = ''
       ${hostCommonConfig}
       encode zstd gzip

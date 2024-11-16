@@ -104,6 +104,12 @@ in
 
         (mkIf cfg.server.operation.enable {
           age.secrets = {
+            "grafana-admin-password" = {
+              file = "${mysecrets}/server/grafana-admin-password.age";
+              mode = "0400";
+              owner = "grafana";
+            };
+
             "alertmanager.env" =
               {
                 file = "${mysecrets}/server/alertmanager.env.age";

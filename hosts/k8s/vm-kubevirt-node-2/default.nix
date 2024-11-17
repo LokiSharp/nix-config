@@ -1,4 +1,5 @@
-{ pkgs
+{ config
+, pkgs
 , mylib
 , myvars
 , disko
@@ -14,7 +15,7 @@ let
   k3sModule = mylib.genK3sServerModule {
     inherit pkgs;
     kubeconfigFile = "/home/${myvars.username}/.kube/config";
-    tokenFile = "/run/mount/nixos_k3s/kubevirt-k3s-token";
+    tokenFile = config.age.secrets."kubevirt-k3s-token".path;
     # use my own domain & kube-vip's virtual IP for the API server
     # so that the API server can always be accessed even if some nodes are down
     masterHost = "kubevirt-cluster-1.slk.moe";
@@ -57,6 +58,6 @@ in
     # NOTE: the hugepages allocated here can not be used for other purposes!
     # so we should left some memory for the host OS and other vms that don't use hugepages
     "hugepagesz=1G"
-    "hugepages=6"
+    "hugepages=12"
   ];
 }

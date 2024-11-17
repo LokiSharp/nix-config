@@ -88,6 +88,12 @@ in
 
         (mkIf cfg.server.kubernetes.enable {
           age.secrets = {
+            "kubevirt-k3s-token" =
+              {
+                file = "${mysecrets}/server/kubevirt-k3s-token.age";
+              }
+              // high_security;
+
             "k3s-prod-1-token" =
               {
                 file = "${mysecrets}/server/k3s-prod-1-token.age";
@@ -144,6 +150,9 @@ in
               file = "${mysecrets}/certs/ecc-server.key.age";
               mode = "0400";
               owner = "postgres";
+            };
+            "cloudflare-api-token" = {
+              file = "${mysecrets}/server/cloudflare-api-token.age";
             };
           };
         })

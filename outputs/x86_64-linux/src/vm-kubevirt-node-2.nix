@@ -20,12 +20,16 @@ let
     nixos-modules =
       (map mylib.relativeToRoot [
         # common
+        "secrets/nixos.nix"
         "modules/nixos/server/server.nix"
         # host specific
         "hosts/k8s/${name}"
       ])
       ++ [
-        # {modules.secrets.server.kubernetes.enable = true;}
+        {
+          modules.secrets.server.kubernetes.enable = true;
+          modules.secrets.impermanence.enable = true;
+        }
       ];
   };
 

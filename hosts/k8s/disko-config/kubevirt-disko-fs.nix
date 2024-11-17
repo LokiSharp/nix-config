@@ -2,12 +2,6 @@
   # required by impermanence
   fileSystems."/persistent".neededForBoot = true;
 
-  fileSystems."/run/mount/nixos_k3s" = {
-    device = "/dev/disk/by-label/NIXOS_K3S";
-    fsType = "vfat";
-    options = [ "ro" ];
-  };
-
   disko.devices = {
     nodev."/" = {
       fsType = "tmpfs";

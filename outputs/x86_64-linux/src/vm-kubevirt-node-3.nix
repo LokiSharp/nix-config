@@ -13,7 +13,7 @@
 let
   name = "vm-kubevirt-node-3";
   hostName = "VM-Kubevirt-Node-3";
-  tags = [ name ];
+  tags = [ name hostName "virt-node-3" ];
   ssh-user = "root";
 
   modules = {

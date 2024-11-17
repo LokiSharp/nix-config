@@ -13,7 +13,7 @@
 let
   name = "server-nixos";
   hostName = "Server-NixOS";
-  tags = [ name ];
+  tags = [ name hostName "homelab-network" ];
   ssh-user = "root";
 
   modules = {

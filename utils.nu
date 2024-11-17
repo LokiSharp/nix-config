@@ -35,6 +35,6 @@ export def upload-vm [
         nix build $target
     }
 
-    let remote = $"loki-sharp@Server-NixOS:/data/caddy/fileserver/vms/($name).qcow2"
-    rsync -avz --progress --copy-links --checksum result $remote
+    let remote = $"root@Server-NixOS:/data/apps/caddy/fileserver/vms/($name).qcow2"
+    rsync -avz --progress --copy-links --checksum result/nixos.qcow2 $remote
 }

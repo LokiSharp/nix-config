@@ -174,3 +174,24 @@ Server-NixOS-local mode="default":
   #!/usr/bin/env nu
   use {{utils_nu}} *; 
   nixos-switch Server-NixOS {{mode}}
+
+############################################################################
+#
+# Kubernetes related commands
+#
+############################################################################
+
+# Build and upload a vm image
+[linux]
+[group('homelab')]
+upload-k3s-test mode="default":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *; 
+  upload-vm K3S-Test-1-Master-1 {{mode}}; 
+  upload-vm K3S-Test-1-Master-2 {{mode}}; 
+  upload-vm K3S-Test-1-Master-3 {{mode}};
+
+[linux]
+[group('homelab')]
+k3s-test:
+  colmena apply --on '@k3s-test-*' --verbose --show-trace

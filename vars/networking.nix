@@ -27,6 +27,20 @@
       iface = "enp6s18";
       ipv4 = "10.0.0.230";
     };
+
+    K3S-Test-1-Master-1 = {
+      iface = "enp2s0";
+      ipv4 = "10.0.0.101";
+    };
+    K3S-Test-1-Master-2 = {
+      iface = "enp2s0";
+      ipv4 = "10.0.0.102";
+    };
+    K3S-Test-1-Master-3 = {
+      iface = "enp2s0";
+      ipv4 = "10.0.0.103";
+    };
+
     Server-NixOS = {
       iface = "enp6s18";
       ipv4 = "10.0.0.12";

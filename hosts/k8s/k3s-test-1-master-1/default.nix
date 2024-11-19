@@ -20,6 +20,7 @@ let
     masterHost = "test-cluster-1.slk.moe";
     # the first node in the cluster should be the one to initialize the cluster
     clusterInit = true;
+    disableFlannel = false;
   };
 in
 {

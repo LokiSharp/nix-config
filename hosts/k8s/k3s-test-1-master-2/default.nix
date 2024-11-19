@@ -18,6 +18,7 @@ let
     # use my own domain & kube-vip's virtual IP for the API server
     # so that the API server can always be accessed even if some nodes are down
     masterHost = "test-cluster-1.slk.moe";
+    disableFlannel = false;
   };
 in
 {

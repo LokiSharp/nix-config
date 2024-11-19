@@ -49,17 +49,4 @@ in
       coreModule
       k3sModule
     ];
-
-  boot.kernelParams = [
-    # disable transparent hugepage(allocate hugepages dynamically)
-    "transparent_hugepage=never"
-
-    # https://kubevirt.io/user-guide/compute/hugepages/
-    #
-    # pre-allocate hugepages manually(for kubevirt guest vms)
-    # NOTE: the hugepages allocated here can not be used for other purposes!
-    # so we should left some memory for the host OS and other vms that don't use hugepages
-    "hugepagesz=1G"
-    "hugepages=12"
-  ];
 }

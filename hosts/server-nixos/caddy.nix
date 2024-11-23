@@ -28,6 +28,12 @@ in
       auto_https   disable_certs
     '';
 
+    # Dashboard
+    virtualHosts."homepage.slk.moe".extraConfig = ''
+      ${hostCommonConfig}
+      reverse_proxy http://localhost:54401
+    '';
+
     # https://caddyserver.com/docs/caddyfile/directives/file_server
     virtualHosts."file.slk.moe".extraConfig = ''
       root * /data/apps/caddy/fileserver/

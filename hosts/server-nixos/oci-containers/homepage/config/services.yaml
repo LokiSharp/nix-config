@@ -1,0 +1,50 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/latest/configs/services
+#
+# Icons:
+#   1. .png/.svg: will be referenced from https://github.com/walkxcode/dashboard-icons
+#   2. mdi-XXX:   https://pictogrammers.com/library/mdi/
+#   3. si-XXX:    https://simpleicons.org/
+- KubeVirt 虚拟化集群:
+    - VM-Kubevirt-Node-1:
+        icon: mdi-server
+        href: https://grafana.slk.moe/d/rYdddlPWk/node-exporter-full?var-job=node-exporter-VM-Kubevirt-Node-1&orgId=1&var-node=10.0.0.210:9100
+        siteMonitor: https://grafana.slk.moe/d/rYdddlPWk/node-exporter-full?var-job=node-exporter-VM-Kubevirt-Node-1&orgId=1&var-node=10.0.0.210:9100
+    - VM-Kubevirt-Node-2:
+        icon: mdi-server
+        href: https://grafana.slk.moe/d/rYdddlPWk/node-exporter-full?var-job=node-exporter-VM-Kubevirt-Node-2&orgId=1&var-node=10.0.0.220:9100
+        siteMonitor: https://grafana.slk.moe/d/rYdddlPWk/node-exporter-full?var-job=node-exporter-VM-Kubevirt-Node-2&orgId=1&var-node=10.0.0.220:9100
+    - VM-Kubevirt-Node-3:
+        icon: mdi-server
+        href: https://grafana.slk.moe/d/rYdddlPWk/node-exporter-full?var-job=node-exporter-VM-Kubevirt-Node-3&orgId=1&var-node=10.0.0.230:9100
+        siteMonitor: https://grafana.slk.moe/d/rYdddlPWk/node-exporter-full?var-job=node-exporter-VM-Kubevirt-Node-3&orgId=1&var-node=10.0.0.230:9100
+
+- Homelab Monitoring:
+    - Grafana:
+        icon: grafana.svg
+        href: https://grafana.slk.moe
+        description: Data visualised on dashboards
+        siteMonitor: https://grafana.slk.moe
+    - Prometheus Dashboard:
+        icon: prometheus.svg
+        href: https://prometheus.slk.moe
+        description: Monitoring - Prometheus
+        siteMonitor: https://prometheus.slk.moe
+
+- Homelab Applications:
+    - SFTPGO:
+        icon: sftpgo.png
+        href: "https://sftpgo.slk.moe/web/admin/folders"
+        description: WebDAV & SFTP server
+        siteMonitor: https://sftpgo.slk.moe/
+    - MinIO:
+        icon: minio.png
+        href: "https://minio-ui.slk.moe/"
+        description: S3 compatible object storage
+        siteMonitor: "https://minio-ui.slk.moe/"
+    - Gitea:
+        icon: gitea.png
+        href: "https://git.slk.moe/"
+        description: Gitea - Git with a cup of tea
+        siteMonitor: "https://git.slk.moe/"

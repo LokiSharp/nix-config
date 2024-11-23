@@ -70,6 +70,11 @@ in
       }
     '';
 
+    virtualHosts."git.slk.moe".extraConfig = ''
+      ${hostCommonConfig}
+      encode zstd gzip
+      reverse_proxy http://localhost:3301
+    '';
     virtualHosts."sftpgo.slk.moe".extraConfig = ''
       ${hostCommonConfig}
       encode zstd gzip

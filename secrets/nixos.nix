@@ -136,6 +136,11 @@ in
               mode = "0400";
               owner = "sftpgo";
             };
+            "gitea-db-password" = {
+              file = "${mysecrets}/server/gitea-db-password";
+              mode = "0400";
+              owner = "gitea";
+            };
           };
         })
 

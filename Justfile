@@ -193,5 +193,22 @@ upload-k3s-test mode="default":
 
 [linux]
 [group('homelab')]
+upload-k3s-prod mode="default":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *; 
+  upload-vm K3S-Prod-1-Master-1 {{mode}}; 
+  upload-vm K3S-Prod-1-Master-2 {{mode}}; 
+  upload-vm K3S-Prod-1-Master-3 {{mode}};
+  upload-vm K3S-Prod-1-Worker-1 {{mode}}; 
+  upload-vm K3S-Prod-1-Worker-2 {{mode}}; 
+  upload-vm K3S-Prod-1-Worker-3 {{mode}};
+
+[linux]
+[group('homelab')]
 k3s-test:
   colmena apply --on '@k3s-test-*' --verbose --show-trace
+
+[linux]
+[group('homelab')]
+k3s-prod:
+  colmena apply --on '@k3s-prod-*' --verbose --show-trace

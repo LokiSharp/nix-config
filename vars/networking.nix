@@ -41,6 +41,31 @@
       ipv4 = "10.0.0.103";
     };
 
+    K3S-Prod-1-Master-1 = {
+      iface = "enp2s0";
+      ipv4 = "10.0.0.104";
+    };
+    K3S-Prod-1-Master-2 = {
+      iface = "enp2s0";
+      ipv4 = "10.0.0.105";
+    };
+    K3S-Prod-1-Master-3 = {
+      iface = "enp2s0";
+      ipv4 = "10.0.0.106";
+    };
+    K3S-Prod-1-Worker-1 = {
+      iface = "enp2s0";
+      ipv4 = "10.0.0.107";
+    };
+    K3S-Prod-1-Worker-2 = {
+      iface = "enp2s0";
+      ipv4 = "10.0.0.108";
+    };
+    K3S-Prod-1-Worker-3 = {
+      iface = "enp2s0";
+      ipv4 = "10.0.0.109";
+    };
+
     Server-NixOS = {
       iface = "enp6s18";
       ipv4 = "10.0.0.12";

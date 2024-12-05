@@ -22,12 +22,15 @@ let
         # common
         "secrets/nixos.nix"
         "modules/nixos/server/server.nix"
-        "modules/nixos/server/kubevirt-hardware-configuration.nix"
+        "modules/nixos/server/proxmox-hardware-configuration.nix"
         # host specific
         "hosts/k8s/${name}"
       ])
       ++ [
-        { modules.secrets.server.kubernetes.enable = true; }
+        {
+          modules.secrets.server.kubernetes.enable = true;
+          modules.secrets.impermanence.enable = true;
+        }
       ];
     home-modules = map mylib.relativeToRoot [
       "home/linux/core.nix"
@@ -42,5 +45,5 @@ in
   colmena.${hostName} =
     mylib.colmenaSystem (systemArgs // { inherit tags ssh-user; });
 
-  packages.${hostName} = inputs.self.nixosConfigurations.${hostName}.config.formats.kubevirt;
+  packages.${hostName} = inputs.self.nixosConfigurations.${hostName}.config.formats.iso;
 }

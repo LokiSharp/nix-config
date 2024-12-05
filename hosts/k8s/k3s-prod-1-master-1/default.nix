@@ -2,6 +2,7 @@
 , pkgs
 , myvars
 , mylib
+, disko
 , ...
 }:
 let
@@ -27,6 +28,9 @@ in
   imports =
     (mylib.scanPaths ./.)
     ++ [
+      disko.nixosModules.default
+      ../disko-config/k3s-node-disko-fs.nix
+      ../impermanence.nix
       coreModule
       k3sModule
     ];

@@ -15,55 +15,43 @@
       iface = "enp6s18";
       ipv4 = "10.0.0.11";
     };
-    VM-Kubevirt-Node-1 = {
-      iface = "enp6s18";
-      ipv4 = "10.0.0.210";
-    };
-    VM-Kubevirt-Node-2 = {
-      iface = "enp6s18";
-      ipv4 = "10.0.0.220";
-    };
-    VM-Kubevirt-Node-3 = {
-      iface = "enp6s18";
-      ipv4 = "10.0.0.230";
-    };
 
     K3S-Test-1-Master-1 = {
-      iface = "enp2s0";
-      ipv4 = "10.0.0.101";
+      iface = "enp6s18";
+      ipv4 = "10.0.10.1";
     };
     K3S-Test-1-Master-2 = {
-      iface = "enp2s0";
-      ipv4 = "10.0.0.102";
+      iface = "enp6s18";
+      ipv4 = "10.0.10.2";
     };
     K3S-Test-1-Master-3 = {
-      iface = "enp2s0";
-      ipv4 = "10.0.0.103";
+      iface = "enp6s18";
+      ipv4 = "10.0.10.3";
     };
 
     K3S-Prod-1-Master-1 = {
-      iface = "enp2s0";
-      ipv4 = "10.0.0.104";
+      iface = "enp6s18";
+      ipv4 = "10.0.20.1";
     };
     K3S-Prod-1-Master-2 = {
-      iface = "enp2s0";
-      ipv4 = "10.0.0.105";
+      iface = "enp6s18";
+      ipv4 = "10.0.20.2";
     };
     K3S-Prod-1-Master-3 = {
-      iface = "enp2s0";
-      ipv4 = "10.0.0.106";
+      iface = "enp6s18";
+      ipv4 = "10.0.20.3";
     };
     K3S-Prod-1-Worker-1 = {
-      iface = "enp2s0";
-      ipv4 = "10.0.0.107";
+      iface = "enp6s18";
+      ipv4 = "10.0.30.1";
     };
     K3S-Prod-1-Worker-2 = {
-      iface = "enp2s0";
-      ipv4 = "10.0.0.108";
+      iface = "enp6s18";
+      ipv4 = "10.0.30.2";
     };
     K3S-Prod-1-Worker-3 = {
-      iface = "enp2s0";
-      ipv4 = "10.0.0.109";
+      iface = "enp6s18";
+      ipv4 = "10.0.30.3";
     };
 
     Server-NixOS = {

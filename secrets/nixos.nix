@@ -88,12 +88,6 @@ in
 
         (mkIf cfg.server.kubernetes.enable {
           age.secrets = {
-            "kubevirt-k3s-token" =
-              {
-                file = "${mysecrets}/server/kubevirt-k3s-token.age";
-              }
-              // high_security;
-
             "k3s-prod-1-token" =
               {
                 file = "${mysecrets}/server/k3s-prod-1-token.age";

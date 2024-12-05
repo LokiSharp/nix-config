@@ -90,75 +90,6 @@ repair-store *paths:
 
 ############################################################################
 #
-#  Homelab - Kubevirt Cluster related commands
-#
-############################################################################
-
-# Remote deployment via colmena
-[linux]
-[group('homelab')]
-col tag:
-  colmena apply --on '@{{tag}}' --verbose --show-trace
-
-[linux]
-[group('homelab')]
-local name mode="default":
-  #!/usr/bin/env nu
-  use {{utils_nu}} *;
-  nixos-switch {{name}} {{mode}}
-
-# Build and upload a vm image
-[linux]
-[group('homelab')]
-upload-vm name mode="default":
-  #!/usr/bin/env nu
-  use {{utils_nu}} *;
-  upload-vm {{name}} {{mode}}
-
-# Deploy all the KubeVirt nodes(Physical machines running KubeVirt)
-[linux]
-[group('homelab')]
-lab:
-  colmena apply --on '@virt-*' --verbose --show-trace
-
-[linux]
-[group('homelab')]
-VM-Kubevirt-Node-1:
-  colmena apply --on '@VM-Kubevirt-Node-1' --verbose --show-trace
-
-[linux]
-[group('homelab')]
-VM-Kubevirt-Node-1-local mode="default":
-  #!/usr/bin/env nu
-  use {{utils_nu}} *; 
-  nixos-switch VM-Kubevirt-Node-1 {{mode}}
-
-[linux]
-[group('homelab')]
-VM-Kubevirt-Node-2:
-  colmena apply --on '@VM-Kubevirt-Node-2' --verbose --show-trace
-
-[linux]
-[group('homelab')]
-VM-Kubevirt-Node-2-local mode="default":
-  #!/usr/bin/env nu
-  use {{utils_nu}} *; 
-  nixos-switch VM-Kubevirt-Node-2 {{mode}}
-
-[linux]
-[group('homelab')]
-VM-Kubevirt-Node-3:
-  colmena apply --on '@VM-Kubevirt-Node-3' --verbose --show-trace
-
-[linux]
-[group('homelab')]
-VM-Kubevirt-Node-3-local mode="default":
-  #!/usr/bin/env nu
-  use {{utils_nu}} *; 
-  nixos-switch VM-Kubevirt-Node-3 {{mode}}
-
-############################################################################
-#
 # Commands for other Virtual Machines
 #
 ############################################################################
@@ -187,21 +118,21 @@ Server-NixOS-local mode="default":
 upload-k3s-test mode="default":
   #!/usr/bin/env nu
   use {{utils_nu}} *; 
-  upload-vm K3S-Test-1-Master-1 {{mode}}; 
-  upload-vm K3S-Test-1-Master-2 {{mode}}; 
-  upload-vm K3S-Test-1-Master-3 {{mode}};
+  upload-iso K3S-Test-1-Master-1 {{mode}}; 
+  upload-iso K3S-Test-1-Master-2 {{mode}}; 
+  upload-iso K3S-Test-1-Master-3 {{mode}};
 
 [linux]
 [group('homelab')]
 upload-k3s-prod mode="default":
   #!/usr/bin/env nu
   use {{utils_nu}} *; 
-  upload-vm K3S-Prod-1-Master-1 {{mode}}; 
-  upload-vm K3S-Prod-1-Master-2 {{mode}}; 
-  upload-vm K3S-Prod-1-Master-3 {{mode}};
-  upload-vm K3S-Prod-1-Worker-1 {{mode}}; 
-  upload-vm K3S-Prod-1-Worker-2 {{mode}}; 
-  upload-vm K3S-Prod-1-Worker-3 {{mode}};
+  upload-iso K3S-Prod-1-Master-1 {{mode}}; 
+  upload-iso K3S-Prod-1-Master-2 {{mode}}; 
+  upload-iso K3S-Prod-1-Master-3 {{mode}};
+  upload-iso K3S-Prod-1-Worker-1 {{mode}}; 
+  upload-iso K3S-Prod-1-Worker-2 {{mode}}; 
+  upload-iso K3S-Prod-1-Worker-3 {{mode}};
 
 [linux]
 [group('homelab')]

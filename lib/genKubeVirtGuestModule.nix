@@ -6,7 +6,7 @@
 let
   inherit (networking) defaultGateway nameservers;
   inherit (networking.hostsAddr.${hostName}) iface ipv4;
-  ipv4WithMask = "${ipv4}/24";
+  ipv4WithMask = "${ipv4}/16";
 in
 {
   # supported file systems, so we can mount any removable disks with these filesystems

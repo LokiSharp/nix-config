@@ -38,3 +38,19 @@ export def upload-vm [
     let remote = $"root@Server-NixOS:/data/apps/caddy/fileserver/vms/($name).qcow2"
     rsync -avz --progress --copy-links --checksum result/nixos.qcow2 $remote
 }
+
+# Build and upload a ISO
+export def upload-iso [
+    name: string
+    mode: string
+] {
+    let target = $".#($name)"
+    if "debug" == $mode {
+        nom build $target --show-trace --verbose
+    } else {
+        nix build $target
+    }
+
+    let remote = $"root@Server-NixOS:/data/apps/caddy/fileserver/vms/($name).iso"
+    rsync -avz --progress --copy-links --checksum result/nixos.iso $remote
+}

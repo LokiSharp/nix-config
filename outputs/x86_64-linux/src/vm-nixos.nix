@@ -16,6 +16,7 @@ let
   base-modules = {
     nixos-modules = map mylib.relativeToRoot [
       # common
+      "secrets/nixos.nix"
       "modules/nixos/desktop.nix"
       # host specific
       "hosts/${name}"
@@ -33,6 +34,7 @@ let
       [
         {
           modules.desktop.wayland.enable = true;
+          modules.secrets.desktop.enable = true;
         }
       ]
       ++ base-modules.nixos-modules;

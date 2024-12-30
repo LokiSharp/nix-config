@@ -9,6 +9,14 @@
 with lib; let
   cfg = config.modules.secrets;
 
+  enabledServerSecrets =
+    cfg.server.application.enable
+    || cfg.server.network.enable
+    || cfg.server.operation.enable
+    || cfg.server.kubernetes.enable
+    || cfg.server.webserver.enable
+    || cfg.server.storage.enable;
+
   noaccess = {
     mode = "0000";
     owner = "root";
@@ -43,13 +51,7 @@ in
   config =
     mkIf
       (
-        cfg.desktop.enable
-        || cfg.server.application.enable
-        || cfg.server.network.enable
-        || cfg.server.operation.enable
-        || cfg.server.kubernetes.enable
-        || cfg.server.webserver.enable
-        || cfg.server.storage.enable
+        cfg.desktop.enable || enabledServerSecrets
       )
       (mkMerge [
         {
@@ -72,19 +74,33 @@ in
           assertions = [
             {
               # This expression should be true to pass the assertion
-              assertion =
-                !(cfg.desktop.enable
-                  && (
-                  cfg.server.application.enable
-                    || cfg.server.network.enable
-                    || cfg.server.operation.enable
-                    || cfg.server.kubernetes.enable
-                    || cfg.server.webserver.enable
-                ));
+              assertion = !(cfg.desktop.enable && enabledServerSecrets);
               message = "Enable either desktop or server's secrets, not both!";
             }
           ];
         }
+
+        (mkIf cfg.desktop.enable {
+          age.secrets = {
+            # ---------------------------------------------
+            # no one can read/write this file, even root.
+            # ---------------------------------------------
+
+            # .age means the decrypted file is still encrypted by age(via a passphrase)
+            "LokiSharp-gpg-subkeys-2024-12-30.priv.age" =
+              {
+                file = "${mysecrets}/LokiSharp-gpg-subkeys-2024-12-30.priv.age.age";
+              }
+              // noaccess;
+          };
+
+          environment.etc = {
+            "agenix/LokiSharp-gpg-subkeys-2024-12-30.priv.age" = {
+              source = config.age.secrets."LokiSharp-gpg-subkeys-2024-12-30.priv.age".path;
+              mode = "0000";
+            };
+          };
+        })
 
         (mkIf cfg.server.kubernetes.enable {
           age.secrets = {

@@ -6,6 +6,7 @@
 , myvars
 , system
 , tags
+, targetHost ? null
 , ssh-user
 , genSpecialArgs
 , specialArgs ? (genSpecialArgs system)
@@ -18,7 +19,7 @@ in
   deployment = {
     inherit tags;
     targetUser = ssh-user;
-    targetHost = name; # hostName or IP address
+    targetHost = if targetHost == null then name else targetHost; # hostName or IP address
   };
 
   imports =

@@ -108,6 +108,36 @@ Server-NixOS-local mode="default":
 
 ############################################################################
 #
+# Commands for Virtual Private Server
+#
+############################################################################
+
+[linux]
+[group('vps')]
+RackNerd-US-NY:
+  colmena apply --on '@RackNerd-US-NY' --verbose --show-trace
+
+[linux]
+[group('vps')]
+RackNerd-US-NY-local mode="default":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *; 
+  nixos-switch RackNerd-US-NY {{mode}}
+
+[linux]
+[group('vps')]
+RackNerd-US-SJ:
+  colmena apply --on '@RackNerd-US-SJ' --verbose --show-trace
+
+[linux]
+[group('vps')]
+RackNerd-US-SJ-local mode="default":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *; 
+  nixos-switch RackNerd-US-SJ {{mode}}
+
+############################################################################
+#
 # Kubernetes related commands
 #
 ############################################################################

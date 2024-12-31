@@ -85,6 +85,15 @@
                     mountpoint = "/snapshots";
                     mountOptions = [ "compress-force=zstd:1" "noatime" ];
                   };
+                  "@swap" = {
+                    mountpoint = "/swap";
+                    mountOptions = [
+                      "noatime"
+                      "nodatacow" # 禁用 CoW
+                      "nodatasum" # 禁用校验和
+                      "nocompress" # 禁用压缩
+                    ];
+                  };
                 };
               };
             };

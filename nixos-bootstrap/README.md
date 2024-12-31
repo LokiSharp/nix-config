@@ -26,7 +26,7 @@
 
     运行 `parted` 命令扩容分区：
     ```sh
-    parted /dev/sda resizepart 3 100%
+    parted /dev/vda resizepart 3 100%
     ```
     运行文件系统命令扩容文件系统：
     ```sh

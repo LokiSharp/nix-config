@@ -11,20 +11,20 @@
 , ...
 } @ args:
 let
-  name = "desktop-nixos";
   hostName = "DESKTOP-NixOS";
+  hostNameLower = lib.toLower hostName;
   base-modules = {
     nixos-modules = map mylib.relativeToRoot [
       # common
       "modules/nixos/desktop.nix"
       # host specific
-      "hosts/${name}"
+      "hosts/${hostNameLower}"
     ];
     home-modules = map mylib.relativeToRoot [
       # common
       "home/linux/gui.nix"
       # host specific
-      "hosts/${name}/home.nix"
+      "hosts/${hostNameLower}/home.nix"
     ];
   };
 

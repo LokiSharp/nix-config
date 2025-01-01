@@ -11,9 +11,9 @@
 , ...
 } @ args:
 let
-  name = "server-nixos";
   hostName = "Server-NixOS";
-  tags = [ name hostName "homelab-network" ];
+  hostNameLower = lib.toLower hostName;
+  tags = [ hostName hostNameLower "homelab-network" ];
   ssh-user = "root";
 
   modules = {
@@ -24,7 +24,7 @@ let
         "modules/nixos/server.nix"
         "modules/nixos/hardware-configuration/proxmox-hardware-configuration.nix"
         # host specific
-        "hosts/${name}"
+        "hosts/${hostNameLower}"
       ])
       ++ [
         { modules.secrets.server.application.enable = true; }

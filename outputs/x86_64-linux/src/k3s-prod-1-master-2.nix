@@ -11,9 +11,9 @@
 , ...
 } @ args:
 let
-  name = "k3s-prod-1-master-2";
   hostName = "K3S-Prod-1-Master-2";
-  tags = [ name hostName ];
+  hostNameLower = lib.toLower hostName;
+  tags = [ hostName hostNameLower "k3s" ];
   ssh-user = "root";
 
   modules = {
@@ -24,7 +24,7 @@ let
         "modules/nixos/server.nix"
         "modules/nixos/hardware-configuration/proxmox-hardware-configuration.nix"
         # host specific
-        "hosts/k8s/${name}"
+        "hosts/k8s/${hostNameLower}"
       ])
       ++ [
         {

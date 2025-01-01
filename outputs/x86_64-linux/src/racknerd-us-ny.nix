@@ -11,10 +11,10 @@
 , ...
 } @ args:
 let
-  name = "racknerd-us-ny";
   hostName = "RackNerd-US-NY";
+  hostNameLower = lib.toLower hostName;
+  tags = [ hostName hostNameLower "vps" ];
   targetHost = "racknerd-us-ny.slk.moe";
-  tags = [ name hostName "vps" ];
   ssh-user = "root";
 
   modules = {
@@ -25,7 +25,7 @@ let
         "modules/nixos/server.nix"
         "modules/nixos/hardware-configuration/vps-hardware-configuration.nix"
         # host specific
-        "hosts/vps/${name}"
+        "hosts/vps/${hostNameLower}"
       ])
       ++ [
         {

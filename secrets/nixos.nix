@@ -15,7 +15,8 @@ with lib; let
     || cfg.server.operation.enable
     || cfg.server.kubernetes.enable
     || cfg.server.webserver.enable
-    || cfg.server.storage.enable;
+    || cfg.server.storage.enable
+    || cfg.server.dn42.enable;
 
   noaccess = {
     mode = "0000";
@@ -44,6 +45,7 @@ in
     server.kubernetes.enable = mkEnableOption "NixOS Secrets for Kubernetes";
     server.webserver.enable = mkEnableOption "NixOS Secrets for Web Servers(contains tls cert keys)";
     server.storage.enable = mkEnableOption "NixOS Secrets for HDD Data's LUKS Encryption";
+    server.dn42.enable = mkEnableOption "NixOS Secrets for DN42";
 
     impermanence.enable = mkEnableOption "whether use impermanence and ephemeral root file system";
   };
@@ -168,6 +170,14 @@ in
             };
             "cloudflare-api-token" = {
               file = "${mysecrets}/server/cloudflare-api-token.age";
+            };
+          };
+        })
+
+        (mkIf cfg.server.dn42.enable {
+          age.secrets = {
+            "wg-priv" = {
+              file = "${mysecrets}/server/wg-priv.age";
             };
           };
         })

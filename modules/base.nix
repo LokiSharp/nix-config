@@ -51,6 +51,8 @@
     tree
     gnutar
     rsync
+
+    wireguard-tools
   ];
 
   users.users.${myvars.username} = {

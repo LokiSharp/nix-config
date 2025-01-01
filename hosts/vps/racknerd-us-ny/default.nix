@@ -15,6 +15,8 @@ in
       disko.nixosModules.default
       ../disko-config/vps-disko-fs.nix
       ../impermanence.nix
+    ] ++ map mylib.relativeToRoot [
+      "modules/nixos/server/dn42"
     ];
 
   systemd.network.enable = true;

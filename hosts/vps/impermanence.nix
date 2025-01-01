@@ -23,6 +23,7 @@
       "/etc/ssh"
       "/etc/nix/inputs"
       "/etc/secureboot" # lanzaboote - secure boot
+      "/etc/bird" # bird2
       # my secrets
       "/etc/agenix/"
 

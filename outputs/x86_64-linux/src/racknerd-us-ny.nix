@@ -27,7 +27,12 @@ let
         # host specific
         "hosts/vps/${name}"
       ])
-      ++ [ ];
+      ++ [
+        {
+          modules.secrets.server.dn42.enable = true;
+          modules.secrets.impermanence.enable = true;
+        }
+      ];
     home-modules = map mylib.relativeToRoot [
       "home/linux/core.nix"
     ];

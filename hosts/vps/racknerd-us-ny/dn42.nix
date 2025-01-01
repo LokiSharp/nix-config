@@ -1,7 +1,4 @@
 { config, inputs, ... }:
-let
-  myIPv4 = "172.20.190.2";
-in
 {
   services.dn42 = {
     sunnet = {
@@ -16,7 +13,6 @@ in
       addressing = {
         peerIPv4 = "172.21.100.193";
         peerIPv6LinkLocal = "fe80::3088:193";
-        inherit myIPv4;
       };
     };
   };

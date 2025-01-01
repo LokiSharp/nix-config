@@ -9,15 +9,14 @@ let
   hostName = "RackNerd-US-NY";
 in
 {
-  imports =
-    (mylib.scanPaths ./.)
-    ++ [
-      disko.nixosModules.default
-      ../disko-config/vps-disko-fs.nix
-      ../impermanence.nix
-    ] ++ map mylib.relativeToRoot [
-      "modules/nixos/server/dn42"
-    ];
+  imports = [
+    disko.nixosModules.default
+    ../disko-config/vps-disko-fs.nix
+    ../impermanence.nix
+    ./dn42.nix
+  ] ++ map mylib.relativeToRoot [
+    "modules/nixos/server/dn42"
+  ];
 
   systemd.network.enable = true;
   networking = {

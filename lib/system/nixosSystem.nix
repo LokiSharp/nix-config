@@ -13,6 +13,7 @@ let
 in
 nixpkgs.lib.nixosSystem {
   inherit system specialArgs;
+
   modules =
     nixos-modules
     ++ [

@@ -19,8 +19,8 @@ let
       lib
       hostsBase
       ;
-    hosts = import ./fn/hosts.nix;
-    this = hosts."${config.networking.hostName}";
+    hosts = call ./fn/hosts.nix;
+    this = hosts."${lib.toLower config.networking.hostName}";
 
     colmenaSystem = import ./system/colmenaSystem.nix;
     nixosSystem = import ./system/nixosSystem.nix;

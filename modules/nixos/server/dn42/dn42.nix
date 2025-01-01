@@ -1,5 +1,7 @@
 { pkgs, lib, mylib, config, mysecrets, ... }:
 let
+  hostsBase = mylib.relativeToRoot "hosts/vps";
+  configLib = import (mylib.relativeToRoot "lib") { inherit config pkgs lib hostsBase; };
   myASNAbbr = 3888;
   filterType = type: lib.filterAttrs (_n: v: v.tunnel.type == type);
   setupAddressing =
@@ -18,7 +20,7 @@ let
       '';
 
       ipv6 = lib.optionalString (v.addressing.myIPv6 != null) ''
-        ${pkgs.iproute2}/bin/ip addr add ${v.addressing.myIPv6}/${builtins.toString v.addressing.IPv6SubnetMask} peer ${v.addressing.peerIPv6}/${builtins.toString v.addressing.IPv6SubnetMask} dev ${interfaceName}
+        ${pkgs.iproute2}/bin/ip addr add ${v.addressing.myIPv6}/${builtins.toString v.addressing.IPv6SubnetMask} dev ${interfaceName}
       '';
 
       sysctl = ''
@@ -136,11 +138,11 @@ in
                 };
                 myIPv4 = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
-                  default = null;
+                  default = configLib.this.dn42.IPv4;
                 };
                 myIPv6 = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
-                  default = null;
+                  default = configLib.this.dn42.IPv6;
                 };
                 myIPv6LinkLocal = lib.mkOption {
                   type = lib.types.str;

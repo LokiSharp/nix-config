@@ -22,7 +22,7 @@ let
         # common
         "secrets/nixos.nix"
         "modules/nixos/server/server.nix"
-        "modules/nixos/server/proxmox-hardware-configuration.nix"
+        "modules/nixos/hardware-configuration/proxmox-hardware-configuration.nix"
         # host specific
         "hosts/${name}"
       ])

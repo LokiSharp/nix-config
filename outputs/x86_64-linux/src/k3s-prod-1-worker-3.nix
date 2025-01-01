@@ -21,7 +21,7 @@ let
       (map mylib.relativeToRoot [
         # common
         "secrets/nixos.nix"
-        "modules/nixos/server/server.nix"
+        "modules/nixos/server.nix"
         "modules/nixos/hardware-configuration/proxmox-hardware-configuration.nix"
         # host specific
         "hosts/k8s/${name}"

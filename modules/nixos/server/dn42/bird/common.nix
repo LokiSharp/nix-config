@@ -1,7 +1,6 @@
 { pkgs, lib, mylib, config, ... }:
 let
-  hostsBase = mylib.relativeToRoot "hosts/vps";
-  configLib = import (mylib.relativeToRoot "lib") { inherit config pkgs lib hostsBase; };
+  configLib = mylib.withConfig config;
 in
 rec {
   this = configLib.this;

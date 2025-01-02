@@ -1,6 +1,13 @@
-{ ... }:
+{ tags, ... }:
 {
   index = 2;
+  tags = with tags; [
+    dn42
+    server
+
+    tailscale
+    zerotier
+  ];
   public = {
     IPv4 = "107.172.61.229";
   };

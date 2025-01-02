@@ -17,10 +17,22 @@ let
       config
       pkgs
       lib
-      hostsBase
-      ;
+      hostsBase;
+
+    withConfig = newConfig: import ./. {
+      inherit pkgs lib self hostsBase;
+      config = newConfig;
+    };
+
+    constants = call ../vars/constants.nix;
+    inherit (constants) tags;
+
     hosts = call ./fn/hosts.nix;
+    otherHosts = builtins.removeAttrs hosts [ config.networking.hostName ];
     this = hosts."${lib.toLower config.networking.hostName}";
+
+    hostsWithTag = tag: lib.filterAttrs (_n: v: v.hasTag tag) hosts;
+    hostsWithoutTag = tag: lib.filterAttrs (_n: v: !(v.hasTag tag)) hosts;
 
     colmenaSystem = import ./system/colmenaSystem.nix;
     nixosSystem = import ./system/nixosSystem.nix;

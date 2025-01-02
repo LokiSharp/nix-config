@@ -88,6 +88,7 @@
         type = lib.types.str;
         default = "fd6a:11d4:cacb:${builtins.toString config.index}::1";
       };
+      region = lib.mkOption { type = lib.types.int; };
     };
   };
 }

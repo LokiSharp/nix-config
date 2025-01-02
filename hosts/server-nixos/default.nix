@@ -10,9 +10,10 @@ let
 in
 {
   imports =
-    (mylib.scanPaths ./.)
+    (mylib.scanPaths ./services)
     ++ [
       disko.nixosModules.default
+      ./disko-fs.nix
     ];
 
   networking = {

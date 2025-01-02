@@ -63,7 +63,7 @@ in
 
       # ssl
       ssl = true;
-      ssl_cert_file = "${../../certs/ecc-server.crt}";
+      ssl_cert_file = "${../../../certs/ecc-server.crt}";
       ssl_key_file = config.age.secrets."postgres-ecc-server.key".path;
       ssl_min_protocol_version = "TLSv1.3";
       ssl_ecdh_curve = "secp384r1";

@@ -1,5 +1,21 @@
-{ pkgs, lib, mylib, ... }: {
-  imports = mylib.scanPaths ./.;
+{ pkgs, lib, mylib, config, ... }@args:
+let dn42 = import ./dn42.nix args;
+in {
+  imports = [
+    ./dn42-roa.nix
+  ];
+
+  services.bird2 = {
+    enable = true;
+    checkConfig = false;
+    config = builtins.concatStringsSep "\n" (
+      [
+        dn42.header
+        dn42.common
+        dn42.peers
+      ]
+    );
+  };
 
   boot.kernel.sysctl = {
     "net.ipv4.conf.default.rp_filter" = 0;

@@ -1,3 +1,6 @@
 { mylib, ... }: {
-  imports = mylib.scanPaths ./.;
+  imports = [
+    ./dn42.nix
+    ./bird
+  ];
 }

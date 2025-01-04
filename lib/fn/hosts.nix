@@ -14,7 +14,6 @@ let
         else if type == "directory"
         then scanHostFiles (path + "/${name}")
         else [ ];
-      _ = builtins.trace "处理: ${path}" null;
     in
     lib.concatLists (lib.mapAttrsToList processPath dirContent);
 
@@ -25,7 +24,6 @@ let
     let
       parentDir = dirOf path;
       hostName = baseNameOf (dirOf path);
-      _ = builtins.trace "解析主机名: ${hostName} 从路径: ${path}" null;
     in
     hostName;
 

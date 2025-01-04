@@ -1,7 +1,5 @@
-{ pkgs, lib, mylib, config, mysecrets, ... }:
-let
-  hostsBase = mylib.relativeToRoot "hosts/vps";
-  configLib = import (mylib.relativeToRoot "lib") { inherit config pkgs lib hostsBase; };
+{ pkgs, lib, mylib, config, mysecrets, ... }@args:
+let inherit (import ./common.nix args) this;
   myASNAbbr = 3888;
   filterType = type: lib.filterAttrs (_n: v: v.tunnel.type == type);
   setupAddressing =
@@ -138,11 +136,11 @@ in
                 };
                 myIPv4 = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
-                  default = configLib.this.dn42.IPv4;
+                  default = this.dn42.IPv4;
                 };
                 myIPv6 = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
-                  default = configLib.this.dn42.IPv6;
+                  default = this.dn42.IPv6;
                 };
                 myIPv6LinkLocal = lib.mkOption {
                   type = lib.types.str;

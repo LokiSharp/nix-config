@@ -2,7 +2,7 @@
 , config
 , ...
 }@args:
-let inherit (import ./common.nix args) this DN42_AS;
+let inherit (import ../common.nix args) this DN42_AS;
 in
 {
   header = ''

@@ -1,6 +1,10 @@
 { pkgs, lib, mylib, config, ... }@args:
-let dn42 = import ./dn42.nix args;
-in {
+let
+  sys = import ./sys.nix args;
+  dn42 = import ./dn42.nix args;
+  slknet = import ./slknet.nix args;
+in
+{
   imports = [
     ./dn42-roa.nix
   ];
@@ -10,9 +14,15 @@ in {
     checkConfig = false;
     config = builtins.concatStringsSep "\n" (
       [
-        dn42.header
-        dn42.common
+        sys.common
+        sys.network
+        sys.kernel
+        sys.static
+        dn42.function
+        dn42.roa
+        dn42.bgp
         dn42.peers
+        slknet.ospf
       ]
     );
   };

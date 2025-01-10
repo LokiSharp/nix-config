@@ -43,6 +43,9 @@ in
       local as ${DN42_AS};
 
       ipv4 {
+        next hop self yes;
+        extended next hop yes;
+
         import filter {
           if is_valid_network() && !is_self_net() then {
             if (roa_check(dn42_roa, net, bgp_path.last) != ROA_VALID) then {
@@ -58,6 +61,9 @@ in
       };
 
       ipv6 {   
+        next hop self yes;
+        extended next hop yes;
+
         import filter {
           if is_valid_network_v6() && !is_self_net_v6() then {
             if (roa_check(dn42_roa_v6, net, bgp_path.last) != ROA_VALID) then {
@@ -101,10 +107,6 @@ in
       protocol bgp ${v.peering.network}_${n}_v6 from dnpeers {
         neighbor ${v.addressing.peerIPv6LinkLocal} % '${v.peering.network}-${n}' as ${toString v.remoteASN};
         direct;
-        ipv4 {
-          import none;
-          export none;
-        };
       };
       '' else ""}
     '')

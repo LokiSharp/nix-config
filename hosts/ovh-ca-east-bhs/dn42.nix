@@ -50,4 +50,21 @@
       };
     };
   };
+
+  services.dn42 = {
+    miny = {
+      remoteASN = 4242420808;
+      tunnel = {
+        type = "wireguard";
+        localPort = 20808;
+        remoteAddress = "2001:470:1f04:15f::2";
+        remotePort = 23888;
+        wireguardPubkey = "f8srYlaMHNqjqp5ltFzoqtNRQi7RBGvIPbWDPNQh/kg=";
+      };
+      addressing = {
+        peerIPv4 = "172.20.174.1";
+        peerIPv6LinkLocal = "fe80::808";
+      };
+    };
+  };
 }

@@ -4,6 +4,7 @@
   tags = with tags; [
     dn42
     server
+    dn42-anycast-dns
 
     tailscale
     zerotier

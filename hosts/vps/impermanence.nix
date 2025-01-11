@@ -24,6 +24,7 @@
       "/etc/nix/inputs"
       "/etc/secureboot" # lanzaboote - secure boot
       "/etc/bird" # bird2
+      "/etc/bind"
       # my secrets
       "/etc/agenix/"
 

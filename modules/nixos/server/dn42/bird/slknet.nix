@@ -43,6 +43,9 @@ in {
           type broadcast;
           cost 100;
         };
+        interface "lo" {
+          stub;
+        };
       };
     }
 
@@ -55,6 +58,9 @@ in {
         interface "ztosie3oc4" {
           type broadcast;
           cost 100;
+        };
+        interface "lo" {
+          stub;
         };
       };
     }

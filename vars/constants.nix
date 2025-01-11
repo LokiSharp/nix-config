@@ -4,6 +4,8 @@
     "server"
     "client"
 
+    "dn42-anycast-dns"
+
     "tailscale"
     "zerotier"
   ]

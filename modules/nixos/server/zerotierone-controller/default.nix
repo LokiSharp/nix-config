@@ -50,7 +50,8 @@ let
                   "198.19.${i}.0/24"
                   "fdbc:f9dc:67ad:${i}::/64"
                 ]
-                ++ (lib.optionals (v.dn42.IPv4 != "") [ "${v.dn42.IPv4}/32" ]);
+                ++ (lib.optionals (v.dn42.IPv4 != "") [ "${v.dn42.IPv4}/32" ])
+                ++ (lib.optionals (v.dn42.IPv6 != "") [ "${v.dn42.IPv6}/128" ]);
             in
             builtins.map
               (r: {

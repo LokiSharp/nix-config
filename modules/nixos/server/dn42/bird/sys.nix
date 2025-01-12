@@ -6,8 +6,7 @@ let inherit (import ../common.nix args) this DN42_AS;
 in
 {
   common = ''
-    log syslog all;
-    log stderr { info, warning, error, fatal };
+    log stderr { warning, error, fatal };
     router id ${this.dn42.IPv4};
     timeformat protocol iso long;
     # debug protocols all;
@@ -57,7 +56,7 @@ in
     # IP ranges managed by other networking tools
     define SLK_UNMANAGED_NET_SET_IPv6 = [
       fc00:192:168::/48+,
-      fd6a:11d4:cacb::/64+
+      fdbc:f9dc:67ad::/64+
     ];
 
     # Reserved range, where system is allowed to operate
@@ -125,7 +124,7 @@ in
       krt_prefsrc = ${this.slk-net.IPv6};
       ${
         lib.optionalString (
-          this.dn42.IPv4 != ""
+          this.dn42.IPv6 != ""
         ) "if net ~ DN42_NET_SET_IPv6 then krt_prefsrc = ${this.dn42.IPv6};"
       }
       accept;

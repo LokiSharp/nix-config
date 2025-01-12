@@ -1,8 +1,9 @@
 { pkgs, lib, mylib, config, ... }@args:
 let
+  inherit (import ../common.nix args) this;
   sys = import ./sys.nix args;
   dn42 = import ./dn42.nix args;
-  slknet = import ./slknet.nix args;
+  slk-net = import ./slk-net.nix args;
 in
 {
   imports = [
@@ -22,7 +23,8 @@ in
         dn42.roa
         dn42.bgp
         dn42.peers
-        slknet.ospf
+        slk-net.filter
+        slk-net.ospf
       ]
     );
   };

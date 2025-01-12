@@ -8,6 +8,8 @@
 
     zerotier
   ];
+
+  zerotier = "6ff46d1b8b";
   public = {
     IPv4 = "107.172.61.229";
   };

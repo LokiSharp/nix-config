@@ -39,7 +39,7 @@ in {
         export filter slk_ospf_export_filter_v4;
       };
       area 0 {
-        interface "ztosie3oc4" {
+        interface "ztqxwi6nhk" {
           type broadcast;
           cost 100;
         };
@@ -55,7 +55,7 @@ in {
         export filter slk_ospf_export_filter_v6;
       };
       area 0 {
-        interface "ztosie3oc4" {
+        interface "ztqxwi6nhk" {
           type broadcast;
           cost 100;
         };

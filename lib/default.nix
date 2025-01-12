@@ -38,7 +38,8 @@ let
     nixosSystem = import ./system/nixosSystem.nix;
 
     attrs = import ./fn/attrs.nix { inherit lib; };
-
+    serviceHarden = call ./fn/service-harden.nix;
+    
     genK3sServerModule = import ./gen-k3s/genK3sServerModule.nix;
     genK3sAgentModule = import ./gen-k3s/genK3sAgentModule.nix;
     genKubeVirtHostModule = import ./gen-k3s/genKubeVirtHostModule.nix;

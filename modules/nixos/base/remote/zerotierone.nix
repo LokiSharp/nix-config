@@ -1,7 +1,7 @@
 { mylib, config, ... }:
 let
   configLib = mylib.withConfig config;
-  slk-net = "48d6023c464f841a";
+  slk-net = "b1078f34eb000001";
 in
 {
   services.zerotierone = {

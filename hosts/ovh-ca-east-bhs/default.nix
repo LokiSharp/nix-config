@@ -17,6 +17,7 @@ in
     ./dn42.nix
   ] ++ map mylib.relativeToRoot [
     "modules/nixos/server/dn42"
+    "modules/nixos/server/zerotierone-controller"
   ];
 
   networking = {

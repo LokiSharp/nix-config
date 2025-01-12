@@ -22,6 +22,7 @@ in {
     ];
 
     extraOptions = ''
+      dnssec-validation no;
       empty-zones-enable no;
       recursion yes;
       validate-except {

@@ -6,7 +6,6 @@
     server
     dn42-anycast-dns
 
-    tailscale
     zerotier
   ];
   public = {

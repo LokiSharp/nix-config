@@ -6,7 +6,7 @@
     nodev."/" = {
       fsType = "tmpfs";
       mountOptions = [
-        "size=4G"
+        "size=2G"
         "defaults"
         # 设置权限模式为 755，否则 systemd 会将其设置为 777，这会导致问题
         # relatime: 相对于修改时间或改变时间来更新 inode 访问时间
@@ -86,7 +86,7 @@
                     "nodatasum" # 禁用校验和
                     "nocompress" # 禁用压缩
                   ];
-                  swap.swapfile.size = "4096M";
+                  swap.swapfile.size = "2048M";
                 };
               };
             };

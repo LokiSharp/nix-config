@@ -10,6 +10,20 @@ in
     ./dn42-roa.nix
   ];
 
+  networking.interfaces.lo.ipv4.addresses = [
+    {
+      address = this.dn42.IPv4;
+      prefixLength = 32;
+    }
+  ];
+
+  networking.interfaces.lo.ipv6.addresses = [
+    {
+      address = this.dn42.IPv6;
+      prefixLength = 128;
+    }
+  ];
+
   services.bird2 = {
     enable = true;
     checkConfig = false;

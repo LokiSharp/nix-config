@@ -1,15 +1,19 @@
 { lib, pkgs, config, ... }@args:
-let inherit (import ./common.nix args) SLK_NET_ANYCAST_DNS_IPv4 SLK_NET_ANYCAST_DNS_IPv6;
+let inherit (import ./common.nix args) this SLK_NET_ANYCAST_DNS_IPv4 SLK_NET_ANYCAST_DNS_IPv6;
 in {
-  networking.interfaces.lo.ipv4.addresses = [{
-    address = SLK_NET_ANYCAST_DNS_IPv4;
-    prefixLength = 32;
-  }];
+  networking.interfaces.lo.ipv4.addresses = [
+    {
+      address = SLK_NET_ANYCAST_DNS_IPv4;
+      prefixLength = 32;
+    }
+  ];
 
-  networking.interfaces.lo.ipv6.addresses = [{
-    address = SLK_NET_ANYCAST_DNS_IPv6;
-    prefixLength = 128;
-  }];
+  networking.interfaces.lo.ipv6.addresses = [
+    {
+      address = SLK_NET_ANYCAST_DNS_IPv6;
+      prefixLength = 128;
+    }
+  ];
 
   services.bind = {
     enable = true;
@@ -127,7 +131,7 @@ in {
           ; slk.dn42.
           $TTL  300 ; default ttl for all RRs
           @ IN  SOA ns-anycast.slk.dn42. dn42.slk.moe. (
-                      2025011208   ; Serial Number
+                      2025011401   ; Serial Number
                           3600     ; Refresh
                           180      ; Retry
                           86400    ; Expire
@@ -152,6 +156,10 @@ in {
           racknerd-us-sj          IN  AAAA  fd6a:11d4:cacb::3
           v4.racknerd-us-sj       IN  A     172.20.190.3
           v6.racknerd-us-sj       IN  AAAA  fd6a:11d4:cacb::3
+          skywolf-hk              IN  A     172.20.190.4
+          skywolf-hk              IN  AAAA  fd6a:11d4:cacb::4
+          v4.skywolf-hk           IN  A     172.20.190.4
+          v6.skywolf-hk           IN  AAAA  fd6a:11d4:cacb::4
         '';
         master = true;
       };
@@ -161,7 +169,7 @@ in {
           ; 0/26.190.20.172.in-addr.arpa.
           $TTL  300 ; default ttl for all RRs
           @ IN  SOA ns-anycast.slk.dn42. dn42.slk.moe. (
-                      2025011208   ; Serial Number
+                      2025011401   ; Serial Number
                           3600     ; Refresh
                           180      ; Retry
                           86400    ; Expire
@@ -172,6 +180,7 @@ in {
           1                       IN  PTR   ovh-ca-east-bhs.slk.dn42.
           2                       IN  PTR   racknerd-us-ny.slk.dn42.
           3                       IN  PTR   racknerd-us-sj.slk.dn42.
+          4                       IN  PTR   skywolf-hk.slk.dn42.
         '';
         master = true;
       };
@@ -181,7 +190,7 @@ in {
           ; b.c.a.c.4.d.1.1.a.6.d.f.ip6.arpa.
           $TTL  300 ; default ttl for all RRs
           @ IN  SOA ns-anycast.slk.dn42. dn42.slk.moe. (
-                      2025011208   ; Serial Number
+                      2025011401   ; Serial Number
                           3600     ; Refresh
                           180      ; Retry
                           86400    ; Expire
@@ -192,6 +201,7 @@ in {
           1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR ovh-ca-east-bhs.slk.dn42.
           2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR racknerd-us-ny.slk.dn42.
           3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR racknerd-us-sj.slk.dn42.
+          4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR skywolf-hk.slk.dn42.
         '';
         master = true;
       };

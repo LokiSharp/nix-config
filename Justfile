@@ -106,6 +106,18 @@ Server-NixOS-local mode="default":
   use {{utils_nu}} *; 
   nixos-switch Server-NixOS {{mode}}
 
+[linux]
+[group('homelab')]
+Test-NixOS:
+  colmena apply --on '@Test-NixOS' --verbose --show-trace
+
+[linux]
+[group('homelab')]
+Test-NixOS-local mode="default":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *; 
+  nixos-switch Test-NixOS {{mode}}
+
 ############################################################################
 #
 # Commands for Virtual Private Server

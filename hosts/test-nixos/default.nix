@@ -13,6 +13,8 @@ in
     disko.nixosModules.default
     ./disko-fs.nix
     ../vps/impermanence.nix
+  ] ++ map mylib.relativeToRoot [
+    "modules/nixos/server/dn42"
   ];
 
   networking = {

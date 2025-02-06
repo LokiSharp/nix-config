@@ -160,6 +160,10 @@ in {
           skywolf-hk              IN  AAAA  fd6a:11d4:cacb::4
           v4.skywolf-hk           IN  A     172.20.190.4
           v6.skywolf-hk           IN  AAAA  fd6a:11d4:cacb::4
+          base-test-cn-sh         IN  A     172.20.190.10
+          base-test-cn-sh         IN  AAAA  fd6a:11d4:cacb::10
+          v4.base-test-cn-sh      IN  A     172.20.190.10
+          v6.base-test-cn-sh      IN  AAAA  fd6a:11d4:cacb::10
         '';
         master = true;
       };
@@ -181,6 +185,7 @@ in {
           2                       IN  PTR   racknerd-us-ny.slk.dn42.
           3                       IN  PTR   racknerd-us-sj.slk.dn42.
           4                       IN  PTR   skywolf-hk.slk.dn42.
+          10                      IN  PTR   base-test-cn-sh.slk.dn42.
         '';
         master = true;
       };
@@ -202,6 +207,7 @@ in {
           2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR racknerd-us-ny.slk.dn42.
           3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR racknerd-us-sj.slk.dn42.
           4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR skywolf-hk.slk.dn42.
+          0.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR base-test-cn-sh.slk.dn42.
         '';
         master = true;
       };

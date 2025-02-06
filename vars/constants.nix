@@ -4,6 +4,8 @@
     "server"
     "client"
 
+    "firewall"
+
     "dn42-anycast-dns"
 
     "tailscale"

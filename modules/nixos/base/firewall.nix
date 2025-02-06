@@ -1,6 +1,10 @@
+{ mylib, config, ... }:
+let
+  configLib = mylib.withConfig config;
+in
 {
   networking.nftables = {
-    enable = true;
+    enable = configLib.this.hasTag configLib.tags.firewall;
     ruleset = ''
       # Check out https://wiki.nftables.org/ for better documentation.
       # Table for both IPv4 and IPv6.
@@ -12,6 +16,12 @@
           # accept any localhost traffic
           iifname lo accept
 
+          ${if configLib.this.hasTag configLib.tags.zerotier then 
+          ''
+          # accept ZeroTier traffic
+          iifname "ztqxwi6nhk" accept
+          '' else ""}
+          
           # accept traffic originated from us
           ct state {established, related} accept
 

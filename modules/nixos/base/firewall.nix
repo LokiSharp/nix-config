@@ -21,7 +21,13 @@ in
           # accept ZeroTier traffic
           iifname "ztqxwi6nhk" accept
           '' else ""}
-          
+
+          ${if configLib.this.hasTag configLib.tags.dn42 then 
+          ''
+          # accept DN42 traffic
+          iifname "dn42-*" accept
+          '' else ""}
+
           # accept traffic originated from us
           ct state {established, related} accept
 

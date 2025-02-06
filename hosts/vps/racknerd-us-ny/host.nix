@@ -4,6 +4,7 @@
   tags = with tags; [
     dn42
     server
+    firewall
     dn42-anycast-dns
 
     zerotier

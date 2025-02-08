@@ -31,7 +31,6 @@
     impermanence.url = "github:nix-community/impermanence";
     vscode-server.url = "github:nix-community/nixos-vscode-server";
 
-
     agenix = {
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";

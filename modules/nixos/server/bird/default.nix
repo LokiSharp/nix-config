@@ -9,6 +9,7 @@ let
   inherit (import ../common.nix args) this configLib;
   sys = import ./sys.nix args;
   dn42 = import ./dn42.nix args;
+  loki-net = import ./loki-net.nix args;
   slk-net = import ./slk-net.nix args;
 in
 {
@@ -16,19 +17,33 @@ in
     ./dn42-roa.nix
   ];
 
-  networking.interfaces.lo.ipv4.addresses = [
-    {
-      address = this.dn42.IPv4;
-      prefixLength = 32;
-    }
-  ];
+  boot.kernelModules = [ "dummy" ];
 
-  networking.interfaces.lo.ipv6.addresses = [
-    {
-      address = this.dn42.IPv6;
-      prefixLength = 128;
-    }
-  ];
+  systemd.network.netdevs.dummy0.netdevConfig = {
+    Kind = "dummy";
+    Name = "dummy0";
+  };
+
+  networking.interfaces.dummy0 = {
+    ipv4.addresses = [
+      {
+        address = this.dn42.IPv4;
+        prefixLength = 32;
+      }
+    ];
+
+    ipv6.addresses = [
+      {
+        address = this.dn42.IPv6;
+        prefixLength = 128;
+      }
+
+      {
+        address = this.loki-net.IPv6;
+        prefixLength = 128;
+      }
+    ];
+  };
 
   services.bird2 = {
     enable = true;
@@ -45,10 +60,22 @@ in
         dn42Config =
           if this.hasTag configLib.tags.dn42 then
             [
-              dn42.function
-              dn42.roa
-              dn42.bgp
-              dn42.peers
+              # dn42.function
+              # dn42.roa
+              # dn42.bgp
+              # dn42.peers
+            ]
+          else
+            [ ];
+
+        loki-netConfig =
+          if this.hasTag configLib.tags.loki-net then
+            [
+              loki-net.function
+              loki-net.static
+              loki-net.bgp
+              loki-net.ebgp_peers
+              # loki-net.ibgp_peers
             ]
           else
             [ ];
@@ -58,7 +85,7 @@ in
           slk-net.ospf
         ];
       in
-      baseConfig ++ dn42Config ++ slk-netConfig
+      baseConfig ++ dn42Config ++ loki-netConfig ++ slk-netConfig
     );
   };
 

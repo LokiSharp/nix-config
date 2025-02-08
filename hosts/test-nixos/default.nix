@@ -22,12 +22,12 @@ in
       "modules/nixos/server/bind.nix"
     ];
 
+  systemd.network.enable = true;
   networking = {
     inherit hostName;
-    inherit (myvars.networking) defaultGateway nameservers;
+    useNetworkd = true;
+    useDHCP = true;
     inherit (myvars.networking.hostsInterface.${hostName}) interfaces;
-
-    networkmanager.enable = true;
   };
 
   # This value determines the NixOS release from which the default

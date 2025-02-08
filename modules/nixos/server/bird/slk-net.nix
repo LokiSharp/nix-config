@@ -13,6 +13,7 @@ in
     filter slk_import_filter_v4 {
       if net ~ SLK_UNMANAGED_NET_SET_IPv4 then reject;
       if net ~ SLK_OWN_NET_SET_IPv4 || net ~ DN42_NET_SET_IPv4 then accept;
+      if !is_bogon_prefix() && !is_bogon_asn() then accept;
       reject;
     }
 
@@ -21,12 +22,14 @@ in
       if ifindex = 0 then reject;
       if net ~ SLK_UNMANAGED_NET_SET_IPv4 then reject;
       if net ~ SLK_OWN_NET_SET_IPv4 || net ~ DN42_NET_SET_IPv4 then accept;
+      if !is_bogon_prefix() && !is_bogon_asn() then accept;
       reject;
     }
 
     filter slk_import_filter_v6 {
       if net ~ SLK_UNMANAGED_NET_SET_IPv6 then reject;
-      if net ~ SLK_OWN_NET_SET_IPv6 || net ~ DN42_NET_SET_IPv6 then accept;
+      if net ~ SLK_OWN_NET_SET_IPv6 || net ~ DN42_NET_SET_IPv6 || net ~ LOKI_NET_OWN_NET_SET_IPv6 then accept;
+      if !is_bogon_prefix() && !is_bogon_asn() then accept;
       reject;
     }
 
@@ -34,7 +37,8 @@ in
       if dest ~ [RTD_BLACKHOLE, RTD_UNREACHABLE, RTD_PROHIBIT] then reject;
       if ifindex = 0 then reject;
       if net ~ SLK_UNMANAGED_NET_SET_IPv6 then reject;
-      if net ~ SLK_OWN_NET_SET_IPv6 || net ~ DN42_NET_SET_IPv6 then accept;
+      if net ~ SLK_OWN_NET_SET_IPv6 || net ~ DN42_NET_SET_IPv6 || net ~ LOKI_NET_OWN_NET_SET_IPv6 then accept;
+      if !is_bogon_prefix() && !is_bogon_asn() then accept;
       reject;
     }
   '';
@@ -53,6 +57,7 @@ in
         interface "lo" {
           stub;
         };
+        interface "dummy0";
       };
     }
 
@@ -69,6 +74,7 @@ in
         interface "lo" {
           stub;
         };
+        interface "dummy0";
       };
     }
   '';

@@ -1,38 +1,47 @@
-{ lib
-, mylib
-, myvars
-, pkgs
-, disko
-, ...
+{
+  lib,
+  mylib,
+  myvars,
+  pkgs,
+  disko,
+  ...
 }:
 let
   hostName = "OVH-CA-EAST-BHS";
 in
 {
-  imports = [
-    ./hardware-configuration.nix
-    disko.nixosModules.default
-    ./disko-fs.nix
-    ../vps/impermanence.nix
-    ./dn42.nix
-  ] ++ map mylib.relativeToRoot [
-    "modules/nixos/server/dn42"
-    "modules/nixos/server/zerotierone-controller"
-  ];
+  imports =
+    [
+      ./hardware-configuration.nix
+      disko.nixosModules.default
+      ./disko-fs.nix
+      ../vps/impermanence.nix
+      ./dn42.nix
+    ]
+    ++ map mylib.relativeToRoot [
+      "modules/nixos/server/dn42.nix"
+      "modules/nixos/server/bird"
+      "modules/nixos/server/bind.nix"
+      "modules/nixos/server/zerotierone-controller"
+    ];
 
   networking = {
     inherit hostName;
     useDHCP = false;
     nameservers = [ "8.8.8.8" ];
     interfaces."eno1" = {
-      ipv4.addresses = [{
-        address = "192.99.39.2";
-        prefixLength = 24;
-      }];
-      ipv6.addresses = [{
-        address = "2607:5300:60:6002::1";
-        prefixLength = 128;
-      }];
+      ipv4.addresses = [
+        {
+          address = "192.99.39.2";
+          prefixLength = 24;
+        }
+      ];
+      ipv6.addresses = [
+        {
+          address = "2607:5300:60:6002::1";
+          prefixLength = 128;
+        }
+      ];
     };
     defaultGateway = {
       address = "192.99.39.254";

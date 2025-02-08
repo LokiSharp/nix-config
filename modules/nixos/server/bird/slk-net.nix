@@ -1,9 +1,14 @@
-{ lib
-, config
-, ...
+{
+  lib,
+  config,
+  myvars,
+  ...
 }@args:
-let inherit (import ../common.nix args) this DN42_AS;
-in {
+let
+  inherit (import ../common.nix args) this;
+  DN42_AS = myvars.constants.DN42_AS;
+in
+{
   filter = ''
     filter slk_import_filter_v4 {
       if net ~ SLK_UNMANAGED_NET_SET_IPv4 then reject;
@@ -89,4 +94,3 @@ in {
     }
   '';
 }
-

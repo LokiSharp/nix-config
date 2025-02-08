@@ -1,8 +1,12 @@
-{ lib
-, config
-, ...
+{
+  lib,
+  config,
+  myvars,
+  ...
 }@args:
-let inherit (import ../common.nix args) this DN42_AS;
+let
+  inherit (import ../common.nix args) this;
+  DN42_AS = myvars.constants.DN42_AS;
 in
 {
   common = ''
@@ -105,11 +109,9 @@ in
       }
 
       krt_prefsrc = ${this.slk-net.IPv4};
-      ${
-        lib.optionalString (
-          this.dn42.IPv4 != ""
-        ) "if net ~ DN42_NET_SET_IPv4 then krt_prefsrc = ${this.dn42.IPv4};"
-      }
+      ${lib.optionalString (
+        this.dn42.IPv4 != ""
+      ) "if net ~ DN42_NET_SET_IPv4 then krt_prefsrc = ${this.dn42.IPv4};"}
       accept;
     }
 
@@ -122,11 +124,9 @@ in
       }
 
       krt_prefsrc = ${this.slk-net.IPv6};
-      ${
-        lib.optionalString (
-          this.dn42.IPv6 != ""
-        ) "if net ~ DN42_NET_SET_IPv6 then krt_prefsrc = ${this.dn42.IPv6};"
-      }
+      ${lib.optionalString (
+        this.dn42.IPv6 != ""
+      ) "if net ~ DN42_NET_SET_IPv6 then krt_prefsrc = ${this.dn42.IPv6};"}
       accept;
     }
 

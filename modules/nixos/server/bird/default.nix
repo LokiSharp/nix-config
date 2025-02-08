@@ -1,6 +1,12 @@
-{ pkgs, lib, mylib, config, ... }@args:
+{
+  pkgs,
+  lib,
+  mylib,
+  config,
+  ...
+}@args:
 let
-  inherit (import ../common.nix args) this;
+  inherit (import ../common.nix args) this configLib;
   sys = import ./sys.nix args;
   dn42 = import ./dn42.nix args;
   slk-net = import ./slk-net.nix args;
@@ -28,18 +34,31 @@ in
     enable = true;
     checkConfig = false;
     config = builtins.concatStringsSep "\n" (
-      [
-        sys.common
-        sys.network
-        sys.kernel
-        sys.static
-        dn42.function
-        dn42.roa
-        dn42.bgp
-        dn42.peers
-        slk-net.filter
-        slk-net.ospf
-      ]
+      let
+        baseConfig = [
+          sys.common
+          sys.network
+          sys.kernel
+          sys.static
+        ];
+
+        dn42Config =
+          if this.hasTag configLib.tags.dn42 then
+            [
+              dn42.function
+              dn42.roa
+              dn42.bgp
+              dn42.peers
+            ]
+          else
+            [ ];
+
+        slk-netConfig = [
+          slk-net.filter
+          slk-net.ospf
+        ];
+      in
+      baseConfig ++ dn42Config ++ slk-netConfig
     );
   };
 

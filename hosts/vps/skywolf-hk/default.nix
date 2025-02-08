@@ -1,36 +1,45 @@
-{ lib
-, mylib
-, myvars
-, pkgs
-, disko
-, ...
+{
+  lib,
+  mylib,
+  myvars,
+  pkgs,
+  disko,
+  ...
 }:
 let
   hostName = "SkyWolf-HK";
 in
 {
-  imports = [
-    disko.nixosModules.default
-    ../disko-config/vps-disko-fs.nix
-    ../impermanence.nix
-    ./dn42.nix
-  ] ++ map mylib.relativeToRoot [
-    "modules/nixos/server/dn42"
-  ];
+  imports =
+    [
+      disko.nixosModules.default
+      ../disko-config/vps-disko-fs.nix
+      ../impermanence.nix
+      ./dn42.nix
+    ]
+    ++ map mylib.relativeToRoot [
+      "modules/nixos/server/dn42.nix"
+      "modules/nixos/server/bird"
+      "modules/nixos/server/bind.nix"
+    ];
 
   networking = {
     inherit hostName;
     useDHCP = false;
     nameservers = [ "8.8.8.8" ];
     interfaces."eth0" = {
-      ipv4.addresses = [{
-        address = "103.213.4.88";
-        prefixLength = 24;
-      }];
-      ipv6.addresses = [{
-        address = "2401:5a0:1000:59::a";
-        prefixLength = 128;
-      }];
+      ipv4.addresses = [
+        {
+          address = "103.213.4.88";
+          prefixLength = 24;
+        }
+      ];
+      ipv6.addresses = [
+        {
+          address = "2401:5a0:1000:59::a";
+          prefixLength = 128;
+        }
+      ];
     };
     defaultGateway = {
       address = "103.213.4.1";

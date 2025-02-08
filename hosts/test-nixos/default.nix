@@ -1,21 +1,26 @@
-{ lib
-, mylib
-, myvars
-, pkgs
-, disko
-, ...
+{
+  lib,
+  mylib,
+  myvars,
+  pkgs,
+  disko,
+  ...
 }:
 let
   hostName = "Test-NixOS";
 in
 {
-  imports = [
-    disko.nixosModules.default
-    ./disko-fs.nix
-    ../vps/impermanence.nix
-  ] ++ map mylib.relativeToRoot [
-    "modules/nixos/server/dn42"
-  ];
+  imports =
+    [
+      disko.nixosModules.default
+      ./disko-fs.nix
+      ../vps/impermanence.nix
+    ]
+    ++ map mylib.relativeToRoot [
+      "modules/nixos/server/dn42.nix"
+      "modules/nixos/server/bird"
+      "modules/nixos/server/bind.nix"
+    ];
 
   networking = {
     inherit hostName;

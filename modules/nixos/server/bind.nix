@@ -1,6 +1,16 @@
-{ lib, pkgs, config, ... }@args:
-let inherit (import ./common.nix args) this SLK_NET_ANYCAST_DNS_IPv4 SLK_NET_ANYCAST_DNS_IPv6;
-in {
+{
+  pkgs,
+  lib,
+  config,
+  myvars,
+  ...
+}@args:
+let
+  inherit (import ../common.nix args) this;
+  SLK_NET_ANYCAST_DNS_IPv4 = myvars.constants.SLK_NET_ANYCAST_DNS_IPv4;
+  SLK_NET_ANYCAST_DNS_IPv6 = myvars.constants.SLK_NET_ANYCAST_DNS_IPv6;
+in
+{
   networking.interfaces.lo.ipv4.addresses = [
     {
       address = SLK_NET_ANYCAST_DNS_IPv4;
@@ -214,5 +224,3 @@ in {
     };
   };
 }
-
-

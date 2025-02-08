@@ -11,19 +11,21 @@ let
   SLK_NET_ANYCAST_DNS_IPv6 = myvars.constants.SLK_NET_ANYCAST_DNS_IPv6;
 in
 {
-  networking.interfaces.lo.ipv4.addresses = [
-    {
-      address = SLK_NET_ANYCAST_DNS_IPv4;
-      prefixLength = 32;
-    }
-  ];
+  networking.interfaces.lo = {
+    ipv4.addresses = [
+      {
+        address = SLK_NET_ANYCAST_DNS_IPv4;
+        prefixLength = 32;
+      }
+    ];
 
-  networking.interfaces.lo.ipv6.addresses = [
-    {
-      address = SLK_NET_ANYCAST_DNS_IPv6;
-      prefixLength = 128;
-    }
-  ];
+    ipv6.addresses = [
+      {
+        address = SLK_NET_ANYCAST_DNS_IPv6;
+        prefixLength = 128;
+      }
+    ];
+  };
 
   services.bind = {
     enable = true;

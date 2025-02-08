@@ -1,9 +1,10 @@
-{ config ? { }
-, pkgs ? { }
-, lib ? pkgs.lib
-, self ? null
-, hostsBase ? ../hosts
-, ...
+{
+  config ? { },
+  pkgs ? { },
+  lib ? pkgs.lib,
+  self ? null,
+  hostsBase ? ../hosts,
+  ...
 }:
 let
   call =
@@ -17,12 +18,20 @@ let
       config
       pkgs
       lib
-      hostsBase;
+      hostsBase
+      ;
 
-    withConfig = newConfig: import ./. {
-      inherit pkgs lib self hostsBase;
-      config = newConfig;
-    };
+    withConfig =
+      newConfig:
+      import ./. {
+        inherit
+          pkgs
+          lib
+          self
+          hostsBase
+          ;
+        config = newConfig;
+      };
 
     constants = call ../vars/constants.nix;
     inherit (constants) tags;
@@ -39,7 +48,8 @@ let
 
     attrs = import ./fn/attrs.nix { inherit lib; };
     serviceHarden = call ./fn/service-harden.nix;
-    
+    tools = call ./fn/tools.nix;
+
     genK3sServerModule = import ./gen-k3s/genK3sServerModule.nix;
     genK3sAgentModule = import ./gen-k3s/genK3sAgentModule.nix;
     genKubeVirtHostModule = import ./gen-k3s/genKubeVirtHostModule.nix;
@@ -47,20 +57,20 @@ let
 
     # use path relative to the root of the project
     relativeToRoot = lib.path.append ../.;
-    scanPaths = path:
-      builtins.map
-        (f: (path + "/${f}"))
-        (builtins.attrNames
-          (lib.attrsets.filterAttrs
-            (
-              path: _type:
-                (_type == "directory") # include directories
-                || (
-                  (path != "default.nix") # ignore default.nix
-                  && (lib.strings.hasSuffix ".nix" path) # include .nix files
-                )
+    scanPaths =
+      path:
+      builtins.map (f: (path + "/${f}")) (
+        builtins.attrNames (
+          lib.attrsets.filterAttrs (
+            path: _type:
+            (_type == "directory") # include directories
+            || (
+              (path != "default.nix") # ignore default.nix
+              && (lib.strings.hasSuffix ".nix" path) # include .nix files
             )
-            (builtins.readDir path)));
+          ) (builtins.readDir path)
+        )
+      );
   };
 in
 helpers

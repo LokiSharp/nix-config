@@ -3,6 +3,7 @@
   index = 1;
   tags = with tags; [
     dn42
+    loki-net
     server
     firewall
     dn42-anycast-dns

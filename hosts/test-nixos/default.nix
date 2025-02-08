@@ -22,12 +22,21 @@ in
       "modules/nixos/server/bind.nix"
     ];
 
+  systemd.network.enable = true;
+  systemd.network.networks."10-wan" = {
+    matchConfig.Name = "en*";
+    address = [
+      "10.0.0.13/16"
+    ];
+    routes = [
+      { Gateway = "10.0.0.1"; }
+    ];
+    linkConfig.RequiredForOnline = "routable";
+  };
+
   networking = {
     inherit hostName;
-    inherit (myvars.networking) defaultGateway nameservers;
-    inherit (myvars.networking.hostsInterface.${hostName}) interfaces;
-
-    networkmanager.enable = true;
+    useDHCP = false;
   };
 
   # This value determines the NixOS release from which the default

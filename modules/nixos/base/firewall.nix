@@ -15,18 +15,27 @@ in
 
           # accept any localhost traffic
           iifname lo accept
+          iifname dummy0 accept
 
-          ${if configLib.this.hasTag configLib.tags.zerotier then 
-          ''
-          # accept ZeroTier traffic
-          iifname "ztqxwi6nhk" accept
-          '' else ""}
+          ${
+            if configLib.this.hasTag configLib.tags.zerotier then
+              ''
+                # accept ZeroTier traffic
+                iifname "ztqxwi6nhk" accept
+              ''
+            else
+              ""
+          }
 
-          ${if configLib.this.hasTag configLib.tags.dn42 then 
-          ''
-          # accept DN42 traffic
-          iifname "dn42-*" accept
-          '' else ""}
+          ${
+            if configLib.this.hasTag configLib.tags.dn42 then
+              ''
+                # accept DN42 traffic
+                iifname "dn42-*" accept
+              ''
+            else
+              ""
+          }
 
           # accept traffic originated from us
           ct state {established, related} accept
@@ -42,6 +51,16 @@ in
 
           # accept SSH connections (required for a server)
           tcp dport 22 accept
+
+          ${
+            if configLib.this.hasTag configLib.tags.loki-net then
+              ''
+                # accept BIRD 2 BGP traffic
+                tcp dport 179 accept
+              ''
+            else
+              ""
+          }
 
           # count and drop any other traffic
           counter drop

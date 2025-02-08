@@ -3,6 +3,8 @@
   index = 4;
   tags = with tags; [
     dn42
+    loki-net
+    loki-net-edge
     server
     firewall
     dn42-anycast-dns
@@ -18,5 +20,9 @@
   dn42 = {
     IPv4 = "172.20.190.4";
     IPv6 = "fd6a:11d4:cacb::4";
+  };
+  loki-net = {
+    IPv6 = "2a0e:aa07:e220:4::1";
+    IPv6NextHop = "fd00:7720::1";
   };
 }

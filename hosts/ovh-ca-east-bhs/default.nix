@@ -25,32 +25,26 @@ in
       "modules/nixos/server/zerotierone-controller"
     ];
 
+  systemd.network.enable = true;
+  systemd.network.networks."10-wan" = {
+    matchConfig.Name = "eno1";
+    address = [
+      "192.99.39.2/24"
+      "2607:5300:60:6002::1/128"
+    ];
+    routes = [
+      { Gateway = "192.99.39.254"; }
+      {
+        Gateway = "2607:5300:0060:60ff:00ff:00ff:00ff:00ff";
+        GatewayOnLink = true;
+      }
+    ];
+    linkConfig.RequiredForOnline = "routable";
+  };
+
   networking = {
     inherit hostName;
     useDHCP = false;
-    nameservers = [ "8.8.8.8" ];
-    interfaces."eno1" = {
-      ipv4.addresses = [
-        {
-          address = "192.99.39.2";
-          prefixLength = 24;
-        }
-      ];
-      ipv6.addresses = [
-        {
-          address = "2607:5300:60:6002::1";
-          prefixLength = 128;
-        }
-      ];
-    };
-    defaultGateway = {
-      address = "192.99.39.254";
-      interface = "eno1";
-    };
-    defaultGateway6 = {
-      address = "2607:5300:0060:60ff:00ff:00ff:00ff:00ff";
-      interface = "eno1";
-    };
   };
 
   # This value determines the NixOS release from which the default

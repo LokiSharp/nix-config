@@ -50,6 +50,11 @@ in
             };
           };
 
+          peerBgpPasswordConf = lib.mkOption {
+            type = lib.types.str;
+            default = "";
+          };
+
           # IP address inside tunnel
           addressing = lib.mkOption {
             default = { };

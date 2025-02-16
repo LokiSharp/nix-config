@@ -15,9 +15,11 @@ in
       disko.nixosModules.default
       ../disko-config/vps-disko-fs.nix
       ../impermanence.nix
+      ./loki-net.nix
     ]
     ++ map mylib.relativeToRoot [
       "modules/nixos/server/dn42.nix"
+      "modules/nixos/server/loki-net.nix"
       "modules/nixos/server/bird"
       "modules/nixos/server/bind.nix"
     ];

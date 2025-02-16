@@ -11,10 +11,12 @@ in
 {
   function = ''
     filter loki_net_import_filter_v6 {
-      if is_bogon_prefix() || is_bogon_asn() then reject;
+      if net ~ LOKI_NET_OWN_NET_SET_IPv6 then reject;
+      if is_bogon_prefix() then reject;
       accept;
     };
     filter loki_net_export_filter_v6 {
+      if net ~ LOKI_NET_OWN_NET_SET_IPv6 then accept;
       if !is_bogon_prefix() || !is_bogon_asn() then accept;
       reject;
     };
@@ -59,6 +61,14 @@ in
                   protocol bgp ebgp_loki_net_v6 from loki_net_dnpeers {
                     neighbor ${v.addressing.peerIPv6} as ${toString v.remoteASN};
                     multihop 2;
+                    ${
+                      if v.peerBgpPasswordConf != "" then
+                        ''
+                          include "${v.peerBgpPasswordConf}";
+                        ''
+                      else
+                        ""
+                    }
                     ipv4 {
                       import none;
                       export none;
@@ -89,7 +99,7 @@ in
                 neighbor ${v.slk-net.IPv6} as ${LOKI_NET_AS};
                 ipv6 {
                   import none;
-                  export all;
+                  export filter loki_net_export_filter_v6;
                 };
               };
             ''
@@ -119,7 +129,7 @@ in
                 neighbor ${v.slk-net.IPv6} as ${LOKI_NET_AS};
                 multihop 3;
                 ipv6 {
-                  import all;
+                  import filter loki_net_import_filter_v6;
                   export none;
                 };
               };

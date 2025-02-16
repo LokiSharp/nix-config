@@ -175,8 +175,10 @@ in
 
     (mkIf cfg.server.loki-net.enable {
       age.secrets = {
-        "bird-bgp-password" = {
-          file = "${mysecrets}/server/bird-bgp-password.age";
+        "bird-bgp-password.conf" = {
+          file = "${mysecrets}/server/bird-bgp-password.conf.age";
+          mode = "0400";
+          owner = "bird2";
         };
       };
     })

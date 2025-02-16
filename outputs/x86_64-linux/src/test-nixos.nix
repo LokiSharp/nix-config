@@ -2,18 +2,24 @@
   # NOTE: the args not used in this file CAN NOT be removed!
   # because haumea pass argument lazily,
   # and these arguments are used in the functions like `mylib.nixosSystem`, `mylib.colmenaSystem`, etc.
-  inputs
-, lib
-, myvars
-, mylib
-, system
-, genSpecialArgs
-, ...
-} @ args:
+  inputs,
+  lib,
+  myvars,
+  mylib,
+  system,
+  genSpecialArgs,
+  ...
+}@args:
 let
   hostName = "Test-NixOS";
   hostNameLower = lib.toLower hostName;
-  tags = [ hostName hostNameLower "vps" ];
+  tags = [
+    hostName
+    hostNameLower
+    "vps"
+    "dn42"
+    "loki-net"
+  ];
   ssh-user = "root";
 
   modules = {
@@ -41,8 +47,7 @@ in
 {
   nixosConfigurations.${hostName} = mylib.nixosSystem systemArgs;
 
-  colmena.${hostName} =
-    mylib.colmenaSystem (systemArgs // { inherit tags ssh-user; });
+  colmena.${hostName} = mylib.colmenaSystem (systemArgs // { inherit tags ssh-user; });
 
   packages.${hostName} = inputs.self.nixosConfigurations.${hostName}.config.formats.iso;
 }

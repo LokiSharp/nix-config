@@ -17,6 +17,8 @@ let
     hostName
     hostNameLower
     "vps"
+    "dn42"
+    "loki-net"
   ];
   targetHost = "vultr-jp.slk.moe";
   ssh-user = "root";

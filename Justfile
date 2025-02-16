@@ -162,6 +162,18 @@ SkyWolf-HK-local mode="default":
 
 [linux]
 [group('vps')]
+Vultr-JP:
+  colmena apply --on '@Vultr-JP' --verbose --show-trace
+
+[linux]
+[group('vps')]
+Vultr-JP-local mode="default":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *; 
+  nixos-switch Vultr-JP {{mode}}
+
+[linux]
+[group('vps')]
 OVH-CA-EAST-BHS:
   colmena apply --on '@OVH-CA-EAST-BHS' --verbose --show-trace
 

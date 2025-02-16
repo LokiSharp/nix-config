@@ -172,6 +172,10 @@ in
           skywolf-hk              IN  AAAA  fd6a:11d4:cacb::4
           v4.skywolf-hk           IN  A     172.20.190.4
           v6.skywolf-hk           IN  AAAA  fd6a:11d4:cacb::4
+          vultr-jp                IN  A     172.20.190.5
+          vultr-jp                IN  AAAA  fd6a:11d4:cacb::5
+          v4.vultr-jp             IN  A     172.20.190.5
+          v6.vultr-jp             IN  AAAA  fd6a:11d4:cacb::5
           base-test-cn-sh         IN  A     172.20.190.10
           base-test-cn-sh         IN  AAAA  fd6a:11d4:cacb::10
           v4.base-test-cn-sh      IN  A     172.20.190.10
@@ -197,6 +201,7 @@ in
           2                       IN  PTR   racknerd-us-ny.slk.dn42.
           3                       IN  PTR   racknerd-us-sj.slk.dn42.
           4                       IN  PTR   skywolf-hk.slk.dn42.
+          5                       IN  PTR   vultr-jp.slk.dn42.
           10                      IN  PTR   base-test-cn-sh.slk.dn42.
         '';
         master = true;
@@ -213,12 +218,13 @@ in
                           86400    ; Expire
                           300 )    ; Negative Cache TTL
           ;
-          @                                         IN  NS    ns-anycast.slk.dn42.  ; announce the name server of current zone
+          @                                         IN NS  ns-anycast.slk.dn42.  ; announce the name server of current zone
           3.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR ns-anycast.slk.dn42.
           1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR ovh-ca-east-bhs.slk.dn42.
           2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR racknerd-us-ny.slk.dn42.
           3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR racknerd-us-sj.slk.dn42.
           4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR skywolf-hk.slk.dn42.
+          5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR vultr-jp.slk.dn42.
           0.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR base-test-cn-sh.slk.dn42.
         '';
         master = true;

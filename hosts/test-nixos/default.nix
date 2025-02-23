@@ -26,10 +26,10 @@ in
   systemd.network.networks."10-wan" = {
     matchConfig.Name = "en*";
     address = [
-      "10.0.0.13/16"
+      "192.168.0.13/24"
     ];
     routes = [
-      { Gateway = "10.0.0.1"; }
+      { Gateway = "192.168.0.1"; }
     ];
     linkConfig.RequiredForOnline = "routable";
   };

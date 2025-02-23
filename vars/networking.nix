@@ -1,67 +1,67 @@
 { lib }:
 rec {
-  mainGateway = "10.0.0.1";
-  defaultGateway = "10.0.0.1";
+  mainGateway = "192.168.0.1";
+  defaultGateway = "192.168.0.1";
   nameservers = [
-    "10.0.0.1"
+    "192.168.0.1"
   ];
   prefixLength = 24;
 
   hostsAddr = {
     DESKTOP-NixOS = {
       iface = "enp0s31f6";
-      ipv4 = "10.0.0.10";
+      ipv4 = "192.168.0.10";
     };
     VM-NixOS = {
       iface = "enp6s18";
-      ipv4 = "10.0.0.11";
+      ipv4 = "192.168.0.11";
     };
 
     K3S-Test-1-Master-1 = {
       iface = "enp6s18";
-      ipv4 = "10.0.10.1";
+      ipv4 = "192.168.0.201";
     };
     K3S-Test-1-Master-2 = {
       iface = "enp6s18";
-      ipv4 = "10.0.10.2";
+      ipv4 = "192.168.0.202";
     };
     K3S-Test-1-Master-3 = {
       iface = "enp6s18";
-      ipv4 = "10.0.10.3";
+      ipv4 = "192.168.0.203";
     };
 
     K3S-Prod-1-Master-1 = {
       iface = "enp6s18";
-      ipv4 = "10.0.20.1";
+      ipv4 = "192.168.0.211";
     };
     K3S-Prod-1-Master-2 = {
       iface = "enp6s18";
-      ipv4 = "10.0.20.2";
+      ipv4 = "192.168.0.212";
     };
     K3S-Prod-1-Master-3 = {
       iface = "enp6s18";
-      ipv4 = "10.0.20.3";
+      ipv4 = "192.168.0.213";
     };
     K3S-Prod-1-Worker-1 = {
       iface = "enp6s18";
-      ipv4 = "10.0.30.1";
+      ipv4 = "192.168.0.221";
     };
     K3S-Prod-1-Worker-2 = {
       iface = "enp6s18";
-      ipv4 = "10.0.30.2";
+      ipv4 = "192.168.0.222";
     };
     K3S-Prod-1-Worker-3 = {
       iface = "enp6s18";
-      ipv4 = "10.0.30.3";
+      ipv4 = "192.168.0.223";
     };
 
     Server-NixOS = {
       iface = "enp6s18";
-      ipv4 = "10.0.0.12";
+      ipv4 = "192.168.0.12";
     };
     Test-NixOS = {
       iface = "enp6s18";
-      ipv4 = "10.0.0.13";
+      ipv4 = "192.168.0.13";
     };
   };
 

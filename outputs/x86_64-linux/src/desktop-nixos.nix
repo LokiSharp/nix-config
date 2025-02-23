@@ -13,6 +13,13 @@
 let
   hostName = "DESKTOP-NixOS";
   hostNameLower = lib.toLower hostName;
+  tags = [
+    hostName
+    hostNameLower
+    "desktop"
+  ];
+  ssh-user = "root";
+
   base-modules = {
     nixos-modules = map mylib.relativeToRoot [
       # common

@@ -45,6 +45,7 @@ let
 
     colmenaSystem = import ./system/colmenaSystem.nix;
     nixosSystem = import ./system/nixosSystem.nix;
+    macosSystem = import ./system/macosSystem.nix;
 
     attrs = import ./fn/attrs.nix { inherit lib; };
     serviceHarden = call ./fn/service-harden.nix;

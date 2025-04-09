@@ -23,6 +23,35 @@ export def make-editable [
     rsync -avz --copy-links --chmod=D2755,F744 $"($tmpdir)/" $path
 }
 
+# ================= macOS related =========================
+
+export def darwin-build [
+    name: string
+    mode: string
+] {
+    let target = $".#darwinConfigurations.($name).system"
+    if "debug" == $mode {
+        nom build $target --extra-experimental-features "nix-command flakes"  --show-trace --verbose
+    } else {
+        nix build $target --extra-experimental-features "nix-command flakes"
+    }
+}
+
+export def darwin-switch [
+    name: string
+    mode: string
+] {
+    if "debug" == $mode {
+        ./result/sw/bin/darwin-rebuild switch --flake $".#($name)" --show-trace --verbose
+    } else {
+        ./result/sw/bin/darwin-rebuild switch --flake $".#($name)"
+    }
+}
+
+export def darwin-rollback [] {
+    ./result/sw/bin/darwin-rebuild --rollback
+}
+
 # Build and upload a VM image
 export def upload-vm [
     name: string

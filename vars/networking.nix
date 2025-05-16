@@ -16,45 +16,6 @@ rec {
       iface = "enp6s18";
       ipv4 = "192.168.0.11";
     };
-
-    K3S-Test-1-Master-1 = {
-      iface = "enp6s18";
-      ipv4 = "192.168.0.201";
-    };
-    K3S-Test-1-Master-2 = {
-      iface = "enp6s18";
-      ipv4 = "192.168.0.202";
-    };
-    K3S-Test-1-Master-3 = {
-      iface = "enp6s18";
-      ipv4 = "192.168.0.203";
-    };
-
-    K3S-Prod-1-Master-1 = {
-      iface = "enp6s18";
-      ipv4 = "192.168.0.211";
-    };
-    K3S-Prod-1-Master-2 = {
-      iface = "enp6s18";
-      ipv4 = "192.168.0.212";
-    };
-    K3S-Prod-1-Master-3 = {
-      iface = "enp6s18";
-      ipv4 = "192.168.0.213";
-    };
-    K3S-Prod-1-Worker-1 = {
-      iface = "enp6s18";
-      ipv4 = "192.168.0.221";
-    };
-    K3S-Prod-1-Worker-2 = {
-      iface = "enp6s18";
-      ipv4 = "192.168.0.222";
-    };
-    K3S-Prod-1-Worker-3 = {
-      iface = "enp6s18";
-      ipv4 = "192.168.0.223";
-    };
-
     Server-NixOS = {
       iface = "enp6s18";
       ipv4 = "192.168.0.12";

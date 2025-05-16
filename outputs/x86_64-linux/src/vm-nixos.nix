@@ -25,6 +25,7 @@ let
       # common
       "secrets/nixos.nix"
       "modules/nixos/desktop.nix"
+      "modules/nixos/hardware-configuration/proxmox-hardware-configuration.nix"
       # host specific
       "hosts/${hostNameLower}"
     ];

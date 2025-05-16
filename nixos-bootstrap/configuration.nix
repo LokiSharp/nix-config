@@ -1,7 +1,8 @@
-{ config
-, pkgs
-, lib
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  ...
 }:
 {
   environment.systemPackages = with pkgs; [
@@ -20,7 +21,10 @@
   # Initrd 配置，开启 ZSTD 压缩和基于 systemd 的第一阶段启动
   boot.initrd = {
     compressor = "zstd";
-    compressorArgs = [ "-19" "-T0" ];
+    compressorArgs = [
+      "-19"
+      "-T0"
+    ];
     systemd.enable = true;
   };
 

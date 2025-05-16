@@ -1,18 +1,26 @@
-{ myvars, ... }:
+{
+  lib,
+  mylib,
+  myvars,
+  pkgs,
+  disko,
+  ...
+}:
 let
   hostName = "VM-NixOS";
 in
 {
   imports = [
-    ./hardware-configuration.nix
+    disko.nixosModules.default
+    ./disko-fs.nix
+    ../vps/impermanence.nix
   ];
 
+  systemd.network.enable = true;
   networking = {
     inherit hostName;
-    inherit (myvars.networking) defaultGateway nameservers;
-    inherit (myvars.networking.hostsInterface.${hostName}) interfaces;
-
-    networkmanager.enable = true;
+    useNetworkd = true;
+    useDHCP = true;
   };
 
   # This value determines the NixOS release from which the default

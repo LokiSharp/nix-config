@@ -12,7 +12,7 @@
 4. 移动和创建 `persistent` 相关目录
     ```sh
     mv /etc/machine-id /persistent/etc/
-    cp /etc/ssh /persistent/etc/ssh -r
+    cp /etc/ssh /persistent/etc -r
     mkdir -p /persistent/home/loki-sharp
     chown -R loki-sharp:loki-sharp /persistent/home/loki-sharp
     ```

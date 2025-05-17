@@ -165,6 +165,25 @@ in
       };
     })
 
+    (mkIf cfg.server.storage.enable {
+      age.secrets = {
+        "luks-crypt-key" = {
+          file = "${mysecrets}/luks-crypt-key.age";
+          mode = "0400";
+          owner = "root";
+        };
+      };
+
+      # place secrets in /etc/
+      environment.etc = {
+        "agenix/luks-crypt-key" = {
+          source = config.age.secrets."luks-crypt-key".path;
+          mode = "0400";
+          user = "root";
+        };
+      };
+    })
+
     (mkIf cfg.server.dn42.enable {
       age.secrets = {
         "wg-priv" = {

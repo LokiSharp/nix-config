@@ -1,20 +1,21 @@
-{ lib
-, mylib
-, myvars
-, pkgs
-, disko
-, ...
+{
+  lib,
+  mylib,
+  myvars,
+  pkgs,
+  disko,
+  ...
 }:
 let
   hostName = "Server-NixOS";
 in
 {
-  imports =
-    (mylib.scanPaths ./services)
-    ++ [
-      disko.nixosModules.default
-      ./disko-fs.nix
-    ];
+  imports = (mylib.scanPaths ./services) ++ [
+    disko.nixosModules.default
+    ./disko-fs.nix
+    ./disko-fs-data.nix
+    ./impermanence.nix
+  ];
 
   networking = {
     inherit hostName;

@@ -1,6 +1,7 @@
-{ config
-, pkgs
-, ...
+{
+  config,
+  pkgs,
+  ...
 }:
 let
   user = "homepage";
@@ -30,6 +31,7 @@ in
       ports = [ "127.0.0.1:54401:3000" ];
       # https://github.com/louislam/uptime-kuma/wiki/Environment-Variables
       environment = {
+        "HOMEPAGE_ALLOWED_HOSTS" = "homepage.slk.moe";
         # "PUID" = config.users.users.${user}.uid;
         # "PGID" = config.users.groups.${user}.gid;
       };

@@ -13,7 +13,7 @@ in
   imports = [
     disko.nixosModules.default
     ./disko-fs.nix
-    ../vps/impermanence.nix
+    ./impermanence.nix
   ];
 
   systemd.network.enable = true;

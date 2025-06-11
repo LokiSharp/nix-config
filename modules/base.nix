@@ -1,9 +1,11 @@
-{ pkgs
-, myvars
-, nixpkgs
-, lib
-, ...
-} @ args: {
+{
+  pkgs,
+  myvars,
+  nixpkgs,
+  lib,
+  ...
+}@args:
+{
 
   # Add my private PKI's CA certificate to the system-wide trust store.
   security.pki.certificateFiles = [
@@ -85,7 +87,10 @@
 
   nix.settings = {
     # enable flakes globally
-    experimental-features = [ "nix-command" "flakes" ];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
 
     # given the users in this list the right to specify additional substituters via:
     #    1. `nixConfig.substituers` in `flake.nix`
@@ -96,10 +101,9 @@
     substituters = [
       # cache mirror located in China
       # status: https://mirror.sjtu.edu.cn/
-      # "https://mirror.sjtu.edu.cn/nix-channels/store"
+      "https://mirror.sjtu.edu.cn/nix-channels/store"
       # status: https://mirrors.ustc.edu.cn/status/
-      # "https://mirrors.ustc.edu.cn/nix-channels/store"
-      "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+      "https://mirrors.ustc.edu.cn/nix-channels/store"
 
       "https://nix-community.cachix.org"
     ];

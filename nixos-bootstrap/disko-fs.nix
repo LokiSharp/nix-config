@@ -1,8 +1,10 @@
-{ config
-, pkgs
-, lib
-, ...
-}: {
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+{
   disko = {
     devices = {
       nodev."/" = {
@@ -71,19 +73,31 @@
                   };
                   "@nix" = {
                     mountpoint = "/nix";
-                    mountOptions = [ "compress-force=zstd:1" "noatime" ];
+                    mountOptions = [
+                      "compress-force=zstd:1"
+                      "noatime"
+                    ];
                   };
                   "@persistent" = {
                     mountpoint = "/persistent";
-                    mountOptions = [ "compress-force=zstd:1" "noatime" ];
+                    mountOptions = [
+                      "compress-force=zstd:1"
+                      "noatime"
+                    ];
                   };
                   "@tmp" = {
                     mountpoint = "/tmp";
-                    mountOptions = [ "compress-force=zstd:1" "noatime" ];
+                    mountOptions = [
+                      "compress-force=zstd:1"
+                      "noatime"
+                    ];
                   };
                   "@snapshots" = {
                     mountpoint = "/snapshots";
-                    mountOptions = [ "compress-force=zstd:1" "noatime" ];
+                    mountOptions = [
+                      "compress-force=zstd:1"
+                      "noatime"
+                    ];
                   };
                   "@swap" = {
                     mountpoint = "/swap";
@@ -91,7 +105,6 @@
                       "noatime"
                       "nodatacow" # 禁用 CoW
                       "nodatasum" # 禁用校验和
-                      "nocompress" # 禁用压缩
                     ];
                   };
                 };

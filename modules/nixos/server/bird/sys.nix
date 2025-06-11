@@ -142,7 +142,10 @@ in
       case net.type {
         NET_IP4: return net ~ BOGON_PREFIXES_V4;
         NET_IP6: return net ~ BOGON_PREFIXES_V6;
-        else: print "is_bogon_prefix: unexpected net.type ", net.type, " ", net; return false;
+        else: {
+          print "is_bogon_prefix: unexpected net.type ", net.type, " ", net; 
+          return false;
+        }
       }
     }
 

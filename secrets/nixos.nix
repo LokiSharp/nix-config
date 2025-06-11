@@ -197,7 +197,7 @@ in
         "bird-bgp-password.conf" = {
           file = "${mysecrets}/server/bird-bgp-password.conf.age";
           mode = "0400";
-          owner = "bird2";
+          owner = "bird";
         };
       };
     })

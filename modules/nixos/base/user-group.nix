@@ -1,4 +1,5 @@
-{ myvars, config, ... }: {
+{ myvars, config, ... }:
+{
   users.mutableUsers = false;
 
   users.groups = {
@@ -10,7 +11,13 @@
     inherit (myvars) initialHashedPassword;
     home = "/home/${myvars.username}";
     isNormalUser = true;
-    extraGroups = [ myvars.username "users" "networkmanager" "wheel" "docker" ];
+    extraGroups = [
+      myvars.username
+      "users"
+      "networkmanager"
+      "wheel"
+      "docker"
+    ];
   };
 
   users.users.root = {

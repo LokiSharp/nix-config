@@ -24,10 +24,8 @@ in
       "modules/nixos/server/bind.nix"
     ];
 
-  systemd.network.enable = true;
   networking = {
     inherit hostName;
-    useNetworkd = true;
     useDHCP = true;
   };
 

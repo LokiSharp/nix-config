@@ -33,7 +33,7 @@ in
     ];
   };
 
-  services.bird2 = {
+  services.bird = {
     enable = true;
     checkConfig = false;
     config = builtins.concatStringsSep "\n" (
@@ -87,11 +87,11 @@ in
   };
 
   users = {
-    users.bird2 = {
+    users.bird = {
       description = "BIRD Internet Routing Daemon user";
-      group = "bird2";
+      group = "bird";
       isSystemUser = true;
     };
-    groups.bird2 = { };
+    groups.bird = { };
   };
 }

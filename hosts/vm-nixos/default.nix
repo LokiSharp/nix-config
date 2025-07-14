@@ -21,6 +21,12 @@ in
     inherit hostName;
     useNetworkd = true;
     useDHCP = true;
+    inherit (myvars.networking) nameservers;
+  };
+
+  services.resolved = {
+    enable = true;
+    domains = [ "lan" ];
   };
 
   # This value determines the NixOS release from which the default

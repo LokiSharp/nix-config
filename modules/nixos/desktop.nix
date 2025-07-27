@@ -1,17 +1,19 @@
-{ pkgs
-, config
-, lib
-, myvars
-, ...
+{
+  pkgs,
+  config,
+  lib,
+  myvars,
+  ...
 }:
-with lib; let
+with lib;
+let
   cfgWayland = config.modules.desktop.wayland;
   cfgXorg = config.modules.desktop.xorg;
 in
 {
   imports = [
     ./base
-    ../base.nix
+    ../base
 
     ./desktop
   ];

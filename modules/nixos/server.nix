@@ -1,6 +1,7 @@
-{ lib, ... }: {
+{ lib, ... }:
+{
   imports = [
     ./base
-    ./../base.nix
+    ../base
   ];
 }

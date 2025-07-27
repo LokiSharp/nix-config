@@ -40,8 +40,8 @@ let
   modules = {
     nixos-modules = [
       {
+        modules.desktop.fonts.enable = true;
         modules.desktop.wayland.enable = true;
-        modules.secrets.desktop.enable = true;
       }
     ] ++ base-modules.nixos-modules;
     home-modules = [

@@ -23,7 +23,11 @@ let
         # host specific
         "hosts/darwin-${hostNameLower}"
       ])
-      ++ [ ];
+      ++ [
+        {
+          modules.desktop.fonts.enable = true;
+        }
+      ];
     home-modules = map mylib.relativeToRoot [
       "home/darwin"
     ];

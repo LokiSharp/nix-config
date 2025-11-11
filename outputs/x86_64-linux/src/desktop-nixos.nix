@@ -55,9 +55,4 @@ in
   };
 
   colmena.${hostName} = mylib.colmenaSystem (systemArgs // { inherit tags ssh-user; });
-
-  # generate iso image for hosts with desktop environment
-  packages = {
-    "${hostName}" = inputs.self.nixosConfigurations."${hostName}".config.formats.iso;
-  };
 }

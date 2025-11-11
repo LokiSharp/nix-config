@@ -50,6 +50,4 @@ in
   nixosConfigurations.${hostName} = mylib.nixosSystem systemArgs;
 
   colmena.${hostName} = mylib.colmenaSystem (systemArgs // { inherit tags targetHost ssh-user; });
-
-  packages.${hostName} = inputs.self.nixosConfigurations.${hostName}.config.formats.iso;
 }

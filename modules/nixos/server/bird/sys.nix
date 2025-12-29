@@ -195,7 +195,6 @@ in
       ${lib.optionalString (
         this.dn42.IPv6 != ""
       ) "if net ~ DN42_NET_SET_IPv6 then krt_prefsrc = ${this.dn42.IPv6};"}
-      ${lib.optionalString (this.loki-net.IPv6 != "") "krt_prefsrc = ${this.loki-net.IPv6};"}
       accept;
     }
 

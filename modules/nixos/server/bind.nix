@@ -143,7 +143,7 @@ in
           ; slk.dn42.
           $TTL  300 ; default ttl for all RRs
           @ IN  SOA ns-anycast.slk.dn42. dn42.slk.moe. (
-                      2025011401   ; Serial Number
+                      2025122901   ; Serial Number
                           3600     ; Refresh
                           180      ; Retry
                           86400    ; Expire
@@ -154,28 +154,15 @@ in
           ns-anycast              IN  AAAA  fd6a:11d4:cacb::53
           v4.ns-anycast           IN  A     172.20.190.53
           v6.ns-anycast           IN  AAAA  fd6a:11d4:cacb::53
-          @                       IN  A     172.20.190.1
-          @                       IN  AAAA  fd6a:11d4:cacb::1
-          ovh-ca-east-bhs         IN  A     172.20.190.1
-          ovh-ca-east-bhs         IN  AAAA  fd6a:11d4:cacb::1
-          v4.ovh-ca-east-bhs      IN  A     172.20.190.1
-          v6.ovh-ca-east-bhs      IN  AAAA  fd6a:11d4:cacb::1
-          racknerd-us-ny          IN  A     172.20.190.2
-          racknerd-us-ny          IN  AAAA  fd6a:11d4:cacb::2
-          v4.racknerd-us-ny       IN  A     172.20.190.2
-          v6.racknerd-us-ny       IN  AAAA  fd6a:11d4:cacb::2
-          racknerd-us-sj          IN  A     172.20.190.3
-          racknerd-us-sj          IN  AAAA  fd6a:11d4:cacb::3
-          v4.racknerd-us-sj       IN  A     172.20.190.3
-          v6.racknerd-us-sj       IN  AAAA  fd6a:11d4:cacb::3
-          skywolf-hk              IN  A     172.20.190.4
-          skywolf-hk              IN  AAAA  fd6a:11d4:cacb::4
-          v4.skywolf-hk           IN  A     172.20.190.4
-          v6.skywolf-hk           IN  AAAA  fd6a:11d4:cacb::4
-          vultr-jp                IN  A     172.20.190.5
-          vultr-jp                IN  AAAA  fd6a:11d4:cacb::5
-          v4.vultr-jp             IN  A     172.20.190.5
-          v6.vultr-jp             IN  AAAA  fd6a:11d4:cacb::5
+
+          skywolf-hk              IN  A     172.20.190.1
+          skywolf-hk              IN  AAAA  fd6a:11d4:cacb::1
+          v4.skywolf-hk           IN  A     172.20.190.1
+          v6.skywolf-hk           IN  AAAA  fd6a:11d4:cacb::1
+          vultr-jp                IN  A     172.20.190.2
+          vultr-jp                IN  AAAA  fd6a:11d4:cacb::2
+          v4.vultr-jp             IN  A     172.20.190.2
+          v6.vultr-jp             IN  AAAA  fd6a:11d4:cacb::2
           base-test-cn-sh         IN  A     172.20.190.10
           base-test-cn-sh         IN  AAAA  fd6a:11d4:cacb::10
           v4.base-test-cn-sh      IN  A     172.20.190.10
@@ -189,7 +176,7 @@ in
           ; 0/26.190.20.172.in-addr.arpa.
           $TTL  300 ; default ttl for all RRs
           @ IN  SOA ns-anycast.slk.dn42. dn42.slk.moe. (
-                      2025011401   ; Serial Number
+                      2025122901   ; Serial Number
                           3600     ; Refresh
                           180      ; Retry
                           86400    ; Expire
@@ -197,11 +184,9 @@ in
           ;
           @                       IN  NS    ns-anycast.slk.dn42.  ; announce the name server of current zone
           53                      IN  PTR   ns-anycast.slk.dn42.
-          1                       IN  PTR   ovh-ca-east-bhs.slk.dn42.
-          2                       IN  PTR   racknerd-us-ny.slk.dn42.
-          3                       IN  PTR   racknerd-us-sj.slk.dn42.
-          4                       IN  PTR   skywolf-hk.slk.dn42.
-          5                       IN  PTR   vultr-jp.slk.dn42.
+
+          1                       IN  PTR   skywolf-hk.slk.dn42.
+          2                       IN  PTR   vultr-jp.slk.dn42.
           10                      IN  PTR   base-test-cn-sh.slk.dn42.
         '';
         master = true;
@@ -212,7 +197,7 @@ in
           ; b.c.a.c.4.d.1.1.a.6.d.f.ip6.arpa.
           $TTL  300 ; default ttl for all RRs
           @ IN  SOA ns-anycast.slk.dn42. dn42.slk.moe. (
-                      2025011401   ; Serial Number
+                      2025122901   ; Serial Number
                           3600     ; Refresh
                           180      ; Retry
                           86400    ; Expire
@@ -220,11 +205,9 @@ in
           ;
           @                                         IN NS  ns-anycast.slk.dn42.  ; announce the name server of current zone
           3.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR ns-anycast.slk.dn42.
-          1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR ovh-ca-east-bhs.slk.dn42.
-          2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR racknerd-us-ny.slk.dn42.
-          3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR racknerd-us-sj.slk.dn42.
-          4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR skywolf-hk.slk.dn42.
-          5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR vultr-jp.slk.dn42.
+
+          1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR skywolf-hk.slk.dn42.
+          2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR vultr-jp.slk.dn42.
           0.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR base-test-cn-sh.slk.dn42.
         '';
         master = true;

@@ -171,30 +171,6 @@ NodeSet-LOKI-NET:
 
 [linux]
 [group('vps')]
-RackNerd-US-NY:
-  colmena apply --on '@RackNerd-US-NY' --verbose --show-trace
-
-[linux]
-[group('vps')]
-RackNerd-US-NY-local mode="default":
-  #!/usr/bin/env nu
-  use {{utils_nu}} *; 
-  nixos-switch RackNerd-US-NY {{mode}}
-
-[linux]
-[group('vps')]
-RackNerd-US-SJ:
-  colmena apply --on '@RackNerd-US-SJ' --verbose --show-trace
-
-[linux]
-[group('vps')]
-RackNerd-US-SJ-local mode="default":
-  #!/usr/bin/env nu
-  use {{utils_nu}} *; 
-  nixos-switch RackNerd-US-SJ {{mode}}
-
-[linux]
-[group('vps')]
 SkyWolf-HK:
   colmena apply --on '@SkyWolf-HK' --verbose --show-trace
 
@@ -216,15 +192,3 @@ Vultr-JP-local mode="default":
   #!/usr/bin/env nu
   use {{utils_nu}} *; 
   nixos-switch Vultr-JP {{mode}}
-
-[linux]
-[group('vps')]
-OVH-CA-EAST-BHS:
-  colmena apply --on '@OVH-CA-EAST-BHS' --verbose --show-trace
-
-[linux]
-[group('vps')]
-OVH-CA-EAST-BHS-local mode="default":
-  #!/usr/bin/env nu
-  use {{utils_nu}} *; 
-  nixos-switch OVH-CA-EAST-BHS {{mode}}

@@ -10,20 +10,20 @@ let
   hostName = "SkyWolf-HK";
 in
 {
-  imports =
-    [
-      disko.nixosModules.default
-      ../disko-config/vps-disko-fs.nix
-      ../impermanence.nix
-      ./dn42.nix
-      ./loki-net.nix
-    ]
-    ++ map mylib.relativeToRoot [
-      "modules/nixos/server/dn42.nix"
-      "modules/nixos/server/loki-net.nix"
-      "modules/nixos/server/bird"
-      "modules/nixos/server/bind.nix"
-    ];
+  imports = [
+    disko.nixosModules.default
+    ../disko-config/vps-disko-fs.nix
+    ../impermanence.nix
+    ./dn42.nix
+    ./loki-net.nix
+  ]
+  ++ map mylib.relativeToRoot [
+    "modules/nixos/server/dn42.nix"
+    "modules/nixos/server/loki-net.nix"
+    "modules/nixos/server/bird"
+    "modules/nixos/server/bind.nix"
+    "modules/nixos/server/zerotierone-controller"
+  ];
 
   systemd.network.enable = true;
   systemd.network.networks."10-wan" = {

@@ -14,6 +14,7 @@ in
     disko.nixosModules.default
     ../disko-config/vps-disko-fs.nix
     ../impermanence.nix
+    ./dn42.nix
     ./loki-net.nix
   ]
   ++ map mylib.relativeToRoot [

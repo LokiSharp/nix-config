@@ -46,7 +46,7 @@ in
         export filter slk_export_filter_v4;
       };
       area 0 {
-        interface "ztqxwi6nhk" {
+        interface "zt-slk0" {
           type broadcast;
           cost 100;
         };
@@ -63,7 +63,7 @@ in
         export filter slk_export_filter_v6;
       };
       area 0 {
-        interface "ztqxwi6nhk" {
+        interface "zt-slk0" {
           type broadcast;
           cost 100;
         };
@@ -86,7 +86,7 @@ in
         export filter slk_export_filter_v6;
       };
       randomize router id yes;
-      interface "ztqxwi6nhk" {
+      interface "zt-slk0" {
         type tunnel;
         rtt cost 1000;
         rtt min 0ms;

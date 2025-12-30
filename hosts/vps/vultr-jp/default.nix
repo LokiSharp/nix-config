@@ -10,20 +10,20 @@ let
   hostName = "Vultr-JP";
 in
 {
-  imports =
-    [
-      disko.nixosModules.default
-      ../disko-config/vps-disko-fs.nix
-      ../impermanence.nix
-      ./loki-net.nix
-    ]
-    ++ map mylib.relativeToRoot [
-      "modules/nixos/server/dn42.nix"
-      "modules/nixos/server/loki-net.nix"
-      "modules/nixos/server/bird"
-      "modules/nixos/server/bind.nix"
-    ];
+  imports = [
+    disko.nixosModules.default
+    ../disko-config/vps-disko-fs.nix
+    ../impermanence.nix
+    ./loki-net.nix
+  ]
+  ++ map mylib.relativeToRoot [
+    "modules/nixos/server/dn42.nix"
+    "modules/nixos/server/loki-net.nix"
+    "modules/nixos/server/bird"
+    "modules/nixos/server/bind.nix"
+  ];
 
+  systemd.network.enable = true;
   networking = {
     inherit hostName;
     useDHCP = true;

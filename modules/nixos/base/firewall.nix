@@ -21,7 +21,7 @@ in
             if configLib.this.hasTag configLib.tags.zerotier then
               ''
                 # accept ZeroTier traffic
-                iifname "ztqxwi6nhk" accept
+                iifname "zt-slk0" accept
               ''
             else
               ""

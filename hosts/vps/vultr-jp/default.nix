@@ -25,9 +25,13 @@ in
   ];
 
   systemd.network.enable = true;
+  systemd.network.networks."20-wan" = {
+    matchConfig.Name = "ens*";
+    networkConfig.DHCP = "yes";
+  };
   networking = {
     inherit hostName;
-    useDHCP = true;
+    useNetworkd = true;
   };
 
   # This value determines the NixOS release from which the default

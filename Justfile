@@ -131,6 +131,18 @@ reset-launchpad:
 
 [linux]
 [group('homelab')]
+VM-NixOS:
+  colmena apply --on '@VM-NixOS' --verbose --show-trace
+
+[linux]
+[group('homelab')]
+VM-NixOS-local mode="default":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *; 
+  nixos-switch VM-NixOS {{mode}}
+
+[linux]
+[group('homelab')]
 Server-NixOS:
   colmena apply --on '@Server-NixOS' --verbose --show-trace
 
@@ -192,3 +204,15 @@ Vultr-JP-local mode="default":
   #!/usr/bin/env nu
   use {{utils_nu}} *; 
   nixos-switch Vultr-JP {{mode}}
+
+[linux]
+[group('vps')]
+Lycheen-US-SLC:
+  colmena apply --on '@Lycheen-US-SLC' --verbose --show-trace
+
+[linux]
+[group('vps')]
+Lycheen-US-SLC-local mode="default":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *; 
+  nixos-switch Lycheen-US-SLC {{mode}}

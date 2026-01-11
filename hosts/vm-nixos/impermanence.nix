@@ -68,6 +68,10 @@
         ".vscode-server"
         ".config/Code/User"
         ".config/Code - Insiders/User"
+
+        # antigravity
+        ".antigravity"
+        ".antigravity-server"
       ];
       files = [
         ".config/nushell/history.txt"

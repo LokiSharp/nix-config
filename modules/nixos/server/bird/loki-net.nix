@@ -11,9 +11,12 @@ in
 {
   function = ''
     filter loki_net_import_filter_v6 {
-      if net ~ LOKI_NET_OWN_NET_SET_IPv6 then reject;
       if is_bogon_prefix() then reject;
-      accept;
+      if is_bogon_asn() then reject;
+      if net ~ LOKI_NET_OWN_NET_SET_IPv6 then reject;
+      if net ~ [ fd00::/8+ ] then accept;
+
+      reject;
     };
     filter loki_net_export_filter_v6 {
       if net ~ LOKI_NET_OWN_NET_SET_IPv6 then accept;

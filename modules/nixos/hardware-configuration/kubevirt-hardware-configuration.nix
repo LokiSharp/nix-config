@@ -23,7 +23,7 @@
 
     boot.growPartition = true;
     boot.kernelParams = [ "console=ttyS0" ];
-    boot.loader.grub.device = "/dev/vda";
+    boot.loader.grub.device = "nodev";
     boot.loader.timeout = 0;
 
     services.qemuGuest.enable = true;

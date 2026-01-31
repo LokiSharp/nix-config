@@ -163,6 +163,8 @@ in
     }
 
     filter sys_import_v6 {
+      if net = ::/0 then accept;
+      if net ~ LOKI_NET_OWN_NET_SET_IPv6 then accept;
       if net !~ RESERVED_IPv6 then reject;
       if net !~ SLK_OWN_NET_SET_IPv6 && net !~ LOKI_NET_OWN_NET_SET_IPv6 && net.len = 128 then reject;
       accept;
@@ -195,6 +197,12 @@ in
       ${lib.optionalString (
         this.dn42.IPv6 != ""
       ) "if net ~ DN42_NET_SET_IPv6 then krt_prefsrc = ${this.dn42.IPv6};"}
+      ${lib.optionalString (
+        this.hasTag configLib.tags.loki-net && this.loki-net.IPv6 != ""
+      ) "if net ~ LOKI_NET_OWN_NET_SET_IPv6 then krt_prefsrc = ${this.loki-net.IPv6};"}
+      ${lib.optionalString (
+        this.hasTag configLib.tags.loki-net && this.loki-net.IPv6 != ""
+      ) "if net = ::/0 then krt_prefsrc = ${this.loki-net.IPv6};"}
       accept;
     }
 

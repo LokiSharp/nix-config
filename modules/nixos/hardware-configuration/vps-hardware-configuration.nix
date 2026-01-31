@@ -1,15 +1,33 @@
-{ config, lib, pkgs, modulesPath, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
 
 {
   config = {
     boot = {
       loader = {
+        grub = {
+          enable = !config.boot.isContainer;
+          default = "saved";
+          devices = [ "nodev" ];
+          efiSupport = true;
+          efiInstallAsRemovable = true;
+        };
+        efi.efiSysMountPoint = "/boot";
+        efi.canTouchEfiVariables = false;
         timeout = 0;
       };
 
       initrd = {
         compressor = "zstd";
-        compressorArgs = [ "-19" "-T0" ];
+        compressorArgs = [
+          "-19"
+          "-T0"
+        ];
         systemd.enable = true;
         postDeviceCommands = lib.mkIf (!config.boot.initrd.systemd.enable) ''
           # Set the system time from the hardware clock to work around a

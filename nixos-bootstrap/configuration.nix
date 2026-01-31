@@ -34,7 +34,11 @@
       enable = !config.boot.isContainer;
       default = "saved";
       devices = [ "/dev/vda" ];
+      efiSupport = true;
+      efiInstallAsRemovable = true;
     };
+    efi.efiSysMountPoint = "/boot";
+    efi.canTouchEfiVariables = false;
     timeout = 0;
   };
 

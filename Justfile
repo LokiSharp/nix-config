@@ -240,3 +240,15 @@ Lycheen-US-SLC-local mode="default":
   #!/usr/bin/env nu
   use {{utils_nu}} *; 
   nixos-switch Lycheen-US-SLC {{mode}}
+
+[linux]
+[group('vps')]
+MoeDove-TPE:
+  colmena apply --on '@MoeDove-TPE' --verbose --show-trace
+
+[linux]
+[group('vps')]
+MoeDove-TPE-local mode="default":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *; 
+  nixos-switch MoeDove-TPE {{mode}}

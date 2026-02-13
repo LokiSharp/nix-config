@@ -137,8 +137,7 @@ in
       "firefox"
       "google-chrome"
       "visual-studio-code"
-      "zed" # zed editor
-      "cursor" # an AI code editor
+      "antigravity" # Google's AI-powered code editor
       "ghostty" # terminal emulator
 
       "obsidian" # note app
@@ -149,7 +148,6 @@ in
       # Misc
       "iina" # video player
       "spotify" # music player
-      "sonic-pi" # music programming
 
       # AI
       "ollama-app" # AI model server
@@ -161,7 +159,6 @@ in
       "mitmproxy" # HTTP/HTTPS traffic inspector
       "wireshark-app" # network analyzer
       "orbstack" # docker alternative
-      "utm" # virtualization
       "surge" # network proxy tool
     ];
   };

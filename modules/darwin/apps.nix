@@ -59,15 +59,14 @@ in
     gnutar # replacee macos's tar
   ];
 
-  environment.variables =
-    {
-      # Fix https://github.com/LnL7/nix-darwin/wiki/Terminfo-issues
-      TERMINFO_DIRS = map (path: path + "/share/terminfo") config.environment.profiles ++ [
-        "/usr/share/terminfo"
-      ];
-    }
-    # Set variables for you to manually install homebrew packages.
-    // homebrew_mirror_env;
+  environment.variables = {
+    # Fix https://github.com/LnL7/nix-darwin/wiki/Terminfo-issues
+    TERMINFO_DIRS = map (path: path + "/share/terminfo") config.environment.profiles ++ [
+      "/usr/share/terminfo"
+    ];
+  }
+  # Set variables for you to manually install homebrew packages.
+  // homebrew_mirror_env;
 
   # Set environment variables for nix-darwin before run `brew bundle`.
   system.activationScripts.homebrew.text = lib.mkBefore ''
@@ -134,7 +133,7 @@ in
 
     # `brew install --cask`
     casks = [
-      "squirrel" # input method for Chinese, rime-squirrel
+      "squirrel-app" # input method for Chinese, rime-squirrel
       "firefox"
       "google-chrome"
       "visual-studio-code"
@@ -153,14 +152,14 @@ in
       "sonic-pi" # music programming
 
       # AI
-      "ollama" # AI model server
+      "ollama-app" # AI model server
 
       # Finance
       "tradingview" # trading view
 
       # Development
       "mitmproxy" # HTTP/HTTPS traffic inspector
-      "wireshark" # network analyzer
+      "wireshark-app" # network analyzer
       "orbstack" # docker alternative
       "utm" # virtualization
       "surge" # network proxy tool

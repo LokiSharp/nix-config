@@ -18,7 +18,8 @@ let
     || cfg.server.kubernetes.enable
     || cfg.server.webserver.enable
     || cfg.server.storage.enable
-    || cfg.server.dn42.enable;
+    || cfg.server.dn42.enable
+    || cfg.server.proxy.enable;
 
   noaccess = {
     mode = "0000";
@@ -49,6 +50,7 @@ in
     server.storage.enable = mkEnableOption "NixOS Secrets for HDD Data's LUKS Encryption";
     server.dn42.enable = mkEnableOption "NixOS Secrets for DN42";
     server.loki-net.enable = mkEnableOption "NixOS Secrets for Loki-Net";
+    server.proxy.enable = mkEnableOption "NixOS Secrets for Proxy";
 
     impermanence.enable = mkEnableOption "whether use impermanence and ephemeral root file system";
   };
@@ -90,7 +92,8 @@ in
         # .age means the decrypted file is still encrypted by age(via a passphrase)
         "LokiSharp-gpg-subkeys-2024-12-30.priv.age" = {
           file = "${mysecrets}/LokiSharp-gpg-subkeys-2024-12-30.priv.age.age";
-        } // noaccess;
+        }
+        // noaccess;
       };
 
       environment.etc = {
@@ -105,11 +108,13 @@ in
       age.secrets = {
         "k3s-prod-1-token" = {
           file = "${mysecrets}/server/k3s-prod-1-token.age";
-        } // high_security;
+        }
+        // high_security;
 
         "k3s-test-1-token" = {
           file = "${mysecrets}/server/k3s-test-1-token.age";
-        } // high_security;
+        }
+        // high_security;
       };
     })
 
@@ -123,7 +128,8 @@ in
 
         "alertmanager.env" = {
           file = "${mysecrets}/server/alertmanager.env.age";
-        } // high_security;
+        }
+        // high_security;
       };
     })
 
@@ -198,6 +204,16 @@ in
           file = "${mysecrets}/server/bird-bgp-password.conf.age";
           mode = "0400";
           owner = "bird";
+        };
+      };
+    })
+
+    (mkIf cfg.server.proxy.enable {
+      age.secrets = {
+        "proxy.env" = {
+          file = "${mysecrets}/server/proxy.env.age";
+          mode = "0400";
+          owner = "root";
         };
       };
     })

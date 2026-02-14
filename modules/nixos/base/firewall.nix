@@ -1,4 +1,9 @@
-{ mylib, config, ... }:
+{
+  mylib,
+  config,
+  lib,
+  ...
+}:
 let
   configLib = mylib.withConfig config;
 in
@@ -61,6 +66,14 @@ in
             else
               ""
           }
+
+          # Accept ports defined in standard firewall options
+          ${lib.optionalString (config.networking.firewall.allowedTCPPorts != [ ]) ''
+            tcp dport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedTCPPorts)} } accept
+          ''}
+          ${lib.optionalString (config.networking.firewall.allowedUDPPorts != [ ]) ''
+            udp dport { ${lib.concatStringsSep ", " (map toString config.networking.firewall.allowedUDPPorts)} } accept
+          ''}
 
           # count and drop any other traffic
           counter drop

@@ -112,8 +112,27 @@ in
       '';
     };
 
-    networking.firewall.allowedTCPPorts = [ cfg.port ];
-    networking.firewall.allowedUDPPorts = [ cfg.port ];
+    networking.firewall.allowedTCPPorts = [
+      80
+      cfg.port
+    ];
+    networking.firewall.allowedUDPPorts = [
+      cfg.port
+    ];
+
+    services.caddy = {
+      enable = true;
+      virtualHosts = {
+        # Global HTTP redirection to HTTPS
+        "http://" = {
+          extraConfig = ''
+            bind :80
+            redir https://{host}{uri} permanent
+            header Server AkamaiGHost
+          '';
+        };
+      };
+    };
 
     # BBR Congestion Control
     boot.kernel.sysctl = {

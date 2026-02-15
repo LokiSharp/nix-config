@@ -58,10 +58,25 @@ in
           tcp dport 22 accept
 
           ${
-            if configLib.this.hasTag configLib.tags.loki-net then
+            if
+              configLib.this.hasTag configLib.tags.loki-net
+              && config.services ? loki-net
+              && config.services.loki-net != { }
+            then
+              let
+                peers = lib.attrValues config.services.loki-net;
+                mkRule =
+                  peer:
+                  (lib.optionalString (peer.addressing.peerIPv4 != null && peer.addressing.peerIPv4 != "") ''
+                    ip saddr ${peer.addressing.peerIPv4} tcp dport 179 accept
+                  '')
+                  + (lib.optionalString (peer.addressing.peerIPv6 != null && peer.addressing.peerIPv6 != "") ''
+                    ip6 saddr ${peer.addressing.peerIPv6} tcp dport 179 accept
+                  '');
+              in
               ''
-                # accept BIRD 2 BGP traffic
-                tcp dport 179 accept
+                # accept BIRD 2 BGP traffic from specific peers
+                ${lib.concatMapStrings mkRule peers}
               ''
             else
               ""

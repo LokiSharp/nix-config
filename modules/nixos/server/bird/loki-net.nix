@@ -7,6 +7,48 @@
 let
   inherit (import ../common.nix args) this configLib;
   LOKI_NET_AS = myvars.constants.LOKI_NET_AS;
+
+  # Helper to generate iBGP peer protocol
+  mkIBgpPeer =
+    {
+      name,
+      neighbor,
+      isRRClient ? false,
+    }:
+    ''
+      protocol bgp ibgp_loki_net_${configLib.tools.replaceHyphens name}_v6 {
+        ${lib.optionalString isRRClient "rr client;"}
+        local as ${LOKI_NET_AS};
+        neighbor ${neighbor} as ${LOKI_NET_AS};
+        multihop 3;
+        ipv6 {
+          import filter loki_net_ibgp_import_filter_v6;
+          export filter loki_net_export_filter_v6;
+        };
+      };
+    '';
+
+  # Helper to generate eBGP peer protocol
+  mkEBgpPeer =
+    {
+      name,
+      neighbor,
+      remoteASN,
+      passwordConf ? "",
+    }:
+    ''
+      protocol bgp ebgp_loki_net_${configLib.tools.replaceHyphens name}_v6 from loki_net_dnpeers {
+        neighbor ${neighbor} as ${toString remoteASN};
+        multihop 2;
+        ${lib.optionalString (passwordConf != "") ''
+          include "${passwordConf}";
+        ''}
+        ipv4 {
+          import none;
+          export none;
+        };
+      };
+    '';
 in
 {
   function = ''
@@ -65,120 +107,61 @@ in
   '';
 
   ebgp_peers =
-    if lib.hasAttr "loki-net" config.services then
-      lib.concatStrings (
-        lib.attrValues (
-          builtins.mapAttrs (n: v: ''
-            ${
-              if v.addressing.peerIPv6Gateway != null then
-                ''
-                  protocol static {
-                    ipv6;
-                    route ${v.addressing.peerIPv6}/128 via ${v.addressing.peerIPv6Gateway};
-                  };
-                ''
-              else
-                ""
-            }
-            ${
-              if v.addressing.peerIPv6 != null then
-                ''
-                  protocol bgp ebgp_loki_net_v6 from loki_net_dnpeers {
-                    neighbor ${v.addressing.peerIPv6} as ${toString v.remoteASN};
-                    multihop 2;
-                    ${
-                      if v.peerBgpPasswordConf != "" then
-                        ''
-                          include "${v.peerBgpPasswordConf}";
-                        ''
-                      else
-                        ""
-                    }
-                    ipv4 {
-                      import none;
-                      export none;
-                    };
-                  };
-                ''
-              else
-                ""
-            }
-          '') config.services.loki-net
-        )
-      )
-    else
-      "";
+    let
+      peers = config.services.loki-net or { };
+    in
+    lib.concatStrings (
+      lib.mapAttrsToList (n: v: ''
+        ${lib.optionalString (v.addressing.peerIPv6Gateway != null) ''
+          protocol static {
+            ipv6;
+            route ${v.addressing.peerIPv6}/128 via ${v.addressing.peerIPv6Gateway};
+          };
+        ''}
+        ${lib.optionalString (v.addressing.peerIPv6 != null) (mkEBgpPeer {
+          name = n;
+          neighbor = v.addressing.peerIPv6;
+          remoteASN = v.remoteASN;
+          passwordConf = v.peerBgpPasswordConf;
+        })}
+      '') peers
+    );
 
-  ibgp_peers = lib.concatStrings (
-    if
-      configLib.this.hasTag configLib.tags.loki-net && configLib.this.hasTag configLib.tags.loki-net-edge
-    then
-      lib.attrValues (
-        builtins.mapAttrs (
-          n: v:
-          if n == lib.toLower config.networking.hostName then
-            ""
-          else if v.hasTag configLib.tags.loki-net && !v.hasTag configLib.tags.loki-net-edge then
-            ''
-              protocol bgp ibgp_loki_net_${configLib.tools.replaceHyphens n}_v6 {
-                rr client;
-                local as ${LOKI_NET_AS};
-                neighbor ${v.slk-net.IPv6} as ${LOKI_NET_AS};
-                multihop 3;
-                ipv6 {
-                  import filter loki_net_ibgp_import_filter_v6;
-                  export filter loki_net_export_filter_v6;
-                };
-              };
-            ''
-          else if v.hasTag configLib.tags.loki-net && v.hasTag configLib.tags.loki-net-edge then
-            ''
-              protocol bgp ibgp_loki_net_${configLib.tools.replaceHyphens n}_v6 {
-                local as ${LOKI_NET_AS};
-                neighbor ${v.slk-net.IPv6} as ${LOKI_NET_AS};
-                multihop 3;
-                ipv6 {
-                  import filter loki_net_ibgp_import_filter_v6;
-                  export filter loki_net_export_filter_v6;
-                };
-              };
-            ''
+  ibgp_peers =
+    let
+      isEdge = this.hasTag configLib.tags.loki-net-edge;
+    in
+    lib.concatStrings (
+      lib.mapAttrsToList (
+        n: v:
+        let
+          isRemoteLoki = v.hasTag configLib.tags.loki-net;
+          isRemoteEdge = v.hasTag configLib.tags.loki-net-edge;
+        in
+        if n == lib.toLower config.networking.hostName then
+          ""
+        else if isEdge then
+          if isRemoteLoki then
+            mkIBgpPeer {
+              name = n;
+              neighbor = v.slk-net.IPv6;
+              isRRClient = !isRemoteEdge;
+            }
           else
             ""
-        ) configLib.otherHosts
-      )
-    else
-      lib.attrValues (
-        builtins.mapAttrs (
-          n: v:
-          if n == lib.toLower config.networking.hostName then
-            ""
-          else if v.hasTag configLib.tags.loki-net && v.hasTag configLib.tags.loki-net-edge then
-            ''
-              ${
-                if v.loki-net.IPv6NextHop != "" then
-                  ''
-                    protocol static {
-                      ipv6;
-                      route ${v.loki-net.IPv6NextHop}/128 via ${v.slk-net.IPv6};
-                    };
-                  ''
-                else
-                  ""
-              }
-              protocol bgp ibgp_loki_net_${configLib.tools.replaceHyphens n}_v6 {
-                local as ${LOKI_NET_AS};
-                neighbor ${v.slk-net.IPv6} as ${LOKI_NET_AS};
-                multihop 3;
-                ipv6 {
-                  import filter loki_net_ibgp_import_filter_v6;
-                  export filter loki_net_export_filter_v6;
-                };
-              };
-            ''
-          else
-            ""
-        ) configLib.otherHosts
-      )
-  );
+        else if isRemoteLoki && isRemoteEdge then
+          (lib.optionalString (v.loki-net.IPv6NextHop != "") ''
+            protocol static {
+              ipv6;
+              route ${v.loki-net.IPv6NextHop}/128 via ${v.slk-net.IPv6};
+            };
+          '')
+          + mkIBgpPeer {
+            name = n;
+            neighbor = v.slk-net.IPv6;
+          }
+        else
+          ""
+      ) configLib.otherHosts
+    );
 }

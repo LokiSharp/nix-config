@@ -18,7 +18,18 @@ in
 
       reject;
     };
+    filter loki_net_ibgp_import_filter_v6 {
+      if is_bogon_prefix() then reject;
+      if is_bogon_asn() then reject;
+      # Allow own network prefixes for iBGP to enable internal routing
+      if net ~ LOKI_NET_OWN_NET_SET_IPv6 then accept;
+      if net ~ [ fd00::/8+ ] then accept;
+
+      reject;
+    };
     filter loki_net_export_filter_v6 {
+      # Do not export aggregate route to iBGP (only specific subnets)
+      if net = LOKI_NET_OWN_NET_IPv6 then reject;
       if net ~ LOKI_NET_OWN_NET_SET_IPv6 then accept;
       if !is_bogon_prefix() || !is_bogon_asn() then accept;
       reject;
@@ -33,11 +44,22 @@ in
   '';
 
   bgp = ''
+    filter loki_net_ebgp_export_filter_v6 {
+      # Only export the aggregate route to eBGP peers
+      if net = LOKI_NET_OWN_NET_IPv6 then accept;
+      # Reject specific subnets of our own network (prevent route leaking)
+      if net ~ LOKI_NET_OWN_NET_SET_IPv6 then reject;
+      
+      # Allow transit for other valid routes (same as original policy)
+      if !is_bogon_prefix() || !is_bogon_asn() then accept;
+      reject;
+    };
+
     template bgp loki_net_dnpeers {
       local as ${LOKI_NET_AS};
       ipv6 {
         import filter loki_net_import_filter_v6;
-        export filter loki_net_export_filter_v6;
+        export filter loki_net_ebgp_export_filter_v6;
       };
     }
   '';
@@ -94,14 +116,29 @@ in
       lib.attrValues (
         builtins.mapAttrs (
           n: v:
-          if v.hasTag configLib.tags.loki-net && !v.hasTag configLib.tags.loki-net-edge then
+          if n == lib.toLower config.networking.hostName then
+            ""
+          else if v.hasTag configLib.tags.loki-net && !v.hasTag configLib.tags.loki-net-edge then
             ''
               protocol bgp ibgp_loki_net_${configLib.tools.replaceHyphens n}_v6 {
                 rr client;
                 local as ${LOKI_NET_AS};
                 neighbor ${v.slk-net.IPv6} as ${LOKI_NET_AS};
+                multihop 3;
                 ipv6 {
-                  import none;
+                  import filter loki_net_ibgp_import_filter_v6;
+                  export filter loki_net_export_filter_v6;
+                };
+              };
+            ''
+          else if v.hasTag configLib.tags.loki-net && v.hasTag configLib.tags.loki-net-edge then
+            ''
+              protocol bgp ibgp_loki_net_${configLib.tools.replaceHyphens n}_v6 {
+                local as ${LOKI_NET_AS};
+                neighbor ${v.slk-net.IPv6} as ${LOKI_NET_AS};
+                multihop 3;
+                ipv6 {
+                  import filter loki_net_ibgp_import_filter_v6;
                   export filter loki_net_export_filter_v6;
                 };
               };
@@ -114,7 +151,9 @@ in
       lib.attrValues (
         builtins.mapAttrs (
           n: v:
-          if v.hasTag configLib.tags.loki-net && v.hasTag configLib.tags.loki-net-edge then
+          if n == lib.toLower config.networking.hostName then
+            ""
+          else if v.hasTag configLib.tags.loki-net && v.hasTag configLib.tags.loki-net-edge then
             ''
               ${
                 if v.loki-net.IPv6NextHop != "" then
@@ -132,8 +171,8 @@ in
                 neighbor ${v.slk-net.IPv6} as ${LOKI_NET_AS};
                 multihop 3;
                 ipv6 {
-                  import filter loki_net_import_filter_v6;
-                  export none;
+                  import filter loki_net_ibgp_import_filter_v6;
+                  export filter loki_net_export_filter_v6;
                 };
               };
             ''

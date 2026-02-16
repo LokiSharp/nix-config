@@ -18,6 +18,12 @@ in
     protocol device {
       scan time 10;
     }
+
+    protocol direct {
+      ipv4;
+      ipv6;
+      interface "dummy0", "zt-slk0";
+    }
   '';
 
   network = ''

@@ -131,6 +131,7 @@ in
       ipv6 {
         import filter loki_net_ibgp_import_filter_v6;
         export filter loki_net_export_filter_v6;
+        next hop self;
       };
     }
 

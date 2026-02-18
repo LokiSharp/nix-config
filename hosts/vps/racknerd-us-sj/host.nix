@@ -8,6 +8,7 @@
     firewall
     dn42-anycast-dns
 
+    tailscale
     zerotier
   ];
 

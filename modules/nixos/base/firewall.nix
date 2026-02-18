@@ -8,6 +8,8 @@ let
   configLib = mylib.withConfig config;
 in
 {
+  networking.firewall.enable = lib.mkDefault false;
+
   networking.nftables = {
     enable = configLib.this.hasTag configLib.tags.firewall;
     ruleset = ''

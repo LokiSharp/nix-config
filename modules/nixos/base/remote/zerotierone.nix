@@ -7,7 +7,7 @@
 let
   configLib = mylib.withConfig config;
 
-  slk-net = mylib.constants.SLK_ZEROTIER_NET_ID;
+  slk-net = "9f1353f914000001";
   interfaceName = "zt-slk0";
 
   isEnabled = configLib.this.hasTag configLib.tags.zerotier;

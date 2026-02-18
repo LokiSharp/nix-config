@@ -54,6 +54,7 @@ in
       area 0 {
         interface "zt-slk0" {
           type broadcast;
+          tx length 1280;
           cost 100;
         };
         interface "lo" {
@@ -71,6 +72,7 @@ in
       area 0 {
         interface "zt-slk0" {
           type broadcast;
+          tx length 1280;
           cost 100;
         };
         interface "lo" {

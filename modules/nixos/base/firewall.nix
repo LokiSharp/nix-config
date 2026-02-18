@@ -75,7 +75,7 @@ in
                   '');
               in
               ''
-                # accept BIRD 2 BGP traffic from specific peers
+                # accept BIRD BGP traffic from specific peers
                 ${lib.concatMapStrings mkRule peers}
               ''
             else

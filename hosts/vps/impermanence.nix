@@ -1,8 +1,12 @@
-{ myvars
-, impermanence
-, pkgs
-, ...
-}: {
+{
+  myvars,
+  impermanence,
+  pkgs,
+  config,
+  lib,
+  ...
+}:
+{
   imports = [
     impermanence.nixosModules.impermanence
   ];
@@ -23,10 +27,11 @@
       "/etc/ssh"
       "/etc/nix/inputs"
       "/etc/secureboot" # lanzaboote - secure boot
-      "/etc/bird" # bird2
-      "/etc/bind"
-      # my secrets
       "/etc/agenix/"
+    ]
+    ++ lib.optionals config.services.bird.enable [ "/etc/bird" ]
+    ++ lib.optionals config.services.bind.enable [ "/etc/bind" ]
+    ++ [
 
       "/var/log"
       "/var/lib"

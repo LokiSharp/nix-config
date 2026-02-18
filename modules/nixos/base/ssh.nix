@@ -1,12 +1,9 @@
-{ lib
-, myvars
-, ...
-}: {
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  networking.firewall.enable = lib.mkDefault false;
-
+{
+  lib,
+  myvars,
+  ...
+}:
+{
   # Enable the OpenSSH daemon.
   services.openssh = {
     enable = true;
@@ -16,7 +13,6 @@
       PermitRootLogin = "prohibit-password";
       PasswordAuthentication = false; # disable password login
     };
-    openFirewall = true;
   };
 
   # Add terminfo database of all known terminals to the system profile.

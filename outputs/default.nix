@@ -16,11 +16,11 @@ let
 
       # use unstable branch for some packages to get the latest updates
       pkgs-unstable = import inputs.nixpkgs-unstable {
-        inherit system;
+        localSystem = system;
         config.allowUnfree = true;
       };
       pkgs-stable = import inputs.nixpkgs-stable {
-        inherit system;
+        localSystem = system;
         config.allowUnfree = true;
       };
     };
@@ -76,7 +76,10 @@ in
         in
         {
           # colmena's default nixpkgs & specialArgs
-          nixpkgs = import nixpkgs { inherit system; };
+          nixpkgs = import nixpkgs {
+            localSystem = system;
+            config.allowUnfree = true;
+          };
           specialArgs = genSpecialArgs system;
         }
       )

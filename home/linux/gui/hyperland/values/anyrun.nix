@@ -2,11 +2,12 @@
   pkgs,
   anyrun,
   ...
-}: {
+}:
+{
   programs.anyrun = {
     enable = true;
     config = {
-      plugins = with anyrun.packages.${pkgs.system}; [
+      plugins = with anyrun.packages.${pkgs.stdenv.hostPlatform.system}; [
         applications
         randr
         rink

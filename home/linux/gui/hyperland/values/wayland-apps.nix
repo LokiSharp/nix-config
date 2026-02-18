@@ -1,24 +1,25 @@
-{ pkgs
-, ...
-}: {
-  xdg.configFile."foot/foot.ini".text =
-    ''
-      [main]
-      dpi-aware=yes
-      font=JetBrainsMono Nerd Font:size=13
-      shell=${pkgs.bash}/bin/bash --login -c 'nu --login --interactive'
-      term=foot
-      initial-window-size-pixels=3840x2160
-      initial-window-mode=windowed
-      pad=0x0                             # optionally append 'center'
-      resize-delay-ms=10
+{
+  pkgs,
+  ...
+}:
+{
+  xdg.configFile."foot/foot.ini".text = ''
+    [main]
+    dpi-aware=yes
+    font=JetBrainsMono Nerd Font:size=13
+    shell=${pkgs.bash}/bin/bash --login -c 'nu --login --interactive'
+    term=foot
+    initial-window-size-pixels=3840x2160
+    initial-window-mode=windowed
+    pad=0x0                             # optionally append 'center'
+    resize-delay-ms=10
 
-      [mouse]
-      hide-when-typing=yes
-    '';
+    [mouse]
+    hide-when-typing=yes
+  '';
 
   home.packages = [
-    pkgs.firefox-wayland
+    pkgs.firefox
   ];
 
   programs = {

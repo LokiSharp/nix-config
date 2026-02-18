@@ -59,6 +59,7 @@
 
   nixConfig = {
     extra-substituters = [
+      "https://mirrors.cernet.edu.cn/nix-channels/store?priority=10"
       "https://anyrun.cachix.org"
       "https://nix-community.cachix.org"
     ];

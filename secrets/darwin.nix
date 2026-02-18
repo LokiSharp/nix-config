@@ -18,7 +18,7 @@
   };
 
   environment.systemPackages = [
-    agenix.packages."${pkgs.system}".default
+    agenix.packages."${pkgs.stdenv.hostPlatform.system}".default
   ];
 
   # if you changed this key, you need to regenerate all encrypt files from the decrypt contents!
@@ -50,7 +50,8 @@
       # .age means the decrypted file is still encrypted by age(via a passphrase)
       "LokiSharp-gpg-subkeys-2024-12-30.priv.age" = {
         file = "${mysecrets}/LokiSharp-gpg-subkeys-2024-12-30.priv.age.age";
-      } // noaccess;
+      }
+      // noaccess;
     };
 
   # place secrets in /etc/

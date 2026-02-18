@@ -77,39 +77,60 @@ in
     systemd.services.sing-box = {
       serviceConfig = {
         DynamicUser = lib.mkForce false;
-        User = "root";
-        # Override ExecStart to use our modified config in /run
+        User = lib.mkForce "root";
         ExecStart = lib.mkForce [
           ""
           "${pkgs.sing-box}/bin/sing-box run -c /run/sing-box/config.json"
         ];
+
+        # Consolidate all pre-start logic into ExecStartPre to avoid conflicts with official module
+        ExecStartPre = lib.mkForce [
+          (pkgs.writeShellScript "sing-box-pre-start" ''
+            set -e
+            mkdir -p /run/sing-box
+
+            cp ${
+              (pkgs.formats.json { }).generate "sing-box-config.json" config.services.sing-box.settings
+            } /run/sing-box/config.json
+            chmod 600 /run/sing-box/config.json
+
+            if [ ! -f ${config.age.secrets."proxy.env".path} ]; then
+              echo "FATAL: Secret file not found!"
+              exit 1
+            fi
+            set -a
+            source ${config.age.secrets."proxy.env".path}
+            set +a
+
+            PROXY_PRIVATE_KEY=$(echo "$PROXY_PRIVATE_KEY" | tr -d '[:space:]')
+            PROXY_UUID=$(echo "$PROXY_UUID" | tr -d '[:space:]')
+            PROXY_SERVER_NAME=$(echo "$PROXY_SERVER_NAME" | tr -d '[:space:]')
+            PROXY_SHORT_ID=$(echo "$PROXY_SHORT_ID" | tr -d '[:space:]')
+
+            if [ -z "$PROXY_PRIVATE_KEY" ] || [ -z "$PROXY_UUID" ] || [ -z "$PROXY_SERVER_NAME" ]; then
+              echo "FATAL: Required environment variables missing!"
+              exit 1
+            fi
+
+            ${pkgs.jq}/bin/jq \
+              --arg key "$PROXY_PRIVATE_KEY" \
+              --arg uuid "$PROXY_UUID" \
+              --arg sn "$PROXY_SERVER_NAME" \
+              --arg sid "$PROXY_SHORT_ID" \
+              '(.inbounds[] | select(.tag == "vless-in")).users[0].uuid = $uuid |
+               (.inbounds[] | select(.tag == "vless-in")).tls.server_name = $sn |
+               (.inbounds[] | select(.tag == "vless-in")).tls.reality.handshake.server = $sn |
+               (.inbounds[] | select(.tag == "vless-in")).tls.reality.private_key = $key |
+               (.inbounds[] | select(.tag == "vless-in")).tls.reality.short_id = [$sid]' \
+              /run/sing-box/config.json > "/run/sing-box/config.json.tmp"
+
+            mv "/run/sing-box/config.json.tmp" /run/sing-box/config.json
+            chmod 600 /run/sing-box/config.json
+          '')
+        ];
         RuntimeDirectory = "sing-box";
         RuntimeDirectoryMode = "0700";
       };
-
-      # Copy config from Nix store (readonly) to /run, then replace placeholder with actual secret
-      preStart = lib.mkAfter ''
-        cp ${
-          (pkgs.formats.json { }).generate "sing-box-config.json" config.services.sing-box.settings
-        } /run/sing-box/config.json
-        chmod 600 /run/sing-box/config.json
-
-
-
-        # Source the proxy environment variables
-        source ${config.age.secrets."proxy.env".path}
-
-        # Replace placeholder in-place for Private Key
-        ${pkgs.gnused}/bin/sed -i "s|__PRIVATE_KEY_PLACEHOLDER__|$PROXY_PRIVATE_KEY|g" /run/sing-box/config.json
-
-        # Replace placeholders for UUID and ShortID
-        # Using | delimiter for sed to avoid issues with standard chars
-        ${pkgs.gnused}/bin/sed -i "s|__UUID_PLACEHOLDER__|$PROXY_UUID|g" /run/sing-box/config.json
-        ${pkgs.gnused}/bin/sed -i "s|__SHORTID_PLACEHOLDER__|$PROXY_SHORT_ID|g" /run/sing-box/config.json
-
-        # Replace placeholders for ServerName
-        ${pkgs.gnused}/bin/sed -i "s|__SERVERNAME_PLACEHOLDER__|$PROXY_SERVER_NAME|g" /run/sing-box/config.json
-      '';
     };
 
     networking.firewall.allowedTCPPorts = [

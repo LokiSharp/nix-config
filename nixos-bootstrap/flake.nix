@@ -11,17 +11,18 @@
   };
 
   outputs =
-    { self
-    , nixpkgs
-    , ...
-    } @ inputs:
+    {
+      self,
+      nixpkgs,
+      ...
+    }@inputs:
     let
       lib = nixpkgs.lib;
     in
     rec {
       nixosConfigurations.bootstrap = lib.nixosSystem {
-        system = "x86_64-linux";
         modules = [
+          { nixpkgs.hostPlatform = "x86_64-linux"; }
           inputs.impermanence.nixosModules.impermanence
           inputs.disko.nixosModules.disko
           ./disko-fs.nix

@@ -1,7 +1,9 @@
-{ pkgs
-, pkgs-unstable
-, ...
-}: {
+{
+  pkgs,
+  pkgs-unstable,
+  ...
+}:
+{
   home.packages = with pkgs; [
     waybar # the status bar
     swaybg # the wallpaper
@@ -23,7 +25,7 @@
     # audio
     alsa-utils # provides amixer/alsamixer/...
     mpd # for playing system sounds
-    mpc-cli # command-line mpd client
+    mpc # command-line mpd client
     ncmpcpp # a mpd client with a UI
     networkmanagerapplet # provide GUI app: nm-connection-editor
 

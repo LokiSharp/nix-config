@@ -1,11 +1,16 @@
-{ mylib
-, pkgs
-, lib
-, config
-, ...
+{
+  mylib,
+  pkgs,
+  lib,
+  config,
+  ...
 }:
 let
   cfg = config.services.zerotierone.controller;
+  # Use non-free version to enable controller in 1.16.0+
+  zerotierone = pkgs.zerotierone.overrideAttrs (old: {
+    makeFlags = (old.makeFlags or [ ]) ++ [ "ZT_NONFREE=1" ];
+  });
   ztcurl = ''${pkgs.curl}/bin/curl -fsSL -H "X-ZT1-AUTH: $(cat /var/lib/zerotier-one-controller/authtoken.secret)"'';
   zturl = "http://localhost:${builtins.toString cfg.port}";
 
@@ -69,18 +74,30 @@ let
           routes
           ;
       };
-      generatedSetupScript =
-        ''
-          ZTADDR=$(${ztcurl} "${zturl}/status" | ${pkgs.jq}/bin/jq -r ".address")
-          ${ztcurl} -XPOST "${zturl}/controller/network/''${ZTADDR}${name}" -d ${lib.escapeShellArg jsonPayload}
-        ''
-        + (lib.concatStrings (
-          lib.mapAttrsToList
-            (n: v: ''
-              ${ztcurl} -XPOST "${zturl}/controller/network/''${ZTADDR}${name}/member/${n}" -d ${lib.escapeShellArg (builtins.toJSON v)}
-            '')
-            config.members
-        ));
+      generatedSetupScript = ''
+        # Determine ZeroTier address from identity.public
+        ID_FILE="/var/lib/zerotier-one-controller/identity.public"
+        if [ ! -f "$ID_FILE" ]; then
+          echo "FATAL: ZeroTier identity file $ID_FILE not found!"
+          exit 1
+        fi
+        ZTADDR=$(cat "$ID_FILE" | cut -d: -f1)
+        if [ -z "$ZTADDR" ]; then
+          echo "FATAL: ZeroTier address is empty!"
+          exit 1
+        fi
+
+        NETWORK_URL="${zturl}/controller/network/''${ZTADDR}${name}"
+        echo "Updating Network: $NETWORK_URL"
+
+        # Use curl with retry to wait for controller to be ready
+        ${ztcurl} --retry 5 --retry-delay 2 -XPOST "$NETWORK_URL" -d ${lib.escapeShellArg jsonPayload}
+      ''
+      + (lib.concatStrings (
+        lib.mapAttrsToList (n: v: ''
+          ${ztcurl} -XPOST "${zturl}/controller/network/''${ZTADDR}${name}/member/${n}" -d ${lib.escapeShellArg (builtins.toJSON v)}
+        '') config.members
+      ));
     in
     {
       options = {
@@ -116,7 +133,8 @@ let
           ];
         };
         v4AssignMode.zt = lib.mkEnableOption "auto assign IPv4 address by ZeroTier";
-        v6AssignMode."6plane" = lib.mkEnableOption "auto assign IPv6 address with 6plane method by ZeroTier";
+        v6AssignMode."6plane" =
+          lib.mkEnableOption "auto assign IPv6 address with 6plane method by ZeroTier";
         v6AssignMode.rfc4193 = lib.mkEnableOption "auto assign IPv6 address with RFC4193 method by ZeroTier";
         v6AssignMode.zt = lib.mkEnableOption "auto assign IPv6 address with ZeroTier's own method";
         multicastLimit = lib.mkOption {
@@ -161,7 +179,7 @@ in
       wantedBy = [ "multi-user.target" ];
 
       serviceConfig = mylib.serviceHarden // {
-        ExecStart = "${pkgs.zerotierone}/bin/zerotier-one -p${builtins.toString cfg.port} -U /var/lib/zerotier-one-controller";
+        ExecStart = "${zerotierone}/bin/zerotier-one -p${builtins.toString cfg.port} -U /var/lib/zerotier-one-controller";
         StateDirectory = "zerotier-one-controller";
         WorkingDirectory = "/var/lib/zerotier-one-controller";
 

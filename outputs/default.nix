@@ -1,13 +1,15 @@
-inputs @ { self
-, nixpkgs
-, ...
+inputs@{
+  self,
+  nixpkgs,
+  ...
 }:
 let
   inherit (inputs.nixpkgs) lib;
   mylib = import ../lib { inherit lib; };
   myvars = import ../vars { inherit lib; };
 
-  genSpecialArgs = system:
+  genSpecialArgs =
+    system:
     inputs
     // {
       inherit mylib myvars;
@@ -23,13 +25,21 @@ let
       };
     };
 
-  args = { inherit inputs lib mylib myvars genSpecialArgs; };
+  args = {
+    inherit
+      inputs
+      lib
+      mylib
+      myvars
+      genSpecialArgs
+      ;
+  };
   nixosSystems = {
     x86_64-linux = import ./x86_64-linux (args // { system = "x86_64-linux"; });
   };
 
   darwinSystems = {
-    aarch64-darwin = import ./aarch64-darwin (args // {system = "aarch64-darwin";});
+    aarch64-darwin = import ./aarch64-darwin (args // { system = "aarch64-darwin"; });
   };
 
   allSystems = nixosSystems // darwinSystems;
@@ -43,50 +53,68 @@ let
 in
 {
   # Add attribute sets into outputs, for debugging
-  debugAttrs = { inherit nixosSystems darwinSystems allSystems allSystemNames; };
+  debugAttrs = {
+    inherit
+      nixosSystems
+      darwinSystems
+      allSystems
+      allSystemNames
+      ;
+  };
 
   # NixOS Hosts
-  nixosConfigurations =
-    lib.attrsets.mergeAttrsList (map (it: it.nixosConfigurations or { }) nixosSystemValues);
+  nixosConfigurations = lib.attrsets.mergeAttrsList (
+    map (it: it.nixosConfigurations or { }) nixosSystemValues
+  );
 
   # Colmena - remote deployment via SSH
-  colmena =
-    {
-      meta =
-        (
-          let
-            system = "x86_64-linux";
-          in
-          {
-            # colmena's default nixpkgs & specialArgs
-            nixpkgs = import nixpkgs { inherit system; };
-            specialArgs = genSpecialArgs system;
-          }
-        )
-        // {
-          # per-node nixpkgs & specialArgs
-          nodeNixpkgs = lib.attrsets.mergeAttrsList (map (it: it.colmenaMeta.nodeNixpkgs or { }) nixosSystemValues);
-          nodeSpecialArgs = lib.attrsets.mergeAttrsList (map (it: it.colmenaMeta.nodeSpecialArgs or { }) nixosSystemValues);
-        };
-    }
-    // lib.attrsets.mergeAttrsList (map (it: it.colmena or { }) nixosSystemValues);
+  colmena = {
+    meta =
+      (
+        let
+          system = "x86_64-linux";
+        in
+        {
+          # colmena's default nixpkgs & specialArgs
+          nixpkgs = import nixpkgs { inherit system; };
+          specialArgs = genSpecialArgs system;
+        }
+      )
+      // {
+        # per-node nixpkgs & specialArgs
+        nodeNixpkgs = lib.attrsets.mergeAttrsList (
+          map (it: it.colmenaMeta.nodeNixpkgs or { }) nixosSystemValues
+        );
+        nodeSpecialArgs = lib.attrsets.mergeAttrsList (
+          map (it: it.colmenaMeta.nodeSpecialArgs or { }) nixosSystemValues
+        );
+      };
+  }
+  // lib.attrsets.mergeAttrsList (map (it: it.colmena or { }) nixosSystemValues);
 
   # macOS Hosts
-  darwinConfigurations =
-    lib.attrsets.mergeAttrsList (map (it: it.darwinConfigurations or {}) darwinSystemValues);
+  darwinConfigurations = lib.attrsets.mergeAttrsList (
+    map (it: it.darwinConfigurations or { }) darwinSystemValues
+  );
 
   # Packages
-  packages = forAllSystems (
-    system: allSystems.${system}.packages or { }
-  );
+  packages = forAllSystems (system: allSystems.${system}.packages or { });
 
   # Eval Tests for all NixOS & darwin systems.
   evalTests = lib.lists.all (it: it.evalTests == { }) allSystemValues;
 
-  checks = forAllSystems (
-    system: {
-      # eval-tests per system
-      eval-tests = allSystems.${system}.evalTests == { };
-    }
-  );
+  devShells = forAllSystems (system: {
+    default = nixpkgs.legacyPackages.${system}.mkShell {
+      packages = with nixpkgs.legacyPackages.${system}; [
+        just
+        colmena
+        nixpkgs-fmt
+      ];
+    };
+  });
+
+  checks = forAllSystems (system: {
+    # eval-tests per system
+    eval-tests = allSystems.${system}.evalTests == { };
+  });
 }

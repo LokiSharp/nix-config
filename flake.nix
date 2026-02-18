@@ -33,8 +33,14 @@
       url = "github:Kirottu/anyrun";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    impermanence.url = "github:nix-community/impermanence";
-    vscode-server.url = "github:nix-community/nixos-vscode-server";
+    impermanence = {
+      url = "github:nix-community/impermanence";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    vscode-server = {
+      url = "github:nix-community/nixos-vscode-server";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     agenix = {
       url = "github:ryantm/agenix/4835b1dc898959d8547a871ef484930675cb47f1";

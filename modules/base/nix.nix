@@ -10,8 +10,6 @@
   # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/tools/package-management/nix/default.nix#L284
   nix.package = pkgs.nixVersions.latest;
 
-  nixpkgs.config.allowUnfree = true;
-
   nix.settings = {
     # enable flakes globally
     experimental-features = [

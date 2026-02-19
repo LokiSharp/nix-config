@@ -23,7 +23,10 @@ nixpkgs.lib.nixosSystem {
   modules =
     nixos-modules
     ++ [
-      { nixpkgs.hostPlatform = system; }
+      {
+        nixpkgs.hostPlatform = system;
+        nixpkgs.config.allowUnfree = true;
+      }
       nixos-generators.nixosModules.all-formats
     ]
     ++ (lib.optionals ((lib.lists.length home-modules) > 0) [

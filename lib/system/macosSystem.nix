@@ -21,7 +21,10 @@ nix-darwin.lib.darwinSystem {
       (
         { lib, ... }:
         {
-          nixpkgs.pkgs = import nixpkgs-darwin { hostPlatform = system; };
+          nixpkgs.pkgs = import nixpkgs-darwin {
+            inherit system;
+            config.allowUnfree = true;
+          };
         }
       )
     ]

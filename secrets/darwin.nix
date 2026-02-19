@@ -43,7 +43,7 @@
 
       # .age means the decrypted file is still encrypted by age(via a passphrase)
       "LokiSharp-gpg-subkeys-2024-12-30.priv.age" = {
-        sopsFile = "${mysecrets}/LokiSharp-gpg-subkeys-2024-12-30.priv.age.yaml";
+        sopsFile = "${mysecrets}/LokiSharp-gpg-subkeys-2024-12-30.priv.yaml";
         key = "data";
       }
       // noaccess;

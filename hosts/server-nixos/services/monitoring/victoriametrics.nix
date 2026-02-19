@@ -1,7 +1,9 @@
-{ lib
-, myvars
-, ...
-}: {
+{
+  lib,
+  myvars,
+  ...
+}:
+{
   # Since victoriametrics use DynamicUser, the user & group do not exists before the service starts.
   # this group is used as a supplementary Unix group for the service to access our data dir(/data/apps/xxx)
   users.groups.victoriametrics-data = { };
@@ -35,81 +37,79 @@
     # specifies a set of targets and parameters describing how to scrape metrics from them.
     # https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config
     prometheusConfig = {
-      scrape_configs =
-        [
-          # --- Homelab Applications --- #
-          {
-            job_name = "postgres-exporter";
-            scrape_interval = "30s";
-            metrics_path = "/metrics";
-            static_configs = [
-              {
-                targets = [ "${myvars.networking.hostsAddr.Server-NixOS.ipv4}:9187" ];
-                labels.type = "app";
-                labels.app = "postgresql";
-                labels.host = "Server-NixOS";
-              }
-            ];
-          }
+      scrape_configs = [
+        # --- Homelab Applications --- #
+        {
+          job_name = "postgres-exporter";
+          scrape_interval = "30s";
+          metrics_path = "/metrics";
+          static_configs = [
+            {
+              targets = [ "${myvars.networking.hostsAddr.Server-NixOS.ipv4}:9187" ];
+              labels.type = "app";
+              labels.app = "postgresql";
+              labels.host = "Server-NixOS";
+            }
+          ];
+        }
 
+        {
+          job_name = "sftpgo-embedded-exporter";
+          scrape_interval = "30s";
+          metrics_path = "/metrics";
+          static_configs = [
+            {
+              targets = [ "${myvars.networking.hostsAddr.Server-NixOS.ipv4}:10000" ];
+              labels.type = "app";
+              labels.app = "sftpgo";
+              labels.host = "Server-NixOS";
+            }
+          ];
+        }
+      ]
+      # --- Hosts --- #
+      ++ (lib.attrsets.foldlAttrs (
+        acc: hostname: addr:
+        acc
+        ++ [
           {
-            job_name = "sftpgo-embedded-exporter";
+            job_name = "node-exporter-${hostname}";
             scrape_interval = "30s";
             metrics_path = "/metrics";
             static_configs = [
               {
-                targets = [ "${myvars.networking.hostsAddr.Server-NixOS.ipv4}:10000" ];
-                labels.type = "app";
-                labels.app = "sftpgo";
-                labels.host = "Server-NixOS";
+                # All my NixOS hosts.
+                targets = [ "${addr.ipv4}:9100" ];
+                labels.type = "node";
+                labels.host = hostname;
               }
             ];
           }
         ]
-        # --- Hosts --- #
-        ++ (
-          lib.attrsets.foldlAttrs
-            (acc: hostname: addr:
-              acc
-              ++ [
-                {
-                  job_name = "node-exporter-${hostname}";
-                  scrape_interval = "30s";
-                  metrics_path = "/metrics";
-                  static_configs = [
-                    {
-                      # All my NixOS hosts.
-                      targets = [ "${addr.ipv4}:9100" ];
-                      labels.type = "node";
-                      labels.host = hostname;
-                    }
-                  ];
-                }
-              ])
-            [ ]
-            myvars.networking.hostsAddr
-        );
+      ) [ ] myvars.networking.hostsAddr);
     };
   };
 
   services.vmalert = {
-    enable = true;
-    settings = {
-      "datasource.url" = "http://localhost:9090";
-      "notifier.url" = [ "http://localhost:9093" ]; # alertmanager's api
+    instances."" = {
+      enable = true;
+      settings = {
+        "datasource.url" = "http://localhost:9090";
+        "notifier.url" = [ "http://localhost:9093" ]; # alertmanager's api
 
-      # Whether to disable long-lived connections to the datasource.
-      "datasource.disableKeepAlive" = true;
-      # Whether to avoid stripping sensitive information such as auth headers or passwords
-      # from URLs in log messages or UI and exported metrics.
-      "datasource.showURL" = false;
-      rule = [
-        ./alert_rules/node-exporter.yml
-        ./alert_rules/kubestate-exporter.yml
-        ./alert_rules/etcd_embedded-exporter.yml
-        ./alert_rules/istio_embedded-exporter.yml
-        ./alert_rules/coredns_embedded-exporter.yml
-      ];
+        # Whether to disable long-lived connections to the datasource.
+        "datasource.disableKeepAlive" = true;
+        # Whether to avoid stripping sensitive information such as auth headers or passwords
+        # from URLs in log messages or UI and exported metrics.
+        "datasource.showURL" = false;
+        rule = [
+          ./alert_rules/node-exporter.yml
+          ./alert_rules/kubestate-exporter.yml
+          ./alert_rules/etcd_embedded-exporter.yml
+          ./alert_rules/istio_embedded-exporter.yml
+          ./alert_rules/coredns_embedded-exporter.yml
+        ];
+      };
     };
   };
 }

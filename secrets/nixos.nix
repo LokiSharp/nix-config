@@ -100,15 +100,8 @@ in
       };
     })
 
-    (mkIf cfg.server.operation.enable {
+    (mkIf (cfg.server.operation.enable || cfg.server.application.enable) {
       sops.secrets = {
-        "grafana-admin-password" = {
-          sopsFile = "${mysecrets}/server/grafana-admin-password.yaml";
-          key = "password";
-          mode = "0400";
-          owner = "grafana";
-        };
-
         SMTP_HOST = {
           sopsFile = "${mysecrets}/server/smtp.yaml";
         };
@@ -123,6 +116,17 @@ in
         };
         SMTP_AUTH_PASSWORD = {
           sopsFile = "${mysecrets}/server/smtp.yaml";
+        };
+      };
+    })
+
+    (mkIf cfg.server.operation.enable {
+      sops.secrets = {
+        "grafana-admin-password" = {
+          sopsFile = "${mysecrets}/server/grafana-admin-password.yaml";
+          key = "password";
+          mode = "0400";
+          owner = "grafana";
         };
       };
     })

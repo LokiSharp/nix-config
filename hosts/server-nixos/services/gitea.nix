@@ -20,8 +20,14 @@
       type = "tar.zst";
     };
     # Path to a file containing the SMTP password.
-    # mailerPasswordFile = "";
+    # We use GITEA__mailer__PASSWD in EnvironmentFile instead to avoid permission issues.
     settings = {
+      mailer = {
+        ENABLED = true;
+        PROTOCOL = "smtp";
+        # SMTP_ADDR, SMTP_PORT, USER, PASSWD will be overridden by EnvironmentFile below
+        # using GITEA__mailer__SMTP_ADDR etc.
+      };
       server = {
         SSH_PORT = 2222;
         PROTOCOL = "http";
@@ -58,5 +64,20 @@
       port = "5432";
       passwordFile = config.sops.secrets."gitea-db-password".path;
     };
+  };
+
+  systemd.services.gitea.serviceConfig.EnvironmentFile =
+    config.sops.templates."gitea-mailer-env".path;
+
+  sops.templates."gitea-mailer-env" = {
+    content = ''
+      GITEA__mailer__SMTP_ADDR=${config.sops.placeholder.SMTP_HOST}
+      GITEA__mailer__SMTP_PORT=${config.sops.placeholder.SMTP_PORT}
+      GITEA__mailer__USER=${config.sops.placeholder.SMTP_AUTH_USERNAME}
+      GITEA__mailer__PASSWD=${config.sops.placeholder.SMTP_AUTH_PASSWORD}
+      GITEA__mailer__FROM=${config.sops.placeholder.SMTP_SENDER_EMAIL}
+    '';
+    owner = "gitea";
+    mode = "0400";
   };
 }

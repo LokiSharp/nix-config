@@ -24,16 +24,10 @@ in
   config = mkIf cfg.enable {
     modules.secrets.server.proxy.enable = true;
 
-    services.sing-box = {
-      enable = true;
-      # Use the unstable package? Or default.
-      # Flake input has nixpkgs-unstable. We might want to use it for latest updates?
-      # But sticking to pkgs (default) is safer for now unless requested.
-
-      settings = {
-        log = {
-          level = "info";
-        };
+    # Directly generate the full config via template to avoid redundancy
+    sops.templates."sing-box.json" = {
+      content = builtins.toJSON {
+        log.level = "info";
         inbounds = [
           {
             type = "vless";
@@ -42,22 +36,21 @@ in
             listen_port = cfg.port;
             users = [
               {
-                name = "default";
-                uuid = "__UUID_PLACEHOLDER__";
+                uuid = config.sops.placeholder.PROXY_UUID;
                 flow = "xtls-rprx-vision";
               }
             ];
             tls = {
               enabled = true;
-              server_name = "__SERVERNAME_PLACEHOLDER__";
+              server_name = config.sops.placeholder.PROXY_SERVER_NAME;
               reality = {
                 enabled = true;
                 handshake = {
-                  server = "__SERVERNAME_PLACEHOLDER__";
+                  server = config.sops.placeholder.PROXY_SERVER_NAME;
                   server_port = 443;
                 };
-                private_key = "__PRIVATE_KEY_PLACEHOLDER__";
-                short_id = [ "__SHORTID_PLACEHOLDER__" ];
+                private_key = config.sops.placeholder.PROXY_PRIVATE_KEY;
+                short_id = [ config.sops.placeholder.PROXY_SHORT_ID ];
               };
             };
           }
@@ -69,67 +62,21 @@ in
           }
         ];
       };
+      owner = "root";
+      mode = "0400";
     };
 
-    # Fix permission issue & Inject Secret at Runtime
-    # sing-box doesn't blindly support reading keys from files in all fields,
-    # so we inject it using a placeholder.
+    services.sing-box.enable = true;
+
+    # Inject Template into the service
     systemd.services.sing-box = {
       serviceConfig = {
         DynamicUser = lib.mkForce false;
         User = lib.mkForce "root";
         ExecStart = lib.mkForce [
           ""
-          "${pkgs.sing-box}/bin/sing-box run -c /run/sing-box/config.json"
+          "${pkgs.sing-box}/bin/sing-box run -c ${config.sops.templates."sing-box.json".path}"
         ];
-
-        # Consolidate all pre-start logic into ExecStartPre to avoid conflicts with official module
-        ExecStartPre = lib.mkForce [
-          (pkgs.writeShellScript "sing-box-pre-start" ''
-            set -e
-            mkdir -p /run/sing-box
-
-            cp ${
-              (pkgs.formats.json { }).generate "sing-box-config.json" config.services.sing-box.settings
-            } /run/sing-box/config.json
-            chmod 600 /run/sing-box/config.json
-
-            if [ ! -f ${config.sops.secrets."proxy.env".path} ]; then
-              echo "FATAL: Secret file not found!"
-              exit 1
-            fi
-            set -a
-            source ${config.sops.secrets."proxy.env".path}
-            set +a
-
-            PROXY_PRIVATE_KEY=$(echo "$PROXY_PRIVATE_KEY" | tr -d '[:space:]')
-            PROXY_UUID=$(echo "$PROXY_UUID" | tr -d '[:space:]')
-            PROXY_SERVER_NAME=$(echo "$PROXY_SERVER_NAME" | tr -d '[:space:]')
-            PROXY_SHORT_ID=$(echo "$PROXY_SHORT_ID" | tr -d '[:space:]')
-
-            if [ -z "$PROXY_PRIVATE_KEY" ] || [ -z "$PROXY_UUID" ] || [ -z "$PROXY_SERVER_NAME" ]; then
-              echo "FATAL: Required environment variables missing!"
-              exit 1
-            fi
-
-            ${pkgs.jq}/bin/jq \
-              --arg key "$PROXY_PRIVATE_KEY" \
-              --arg uuid "$PROXY_UUID" \
-              --arg sn "$PROXY_SERVER_NAME" \
-              --arg sid "$PROXY_SHORT_ID" \
-              '(.inbounds[] | select(.tag == "vless-in")).users[0].uuid = $uuid |
-               (.inbounds[] | select(.tag == "vless-in")).tls.server_name = $sn |
-               (.inbounds[] | select(.tag == "vless-in")).tls.reality.handshake.server = $sn |
-               (.inbounds[] | select(.tag == "vless-in")).tls.reality.private_key = $key |
-               (.inbounds[] | select(.tag == "vless-in")).tls.reality.short_id = [$sid]' \
-              /run/sing-box/config.json > "/run/sing-box/config.json.tmp"
-
-            mv "/run/sing-box/config.json.tmp" /run/sing-box/config.json
-            chmod 600 /run/sing-box/config.json
-          '')
-        ];
-        RuntimeDirectory = "sing-box";
-        RuntimeDirectoryMode = "0700";
       };
     };
 

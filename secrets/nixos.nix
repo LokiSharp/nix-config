@@ -110,7 +110,7 @@ in
         };
 
         "alertmanager.env" = {
-          sopsFile = "${mysecrets}/server/alertmanager.env.yaml";
+          sopsFile = "${mysecrets}/server/alertmanager.yaml";
           key = "content";
         }
         // high_security;
@@ -120,13 +120,13 @@ in
     (mkIf cfg.server.application.enable {
       sops.secrets = {
         "minio.env" = {
-          sopsFile = "${mysecrets}/server/minio.env.yaml";
+          sopsFile = "${mysecrets}/server/minio.yaml";
           key = "content";
           mode = "0400";
           owner = "minio";
         };
         "sftpgo.env" = {
-          sopsFile = "${mysecrets}/server/sftpgo.env.yaml";
+          sopsFile = "${mysecrets}/server/sftpgo.yaml";
           key = "content";
           mode = "0400";
           owner = "sftpgo";
@@ -208,11 +208,17 @@ in
 
     (mkIf cfg.server.proxy.enable {
       sops.secrets = {
-        "proxy.env" = {
-          sopsFile = "${mysecrets}/server/proxy.env.yaml";
-          key = "content";
-          mode = "0400";
-          owner = "root";
+        PROXY_PRIVATE_KEY = {
+          sopsFile = "${mysecrets}/server/proxy.yaml";
+        };
+        PROXY_UUID = {
+          sopsFile = "${mysecrets}/server/proxy.yaml";
+        };
+        PROXY_SERVER_NAME = {
+          sopsFile = "${mysecrets}/server/proxy.yaml";
+        };
+        PROXY_SHORT_ID = {
+          sopsFile = "${mysecrets}/server/proxy.yaml";
         };
       };
     })

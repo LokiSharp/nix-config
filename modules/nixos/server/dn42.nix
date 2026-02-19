@@ -1,5 +1,13 @@
-{ pkgs, lib, mylib, config, mysecrets, ... }@args:
-let inherit (import ./common.nix args) this;
+{
+  pkgs,
+  lib,
+  mylib,
+  config,
+  mysecrets,
+  ...
+}@args:
+let
+  inherit (import ./common.nix args) this;
   myASNAbbr = 3888;
   filterType = type: lib.filterAttrs (_n: v: v.tunnel.type == type);
   setupAddressing =
@@ -181,16 +189,15 @@ in
                 "0.0.0.0/0"
                 "::/0"
               ];
-              endpoint = lib.mkIf
-                (
-                  v.tunnel.remoteAddress != null
-                ) "${v.tunnel.remoteAddress}:${builtins.toString v.tunnel.remotePort}";
+              endpoint = lib.mkIf (
+                v.tunnel.remoteAddress != null
+              ) "${v.tunnel.remoteAddress}:${builtins.toString v.tunnel.remotePort}";
               publicKey = v.tunnel.wireguardPubkey;
               presharedKeyFile = v.tunnel.wireguardPresharedKeyFile;
             }
           ];
           postSetup = setupAddressing interfaceName v;
-          privateKeyFile = config.age.secrets.wg-priv.path;
+          privateKeyFile = config.sops.secrets.wg-priv.path;
         };
     in
     lib.mapAttrs' cfgToWg (filterType "wireguard" config.services.dn42);

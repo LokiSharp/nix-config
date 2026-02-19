@@ -1,7 +1,9 @@
-{ config
-, pkgs
-, ...
-}: {
+{
+  config,
+  pkgs,
+  ...
+}:
+{
   # https://github.com/NixOS/nixpkgs/blob/nixos-24.11/nixos/modules/services/misc/gitea.nix
   services.gitea = {
     enable = true;
@@ -54,7 +56,7 @@
     database = {
       type = "postgres";
       port = "5432";
-      passwordFile = config.age.secrets."gitea-db-password".path;
+      passwordFile = config.sops.secrets."gitea-db-password".path;
     };
   };
 }

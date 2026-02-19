@@ -1,14 +1,14 @@
 # auto disk partitioning:
 #   nix run github:nix-community/disko -- --mode disko ./disko-fs.nix
 let
-  cryptKeyFile = "/etc/agenix/luks-crypt-key";
+  cryptKeyFile = "/etc/sops/luks-crypt-key";
   unlockDisk = "data-encrypted";
 in
 {
   fileSystems."/data/fileshare/public".depends = [ "/data/fileshare" ];
 
   # By adding this crypttab entry, the disk will be unlocked by systemd-cryptsetup@xxx.service at boot time.
-  # This systemd service is running after agenix, so that the keyfile is already available.
+  # This systemd service is running after sops-nix, so that the keyfile is already available.
   environment.etc = {
     "crypttab".text = ''
       ${unlockDisk} /dev/disk/by-partlabel/disk-${unlockDisk}-luks ${cryptKeyFile} luks,discard,keyfile-size=32768,keyfile-offset=65536
@@ -39,7 +39,7 @@ in
                 allowDiscards = true;
               };
               # Whether to add a boot.initrd.luks.devices entry for the specified disk.
-              # The keyfile do not exist before agenix decrypts its data, do we have to disable this option.
+              # The keyfile do not exist before sops-nix decrypts its data, do we have to disable this option.
               # Otherwise, the initrd will fail to unlock the disk, which causes the boot process to fail.
               initrdUnlock = false;
 

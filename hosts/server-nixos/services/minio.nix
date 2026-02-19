@@ -15,6 +15,6 @@ in
     region = "us-east-1"; # default to us-east-1, same as AWS S3.
 
     # File containing the MINIO_ROOT_USER, default is “minioadmin”, and MINIO_ROOT_PASSWORD (length >= 8), default is “minioadmin”;
-    rootCredentialsFile = config.age.secrets."minio.env".path;
+    rootCredentialsFile = config.sops.secrets."minio.env".path;
   };
 }

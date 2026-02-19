@@ -2,7 +2,7 @@
   lib,
   config,
   pkgs,
-  agenix,
+  sops-nix,
   mysecrets,
   myvars,
   ...
@@ -15,7 +15,6 @@ let
     cfg.server.application.enable
     || cfg.server.network.enable
     || cfg.server.operation.enable
-    || cfg.server.kubernetes.enable
     || cfg.server.webserver.enable
     || cfg.server.storage.enable
     || cfg.server.dn42.enable
@@ -36,7 +35,7 @@ let
 in
 {
   imports = [
-    agenix.nixosModules.default
+    sops-nix.nixosModules.sops
   ];
 
   options.modules.secrets = {
@@ -45,7 +44,6 @@ in
     server.network.enable = mkEnableOption "NixOS Secrets for Network Servers";
     server.application.enable = mkEnableOption "NixOS Secrets for Application Servers";
     server.operation.enable = mkEnableOption "NixOS Secrets for Operation Servers(Backup, Monitoring, etc)";
-    server.kubernetes.enable = mkEnableOption "NixOS Secrets for Kubernetes";
     server.webserver.enable = mkEnableOption "NixOS Secrets for Web Servers(contains tls cert keys)";
     server.storage.enable = mkEnableOption "NixOS Secrets for HDD Data's LUKS Encryption";
     server.dn42.enable = mkEnableOption "NixOS Secrets for DN42";
@@ -58,16 +56,14 @@ in
   config = mkIf (cfg.desktop.enable || enabledServerSecrets) (mkMerge [
     {
       environment.systemPackages = [
-        agenix.packages."${pkgs.stdenv.hostPlatform.system}".default
+        pkgs.sops
       ];
 
       # if you changed this key, you need to regenerate all encrypt files from the decrypt contents!
-      age.identityPaths =
+      sops.age.sshKeyPaths =
         if cfg.impermanence.enable then
           [
-            # To decrypt secrets on boot, this key should exists when the system is booting,
-            # so we should use the real key file path(prefixed by `/persistent/`) here, instead of the path mounted by impermanence.
-            "/persistent/etc/ssh/ssh_host_ed25519_key" # Linux
+            "/persistent/etc/ssh/ssh_host_ed25519_key"
           ]
         else
           [
@@ -84,69 +80,60 @@ in
     }
 
     (mkIf cfg.desktop.enable {
-      age.secrets = {
+      sops.secrets = {
         # ---------------------------------------------
         # no one can read/write this file, even root.
         # ---------------------------------------------
-
         # .age means the decrypted file is still encrypted by age(via a passphrase)
         "LokiSharp-gpg-subkeys-2024-12-30.priv.age" = {
-          file = "${mysecrets}/LokiSharp-gpg-subkeys-2024-12-30.priv.age.age";
+          sopsFile = "${mysecrets}/LokiSharp-gpg-subkeys-2024-12-30.priv.age.yaml";
+          key = "data";
         }
         // noaccess;
       };
 
       environment.etc = {
-        "agenix/LokiSharp-gpg-subkeys-2024-12-30.priv.age" = {
-          source = config.age.secrets."LokiSharp-gpg-subkeys-2024-12-30.priv.age".path;
+        "sops/LokiSharp-gpg-subkeys-2024-12-30.priv.age" = {
+          source = config.sops.secrets."LokiSharp-gpg-subkeys-2024-12-30.priv.age".path;
           mode = "0000";
         };
       };
     })
 
-    (mkIf cfg.server.kubernetes.enable {
-      age.secrets = {
-        "k3s-prod-1-token" = {
-          file = "${mysecrets}/server/k3s-prod-1-token.age";
-        }
-        // high_security;
-
-        "k3s-test-1-token" = {
-          file = "${mysecrets}/server/k3s-test-1-token.age";
-        }
-        // high_security;
-      };
-    })
-
     (mkIf cfg.server.operation.enable {
-      age.secrets = {
+      sops.secrets = {
         "grafana-admin-password" = {
-          file = "${mysecrets}/server/grafana-admin-password.age";
+          sopsFile = "${mysecrets}/server/grafana-admin-password.yaml";
+          key = "password";
           mode = "0400";
           owner = "grafana";
         };
 
         "alertmanager.env" = {
-          file = "${mysecrets}/server/alertmanager.env.age";
+          sopsFile = "${mysecrets}/server/alertmanager.env.yaml";
+          key = "content";
         }
         // high_security;
       };
     })
 
     (mkIf cfg.server.application.enable {
-      age.secrets = {
+      sops.secrets = {
         "minio.env" = {
-          file = "${mysecrets}/server/minio.env.age";
+          sopsFile = "${mysecrets}/server/minio.env.yaml";
+          key = "content";
           mode = "0400";
           owner = "minio";
         };
         "sftpgo.env" = {
-          file = "${mysecrets}/server/sftpgo.env.age";
+          sopsFile = "${mysecrets}/server/sftpgo.env.yaml";
+          key = "content";
           mode = "0400";
           owner = "sftpgo";
         };
         "gitea-db-password" = {
-          file = "${mysecrets}/server/gitea-db-password";
+          sopsFile = "${mysecrets}/server/gitea-db-password.yaml";
+          key = "password";
           mode = "0400";
           owner = "gitea";
         };
@@ -154,27 +141,31 @@ in
     })
 
     (mkIf cfg.server.webserver.enable {
-      age.secrets = {
+      sops.secrets = {
         "caddy-ecc-server.key" = {
-          file = "${mysecrets}/certs/ecc-server.key.age";
+          sopsFile = "${mysecrets}/certs/ecc-server.key.yaml";
+          key = "data";
           mode = "0400";
           owner = "caddy";
         };
         "postgres-ecc-server.key" = {
-          file = "${mysecrets}/certs/ecc-server.key.age";
+          sopsFile = "${mysecrets}/certs/ecc-server.key.yaml";
+          key = "data";
           mode = "0400";
           owner = "postgres";
         };
         "cloudflare-api-token" = {
-          file = "${mysecrets}/server/cloudflare-api-token.age";
+          sopsFile = "${mysecrets}/server/cloudflare-api-token.yaml";
+          key = "token";
         };
       };
     })
 
     (mkIf cfg.server.storage.enable {
-      age.secrets = {
+      sops.secrets = {
         "luks-crypt-key" = {
-          file = "${mysecrets}/luks-crypt-key.age";
+          sopsFile = "${mysecrets}/luks-crypt-key.yaml";
+          key = "data";
           mode = "0400";
           owner = "root";
         };
@@ -182,8 +173,8 @@ in
 
       # place secrets in /etc/
       environment.etc = {
-        "agenix/luks-crypt-key" = {
-          source = config.age.secrets."luks-crypt-key".path;
+        "sops/luks-crypt-key" = {
+          source = config.sops.secrets."luks-crypt-key".path;
           mode = "0400";
           user = "root";
         };
@@ -191,27 +182,35 @@ in
     })
 
     (mkIf cfg.server.dn42.enable {
-      age.secrets = {
+      sops.secrets = {
         "wg-priv" = {
-          file = "${mysecrets}/server/wg-priv.age";
+          sopsFile = "${mysecrets}/server/wg-priv.yaml";
+          key = "key";
         };
       };
     })
 
     (mkIf cfg.server.loki-net.enable {
-      age.secrets = {
-        "bird-bgp-password.conf" = {
-          file = "${mysecrets}/server/bird-bgp-password.conf.age";
-          mode = "0400";
-          owner = "bird";
+      sops.secrets = {
+        "bird-bgp-password" = {
+          sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
+          key = "password";
         };
+      };
+      sops.templates."bird-bgp-password.conf" = {
+        content = ''
+          password "${config.sops.placeholder."bird-bgp-password"}";
+        '';
+        mode = "0400";
+        owner = "bird";
       };
     })
 
     (mkIf cfg.server.proxy.enable {
-      age.secrets = {
+      sops.secrets = {
         "proxy.env" = {
-          file = "${mysecrets}/server/proxy.env.age";
+          sopsFile = "${mysecrets}/server/proxy.env.yaml";
+          key = "content";
           mode = "0400";
           owner = "root";
         };

@@ -1,8 +1,9 @@
-{ config
-, pkgs
-, lib
-, myvars
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  myvars,
+  ...
 }:
 let
   inherit (myvars) username;
@@ -42,8 +43,8 @@ in
       "--allow-group-access"
     ];
 
-    extensions = ext:
-      with ext; [
+    extensions =
+      ext: with ext; [
         # postgis
         # pg_repack
       ];
@@ -64,7 +65,7 @@ in
       # ssl
       ssl = true;
       ssl_cert_file = "${../../../certs/ecc-server.crt}";
-      ssl_key_file = config.age.secrets."postgres-ecc-server.key".path;
+      ssl_key_file = config.sops.secrets."postgres-ecc-server.key".path;
       ssl_min_protocol_version = "TLSv1.3";
       ssl_ecdh_curve = "secp384r1";
       # Using custom DH parameters reduces the exposure

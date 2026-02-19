@@ -94,12 +94,12 @@ in
             } /run/sing-box/config.json
             chmod 600 /run/sing-box/config.json
 
-            if [ ! -f ${config.age.secrets."proxy.env".path} ]; then
+            if [ ! -f ${config.sops.secrets."proxy.env".path} ]; then
               echo "FATAL: Secret file not found!"
               exit 1
             fi
             set -a
-            source ${config.age.secrets."proxy.env".path}
+            source ${config.sops.secrets."proxy.env".path}
             set +a
 
             PROXY_PRIVATE_KEY=$(echo "$PROXY_PRIVATE_KEY" | tr -d '[:space:]')

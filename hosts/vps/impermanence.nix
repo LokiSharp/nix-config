@@ -28,7 +28,7 @@
       "/etc/bird"
       "/etc/bind"
       # my secrets
-      "/etc/agenix/"
+      "/etc/sops/"
 
       "/var/log"
       "/var/lib"

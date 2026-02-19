@@ -1,4 +1,5 @@
-{ config, ... }: {
+{ config, ... }:
+{
   services.prometheus.alertmanager = {
     enable = true;
     listenAddress = "127.0.0.1";
@@ -6,7 +7,7 @@
     webExternalUrl = "http://alertmanager.slk.moe";
     logLevel = "info";
 
-    environmentFile = config.age.secrets."alertmanager.env".path;
+    environmentFile = config.sops.secrets."alertmanager.env".path;
     configuration = {
       global = {
         # The smarthost and SMTP sender used for mail notifications.

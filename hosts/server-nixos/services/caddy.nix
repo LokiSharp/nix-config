@@ -1,11 +1,12 @@
-{ pkgs
-, config
-, ...
+{
+  pkgs,
+  config,
+  ...
 }:
 let
   hostCommonConfig = ''
     encode zstd gzip
-    tls ${../../../certs/ecc-server.crt} ${config.age.secrets."caddy-ecc-server.key".path} {
+    tls ${../../../certs/ecc-server.crt} ${config.sops.secrets."caddy-ecc-server.key".path} {
       protocols tls1.3 tls1.3
       curves x25519 secp384r1 secp521r1
     }
@@ -114,7 +115,10 @@ in
       reverse_proxy http://localhost:9093
     '';
   };
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
+  networking.firewall.allowedTCPPorts = [
+    80
+    443
+  ];
 
   # Create Directories
   # https://www.freedesktop.org/software/systemd/man/latest/tmpfiles.d.html#Type

@@ -1,7 +1,9 @@
-{ config
-, myvars
-, ...
-}: {
+{
+  config,
+  myvars,
+  ...
+}:
+{
   services.grafana = {
     enable = true;
     dataDir = "/data/apps/grafana";
@@ -29,7 +31,7 @@
         admin_email = myvars.useremail;
         # Use file provider to read the admin password from a file.
         # https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#file-provider
-        admin_password = "$__file{${config.age.secrets."grafana-admin-password".path}}";
+        admin_password = "$__file{${config.sops.secrets."grafana-admin-password".path}}";
       };
       users = {
         allow_sign_up = false;

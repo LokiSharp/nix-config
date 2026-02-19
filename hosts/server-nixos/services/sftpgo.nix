@@ -5,7 +5,7 @@ let
 in
 {
   # Read SFTPGO_DEFAULT_ADMIN_USERNAME and SFTPGO_DEFAULT_ADMIN_PASSWORD from a file
-  systemd.services.sftpgo.serviceConfig.EnvironmentFile = config.age.secrets."sftpgo.env".path;
+  systemd.services.sftpgo.serviceConfig.EnvironmentFile = config.sops.secrets."sftpgo.env".path;
 
   # Create Directories
   # https://www.freedesktop.org/software/systemd/man/latest/tmpfiles.d.html#Type

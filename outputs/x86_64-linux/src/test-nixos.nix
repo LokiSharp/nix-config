@@ -34,6 +34,8 @@ let
       ])
       ++ [
         {
+          modules.secrets.server.dn42.enable = true;
+          modules.secrets.server.loki-net.enable = true;
           modules.secrets.impermanence.enable = true;
         }
       ];

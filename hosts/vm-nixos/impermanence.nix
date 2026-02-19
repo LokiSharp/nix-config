@@ -25,7 +25,7 @@
       "/etc/ssh"
       "/etc/nix/inputs"
       # my secrets
-      "/etc/agenix/"
+      "/etc/sops/"
 
       "/var/log"
       "/var/lib"

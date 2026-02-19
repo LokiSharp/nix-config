@@ -109,28 +109,40 @@ in
           owner = "grafana";
         };
 
-        "alertmanager.env" = {
-          sopsFile = "${mysecrets}/server/alertmanager.yaml";
-          key = "content";
-        }
-        // high_security;
+        SMTP_HOST = {
+          sopsFile = "${mysecrets}/server/smtp.yaml";
+        };
+        SMTP_PORT = {
+          sopsFile = "${mysecrets}/server/smtp.yaml";
+        };
+        SMTP_SENDER_EMAIL = {
+          sopsFile = "${mysecrets}/server/smtp.yaml";
+        };
+        SMTP_AUTH_USERNAME = {
+          sopsFile = "${mysecrets}/server/smtp.yaml";
+        };
+        SMTP_AUTH_PASSWORD = {
+          sopsFile = "${mysecrets}/server/smtp.yaml";
+        };
       };
     })
 
     (mkIf cfg.server.application.enable {
       sops.secrets = {
-        "minio.env" = {
+        MINIO_ROOT_USER = {
           sopsFile = "${mysecrets}/server/minio.yaml";
-          key = "content";
-          mode = "0400";
-          owner = "minio";
         };
-        "sftpgo.env" = {
+        MINIO_ROOT_PASSWORD = {
+          sopsFile = "${mysecrets}/server/minio.yaml";
+        };
+
+        SFTPGO_DEFAULT_ADMIN_USERNAME = {
           sopsFile = "${mysecrets}/server/sftpgo.yaml";
-          key = "content";
-          mode = "0400";
-          owner = "sftpgo";
         };
+        SFTPGO_DEFAULT_ADMIN_PASSWORD = {
+          sopsFile = "${mysecrets}/server/sftpgo.yaml";
+        };
+
         "gitea-db-password" = {
           sopsFile = "${mysecrets}/server/gitea-db-password.yaml";
           key = "password";

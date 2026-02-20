@@ -21,6 +21,7 @@ in
     ./apparmor/postgresql.nix
     ./apparmor/minio.nix
     ./apparmor/sftpgo.nix
+    ./apparmor/gitea.nix
   ];
 
   config = mkIf (cfg.enable && cfg."stage-2".enable) {

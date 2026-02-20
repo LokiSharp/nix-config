@@ -15,6 +15,7 @@ in
     ./apparmor/sing-box.nix
     ./apparmor/bind.nix
     ./apparmor/bird.nix
+    ./apparmor/caddy.nix
   ];
 
   config = mkIf (cfg.enable && cfg."stage-2".enable) {

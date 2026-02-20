@@ -20,6 +20,12 @@ in
         chain input {
           type filter hook input priority 0;
 
+          # Drop routing loops between ZeroTier and Tailscale
+          iifname "tailscale0" oifname "zt-slk0" drop
+          iifname "zt-slk0" oifname "tailscale0" drop
+          iifname "tailscale0" udp dport 9993 drop
+          iifname "zt-slk0" udp dport 41641 drop
+
           # accept any localhost traffic
           iifname lo accept
           iifname dummy0 accept
@@ -104,6 +110,11 @@ in
 
         chain forward {
           type filter hook forward priority 0;
+
+          # Drop routing loops between ZeroTier and Tailscale
+          iifname "tailscale0" oifname "zt-slk0" drop
+          iifname "zt-slk0" oifname "tailscale0" drop
+
           accept
         }
       }    

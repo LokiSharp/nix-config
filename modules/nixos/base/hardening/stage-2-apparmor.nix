@@ -18,6 +18,7 @@ in
     ./apparmor/caddy.nix
     ./apparmor/zerotierone.nix
     ./apparmor/tailscale.nix
+    ./apparmor/postgresql.nix
   ];
 
   config = mkIf (cfg.enable && cfg."stage-2".enable) {

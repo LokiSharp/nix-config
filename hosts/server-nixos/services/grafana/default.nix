@@ -29,9 +29,6 @@
       security = {
         admin_user = myvars.username;
         admin_email = myvars.useremail;
-        # Use file provider to read the admin password from a file.
-        # https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#file-provider
-        admin_password = "$__file{${config.sops.secrets."grafana-admin-password".path}}";
       };
       users = {
         allow_sign_up = false;
@@ -50,4 +47,13 @@
   };
 
   environment.etc."grafana/dashboards".source = ./dashboards;
+
+  sops.templates."grafana-env" = {
+    content = ''
+      GF_SECURITY_ADMIN_PASSWORD=${config.sops.placeholder."grafana-admin-password"}
+    '';
+    owner = "grafana";
+  };
+
+  systemd.services.grafana.serviceConfig.EnvironmentFile = config.sops.templates."grafana-env".path;
 }

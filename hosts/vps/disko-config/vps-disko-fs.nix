@@ -98,6 +98,7 @@
                     "nodatasum" # 禁用校验和
                   ];
                   swap.swapfile.size = "1048M";
+                  swap.swapfile.priority = 0;
                 };
               };
             };

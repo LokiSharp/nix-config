@@ -17,12 +17,17 @@ in
     ./impermanence.nix
   ];
 
+  systemd.network.enable = true;
   networking = {
     inherit hostName;
-    inherit (myvars.networking) defaultGateway nameservers;
-    inherit (myvars.networking.hostsInterface.${hostName}) interfaces;
+    useNetworkd = true;
+    useDHCP = true;
+    inherit (myvars.networking) nameservers;
+  };
 
-    networkmanager.enable = true;
+  services.resolved = {
+    enable = true;
+    domains = [ "lan" ];
   };
 
   # This value determines the NixOS release from which the default

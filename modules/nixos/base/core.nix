@@ -1,4 +1,5 @@
-{ lib, ... }: {
+{ lib, ... }:
+{
   boot.loader.systemd-boot = {
     # we use Git for version control, so we don't need to keep too many generations.
     configurationLimit = lib.mkDefault 10;
@@ -15,4 +16,7 @@
     };
     upower.enable = true;
   };
+
+  # Global Stage 1 Hardening
+  modules.base.hardening.enable = lib.mkDefault true;
 }

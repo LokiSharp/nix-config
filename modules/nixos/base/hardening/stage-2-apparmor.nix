@@ -14,6 +14,7 @@ in
   imports = [
     ./apparmor/sing-box.nix
     ./apparmor/bind.nix
+    ./apparmor/bird.nix
   ];
 
   config = mkIf (cfg.enable && cfg."stage-2".enable) {

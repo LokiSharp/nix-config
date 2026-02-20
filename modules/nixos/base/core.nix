@@ -19,4 +19,20 @@
 
   # Global Stage 1 Hardening
   modules.base.hardening.enable = lib.mkDefault true;
+
+  # Limit journald log size
+  services.journald.extraConfig = ''
+    SystemMaxUse=1G
+    RuntimeMaxUse=256M
+    MaxRetentionSec=1month
+  '';
+
+  # Assign a higher OOM survival priority to SSH
+  systemd.services.sshd.serviceConfig.OOMScoreAdjust = -1000;
+
+  # Enable zramSwap to delay physical memory exhaustion
+  zramSwap = {
+    enable = true;
+    memoryPercent = 50; # Use up to 50% of memory for compressed swap
+  };
 }

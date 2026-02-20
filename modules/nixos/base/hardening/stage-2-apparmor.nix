@@ -17,6 +17,7 @@ in
     ./apparmor/bird.nix
     ./apparmor/caddy.nix
     ./apparmor/zerotierone.nix
+    ./apparmor/tailscale.nix
   ];
 
   config = mkIf (cfg.enable && cfg."stage-2".enable) {

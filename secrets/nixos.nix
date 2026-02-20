@@ -226,15 +226,19 @@ in
       sops.secrets = {
         PROXY_PRIVATE_KEY = {
           sopsFile = "${mysecrets}/server/proxy.yaml";
+          owner = "sing-box";
         };
         PROXY_UUID = {
           sopsFile = "${mysecrets}/server/proxy.yaml";
+          owner = "sing-box";
         };
         PROXY_SERVER_NAME = {
           sopsFile = "${mysecrets}/server/proxy.yaml";
+          owner = "sing-box";
         };
         PROXY_SHORT_ID = {
           sopsFile = "${mysecrets}/server/proxy.yaml";
+          owner = "sing-box";
         };
       };
     })

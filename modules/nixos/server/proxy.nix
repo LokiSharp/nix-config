@@ -62,9 +62,15 @@ in
           }
         ];
       };
-      owner = "root";
+      owner = "sing-box";
       mode = "0400";
     };
+
+    users.users.sing-box = {
+      isSystemUser = true;
+      group = "sing-box";
+    };
+    users.groups.sing-box = { };
 
     services.sing-box.enable = true;
 
@@ -72,7 +78,15 @@ in
     systemd.services.sing-box = {
       serviceConfig = {
         DynamicUser = lib.mkForce false;
-        User = lib.mkForce "root";
+        User = lib.mkForce "sing-box";
+        AmbientCapabilities = [
+          "CAP_NET_BIND_SERVICE"
+          "CAP_NET_ADMIN"
+        ];
+        CapabilityBoundingSet = [
+          "CAP_NET_BIND_SERVICE"
+          "CAP_NET_ADMIN"
+        ];
         ExecStart = lib.mkForce [
           ""
           "${pkgs.sing-box}/bin/sing-box run -c ${config.sops.templates."sing-box.json".path}"

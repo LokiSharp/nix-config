@@ -22,6 +22,10 @@ in
     ./apparmor/minio.nix
     ./apparmor/sftpgo.nix
     ./apparmor/gitea.nix
+    ./apparmor/victoriametrics.nix
+    ./apparmor/vmalert.nix
+    ./apparmor/alertmanager.nix
+    ./apparmor/grafana.nix
   ];
 
   config = mkIf (cfg.enable && cfg."stage-2".enable) {

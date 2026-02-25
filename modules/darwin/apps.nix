@@ -129,6 +129,8 @@ in
       "git-trim"
       "terraform"
       "terraformer"
+
+      "rustup"
     ];
 
     # `brew install --cask`

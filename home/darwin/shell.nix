@@ -1,7 +1,7 @@
 { lib, ... }:
 let
   envExtra = ''
-    export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"
+    export PATH="$PATH:$HOME/.cargo/bin:/opt/homebrew/bin:/usr/local/bin"
   '';
 in
 {
@@ -16,5 +16,6 @@ in
   };
   programs.zsh = {
     enable = true;
+    envExtra = envExtra;
   };
 }

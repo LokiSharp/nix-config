@@ -43,9 +43,12 @@
         "codes"
         "nix-config"
         "tmp"
+
+        ".claude"
       ];
       files = [
         ".config/nushell/history.txt"
+        ".bash_history"
       ];
     };
   };

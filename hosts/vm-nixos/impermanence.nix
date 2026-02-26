@@ -72,9 +72,14 @@
         # antigravity
         ".antigravity"
         ".antigravity-server"
+
+        # rust
+        ".rustup"
+        ".cargo"
       ];
       files = [
         ".config/nushell/history.txt"
+        ".bash_history"
       ];
     };
   };

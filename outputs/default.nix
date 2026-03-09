@@ -117,7 +117,17 @@ in
   });
 
   checks = forAllSystems (system: {
-    # eval-tests per system
-    eval-tests = allSystems.${system}.evalTests == { };
+    # eval-tests per system wrapped in a dummy derivation
+    eval-tests =
+      let
+        res = allSystems.${system}.evalTests == { };
+      in
+      nixpkgs.legacyPackages.${system}.runCommand "eval-tests" { } ''
+        if [ "${builtins.toString res}" != "1" ]; then
+          echo "Evaluation tests failed!"
+          exit 1
+        fi
+        touch $out
+      '';
   });
 }

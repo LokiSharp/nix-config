@@ -50,6 +50,16 @@ in
               ""
           }
 
+          ${
+            if configLib.this.hasTag configLib.tags.tailscale then
+              ''
+                # accept Tailscale traffic
+                iifname "tailscale0" accept
+              ''
+            else
+              ""
+          }
+
           # accept traffic originated from us
           ct state {established, related} accept
 

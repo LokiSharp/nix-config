@@ -207,18 +207,6 @@ RackNerd-US-SJ-local mode="default":
 
 [linux]
 [group('vps')]
-SkyWolf-HK:
-  colmena apply --on '@SkyWolf-HK' --verbose --show-trace
-
-[linux]
-[group('vps')]
-SkyWolf-HK-local mode="default":
-  #!/usr/bin/env nu
-  use {{utils_nu}} *; 
-  nixos-switch SkyWolf-HK {{mode}}
-
-[linux]
-[group('vps')]
 Vultr-JP:
   colmena apply --on '@Vultr-JP' --verbose --show-trace
 

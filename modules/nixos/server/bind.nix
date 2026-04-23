@@ -155,10 +155,6 @@ in
           v4.ns-anycast           IN  A     172.20.190.53
           v6.ns-anycast           IN  AAAA  fd6a:11d4:cacb::53
 
-          skywolf-hk              IN  A     172.20.190.1
-          skywolf-hk              IN  AAAA  fd6a:11d4:cacb::1
-          v4.skywolf-hk           IN  A     172.20.190.1
-          v6.skywolf-hk           IN  AAAA  fd6a:11d4:cacb::1
           vultr-jp                IN  A     172.20.190.2
           vultr-jp                IN  AAAA  fd6a:11d4:cacb::2
           v4.vultr-jp             IN  A     172.20.190.2
@@ -185,7 +181,6 @@ in
           @                       IN  NS    ns-anycast.slk.dn42.  ; announce the name server of current zone
           53                      IN  PTR   ns-anycast.slk.dn42.
 
-          1                       IN  PTR   skywolf-hk.slk.dn42.
           2                       IN  PTR   vultr-jp.slk.dn42.
           10                      IN  PTR   base-test-cn-sh.slk.dn42.
         '';
@@ -206,7 +201,6 @@ in
           @                                         IN NS  ns-anycast.slk.dn42.  ; announce the name server of current zone
           3.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR ns-anycast.slk.dn42.
 
-          1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR skywolf-hk.slk.dn42.
           2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR vultr-jp.slk.dn42.
           0.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR base-test-cn-sh.slk.dn42.
         '';

@@ -1,7 +1,7 @@
 { config, inputs, ... }:
 {
   services.loki-net = {
-    skywolf_hk = {
+    vultr = {
       remoteASN = 64515;
       peerBgpPasswordConf = config.sops.templates."bird-bgp-password.conf".path;
       addressing = {

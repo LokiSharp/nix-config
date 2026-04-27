@@ -10,20 +10,23 @@ let
   hostName = "Test-NixOS";
 in
 {
-  imports =
-    [
-      disko.nixosModules.default
-      ./disko-fs.nix
-      ../vps/impermanence.nix
-    ]
-    ++ map mylib.relativeToRoot [
-      "modules/nixos/server/dn42.nix"
-      "modules/nixos/server/bird"
-      "modules/nixos/server/bind.nix"
-    ];
+  imports = [
+    disko.nixosModules.default
+    ./disko-fs.nix
+    ../vps/impermanence.nix
+  ]
+  ++ map mylib.relativeToRoot [
+    "modules/nixos/server/dn42.nix"
+    "modules/nixos/server/bird"
+    "modules/nixos/server/bind.nix"
+  ];
 
   systemd.network.enable = true;
-  systemd.network.networks."10-wan" = {
+  systemd.network.links."10-wan-alias" = {
+    matchConfig.OriginalName = "ens18";
+    linkConfig.AlternativeName = "wan";
+  };
+  systemd.network.networks."20-wan" = {
     matchConfig.Name = "en*";
     address = [
       "192.168.0.13/24"

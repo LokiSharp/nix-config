@@ -16,6 +16,16 @@ in
   services.zerotierone = {
     enable = isEnabled;
     joinNetworks = [ slk-net ];
+    localConf = {
+      settings = {
+        interfacePrefixBlacklist = [
+          "tailscale0"
+          "dummy0"
+          "ens19"
+          "ens20"
+        ];
+      };
+    };
   };
 
   systemd.services.zerotierone.preStart = lib.mkIf isEnabled ''

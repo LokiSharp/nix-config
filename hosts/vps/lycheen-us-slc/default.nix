@@ -25,7 +25,11 @@ in
   disko.devices.disk.main.device = lib.mkForce "/dev/sda";
 
   systemd.network.enable = true;
-  systemd.network.networks."10-wan" = {
+  systemd.network.links."10-wan-alias" = {
+    matchConfig.OriginalName = "ens3";
+    linkConfig.AlternativeName = "wan";
+  };
+  systemd.network.networks."20-wan" = {
     matchConfig.Name = "en*";
     address = [
       "216.238.52.228/24"

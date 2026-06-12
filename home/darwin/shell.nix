@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ config, lib, ... }:
 let
   envExtra = ''
     export PATH="$PATH:$HOME/.cargo/bin:/opt/homebrew/bin:/usr/local/bin"
@@ -16,6 +16,7 @@ in
   };
   programs.zsh = {
     enable = true;
+    dotDir = config.home.homeDirectory;
     envExtra = envExtra;
   };
 }

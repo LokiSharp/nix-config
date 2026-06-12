@@ -10,6 +10,8 @@
       enable = true;
       defaultEditor = true;
       vimAlias = true;
+      withPython3 = true;
+      withRuby = true;
     };
 
     # A modern replacement for ‘ls’

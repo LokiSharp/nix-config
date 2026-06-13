@@ -222,9 +222,14 @@ in
           sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
           key = "chief-rs-password";
         };
+        "tpix-rs-password" = {
+          sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
+          key = "tpix-rs-password";
+        };
       };
       sops.templates."bird-bgp-password.conf" = {
         content = ''
+          authentication md5;
           password "${config.sops.placeholder."bird-bgp-password"}";
         '';
         mode = "0400";
@@ -232,7 +237,16 @@ in
       };
       sops.templates."chief-rs-password.conf" = {
         content = ''
+          authentication md5;
           password "${config.sops.placeholder."chief-rs-password"}";
+        '';
+        mode = "0400";
+        owner = "bird";
+      };
+      sops.templates."tpix-rs-password.conf" = {
+        content = ''
+          authentication md5;
+          password "${config.sops.placeholder."tpix-rs-password"}";
         '';
         mode = "0400";
         owner = "bird";

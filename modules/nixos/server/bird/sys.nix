@@ -22,7 +22,7 @@ in
     protocol direct {
       ipv4;
       ipv6;
-      interface "dummy0", "zt-slk0";
+      interface "dummy0";
     }
   '';
 
@@ -159,16 +159,24 @@ in
       if bgp_path ~ BOGON_ASNS then return true;
       return false;
     }
+
+    function is_vpn_route() -> bool {
+      if ifname = "tailscale0" || ifname = "zt-slk0" then return true;
+      if source ~ [RTS_OSPF, RTS_OSPF_IA, RTS_OSPF_EXT1, RTS_OSPF_EXT2] then return true;
+      return false;
+    }
   '';
 
   kernel = ''
     filter sys_import_v4 {
+      if is_vpn_route() then reject;
       if net !~ RESERVED_IPv4 then reject;
       if net !~ SLK_OWN_NET_SET_IPv4 && net.len = 32 then reject;
       accept;
     }
 
     filter sys_import_v6 {
+      if is_vpn_route() then reject;
       if net = ::/0 then accept;
       if net ~ LOKI_NET_OWN_NET_SET_IPv6 then accept;
       if net !~ RESERVED_IPv6 then reject;
@@ -178,6 +186,7 @@ in
 
     filter sys_export_v4 {
       if net ~ SLK_UNMANAGED_NET_SET_IPv4 then reject;
+      if is_vpn_route() then reject;
 
       krt_metric = 4242;
       if dest ~ [RTD_BLACKHOLE, RTD_UNREACHABLE, RTD_PROHIBIT] then {
@@ -193,6 +202,10 @@ in
 
     filter sys_export_v6 {
       if net ~ SLK_UNMANAGED_NET_SET_IPv6 then reject;
+      if is_vpn_route() then reject;
+      # Keep external full-table routes inside BIRD; do not install them into
+      # the main kernel table where local services like sing-box will see them.
+      if source = RTS_BGP && net ~ [ 2000::/3+ ] && net !~ LOKI_NET_OWN_NET_SET_IPv6 then reject;
 
       krt_metric = 4242;
       if dest ~ [RTD_BLACKHOLE, RTD_UNREACHABLE, RTD_PROHIBIT] then {

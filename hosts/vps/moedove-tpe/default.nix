@@ -134,5 +134,7 @@ in
     enable = true;
   };
 
+  modules.base.hardening."stage-1".auditd.enable = false;
+
   system.stateVersion = "24.11"; # Did you read the comment?
 }

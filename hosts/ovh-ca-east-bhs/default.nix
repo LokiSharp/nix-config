@@ -20,6 +20,7 @@ in
     "modules/nixos/server/dn42.nix"
     "modules/nixos/server/bird"
     "modules/nixos/server/bind.nix"
+    "modules/nixos/server/zerotierone-controller"
   ];
 
   systemd.network.enable = true;

@@ -57,32 +57,73 @@ let
   mkEBgpPeer =
     {
       name,
+      family,
       neighbor,
       remoteASN,
       passwordConf ? "",
+      multihop ? null,
     }:
+    let
+      gatewayMode = if multihop == null then "" else "gateway recursive;";
+    in
     ''
-      protocol bgp ebgp_loki_net_${configLib.tools.replaceHyphens name}_v6 from loki_net_dnpeers {
+      protocol bgp ebgp_loki_net_${configLib.tools.replaceHyphens name}_${family} from loki_net_dnpeers {
         neighbor ${neighbor} as ${toString remoteASN};
-        multihop 2;
+        ${if multihop == null then "direct;" else "multihop ${toString multihop};"}
         ${lib.optionalString (passwordConf != "") ''
           include "${passwordConf}";
         ''}
-        ipv4 {
-          import none;
-          export none;
-        };
+        ${lib.optionalString (family == "v4") ''
+          ipv6 {
+            ${gatewayMode}
+            import none;
+            export none;
+          };
+          ipv4 {
+            ${gatewayMode}
+            import none;
+            export none;
+          };
+        ''}
+        ${lib.optionalString (family == "v6") ''
+          ${lib.optionalString (multihop != null) ''
+            ipv6 {
+              ${gatewayMode}
+            };
+          ''}
+          ipv4 {
+            ${gatewayMode}
+            import none;
+            export none;
+          };
+        ''}
       };
     '';
 in
 {
   function = ''
-    filter loki_net_import_filter_v6 {
+    filter loki_net_import_filter_v4 {
       if is_bogon_prefix() then reject;
       if is_bogon_asn() then reject;
+      reject;
+    };
+    filter loki_net_import_filter_v6 {
+      if net = ::/0 then reject;
       if net ~ LOKI_NET_OWN_NET_SET_IPv6 then reject;
-      if net ~ [ fd00::/8+ ] then accept;
+      if is_bogon_prefix() then reject;
+      if is_bogon_asn() then reject;
 
+      # Public IPv6 only, avoid too-specific routes.
+      if net !~ [ 2000::/3{12,48} ] then reject;
+
+      accept;
+    };
+    filter loki_net_ebgp_export_filter_v4 {
+      reject;
+    };
+    filter loki_net_ebgp_export_filter_v6 {
+      # Only export the aggregate route to eBGP peers
+      if net = LOKI_NET_OWN_NET_IPv6 && source ~ [RTS_STATIC] then accept;
       reject;
     };
     filter loki_net_ibgp_import_filter_v6 {
@@ -91,7 +132,6 @@ in
       # Allow own network prefixes for iBGP to enable internal routing
       if net ~ LOKI_NET_OWN_NET_SET_IPv6 then accept;
       if net ~ [ fd00::/8+ ] then accept;
-
       reject;
     };
     filter loki_net_export_filter_v6 {
@@ -113,18 +153,6 @@ in
   '';
 
   bgp = ''
-    filter loki_net_ebgp_export_filter_v6 {
-      # Only export the aggregate route to eBGP peers
-      if net = LOKI_NET_OWN_NET_IPv6 then accept;
-      # Reject specific subnets of our own network (prevent route leaking)
-      if net ~ LOKI_NET_OWN_NET_SET_IPv6 then reject;
-      
-      # Allow transit for other valid routes (same as original policy)
-      if !is_bogon_prefix() || !is_bogon_asn() then accept;
-      reject;
-    };
-
-
     template bgp loki_net_ibgp {
       local as ${LOKI_NET_AS};
       multihop 3;
@@ -137,7 +165,13 @@ in
 
     template bgp loki_net_dnpeers {
       local as ${LOKI_NET_AS};
+      ipv4 {
+        gateway direct;
+        import filter loki_net_import_filter_v4;
+        export filter loki_net_ebgp_export_filter_v4;
+      };
       ipv6 {
+        gateway direct;
         import filter loki_net_import_filter_v6;
         export filter loki_net_ebgp_export_filter_v6;
       };
@@ -146,11 +180,21 @@ in
 
   ebgp_peers = lib.concatStrings (
     lib.mapAttrsToList (n: v: ''
+      ${lib.optionalString (v.addressing.peerIPv4 != null) (mkEBgpPeer {
+        name = n;
+        family = "v4";
+        neighbor = v.addressing.peerIPv4;
+        remoteASN = v.remoteASN;
+        passwordConf = v.peerBgpPasswordConf;
+        multihop = v.multihop;
+      })}
       ${lib.optionalString (v.addressing.peerIPv6 != null) (mkEBgpPeer {
         name = n;
+        family = "v6";
         neighbor = v.addressing.peerIPv6;
         remoteASN = v.remoteASN;
         passwordConf = v.peerBgpPasswordConf;
+        multihop = v.multihop;
       })}
     '') peers
   );

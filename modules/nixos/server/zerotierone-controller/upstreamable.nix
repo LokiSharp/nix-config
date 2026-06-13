@@ -174,6 +174,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    networking.firewall.allowedUDPPorts = [ cfg.port ];
+
     systemd.services.zerotierone-controller = {
       description = "ZeroTier One Controller";
       wantedBy = [ "multi-user.target" ];

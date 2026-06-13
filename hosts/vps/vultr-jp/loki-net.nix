@@ -4,6 +4,7 @@
     vultr = {
       remoteASN = 64515;
       peerBgpPasswordConf = config.sops.templates."bird-bgp-password.conf".path;
+      multihop = 2;
       addressing = {
         peerIPv4 = "169.254.169.254";
         peerIPv6 = "2001:19f0:ffff::1";

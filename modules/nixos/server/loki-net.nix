@@ -54,6 +54,10 @@ in
             type = lib.types.str;
             default = "";
           };
+          multihop = lib.mkOption {
+            type = lib.types.nullOr lib.types.int;
+            default = null;
+          };
 
           # IP address inside tunnel
           addressing = lib.mkOption {

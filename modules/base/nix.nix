@@ -25,6 +25,7 @@
     # substituers that will be considered before the official ones(https://cache.nixos.org)
     substituters = [
       "https://mirrors.cernet.edu.cn/nix-channels/store?priority=10"
+      "https://cache.nixos.org"
       "https://nix-community.cachix.org"
     ];
 

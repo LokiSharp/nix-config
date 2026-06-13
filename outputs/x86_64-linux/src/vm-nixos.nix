@@ -32,6 +32,7 @@ let
     home-modules = map mylib.relativeToRoot [
       # common
       "home/linux/gui.nix"
+      "home/linux/develop"
       # host specific
       "hosts/${hostNameLower}/home.nix"
     ];

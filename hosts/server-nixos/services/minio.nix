@@ -1,9 +1,19 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 let
   dataDir = [ "/data/apps/minio/data" ];
   configDir = "/data/apps/minio/config";
 in
 {
+  nixpkgs.config.allowInsecurePredicate =
+    pkg:
+    builtins.elem (lib.getName pkg) [
+      "minio"
+    ];
+
   # https://github.com/NixOS/nixpkgs/blob/nixos-24.05/nixos/modules/services/web-servers/minio.nix
   services.minio = {
     enable = true;

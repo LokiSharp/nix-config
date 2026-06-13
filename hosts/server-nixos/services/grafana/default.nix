@@ -29,6 +29,8 @@
       security = {
         admin_user = myvars.username;
         admin_email = myvars.useremail;
+        # Preserve the pre-26.05 default key so existing encrypted DB data stays readable.
+        secret_key = "$__env{GF_SECURITY_SECRET_KEY}";
       };
       users = {
         allow_sign_up = false;
@@ -51,6 +53,7 @@
   sops.templates."grafana-env" = {
     content = ''
       GF_SECURITY_ADMIN_PASSWORD=${config.sops.placeholder."grafana-admin-password"}
+      GF_SECURITY_SECRET_KEY=${config.sops.placeholder."grafana-secret-key"}
     '';
     owner = "grafana";
   };

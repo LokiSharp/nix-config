@@ -107,7 +107,6 @@
           ./alert_rules/kubestate-exporter.yml
           ./alert_rules/etcd_embedded-exporter.yml
           ./alert_rules/istio_embedded-exporter.yml
-          ./alert_rules/coredns_embedded-exporter.yml
         ];
       };
     };

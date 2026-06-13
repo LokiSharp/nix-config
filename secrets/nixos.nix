@@ -123,8 +123,14 @@ in
     (mkIf cfg.server.operation.enable {
       sops.secrets = {
         "grafana-admin-password" = {
-          sopsFile = "${mysecrets}/server/grafana-admin-password.yaml";
+          sopsFile = "${mysecrets}/server/grafana.yaml";
           key = "password";
+          mode = "0400";
+          owner = "grafana";
+        };
+        "grafana-secret-key" = {
+          sopsFile = "${mysecrets}/server/grafana.yaml";
+          key = "secret_key";
           mode = "0400";
           owner = "grafana";
         };

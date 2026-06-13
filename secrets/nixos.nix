@@ -218,10 +218,21 @@ in
           sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
           key = "password";
         };
+        "chief-rs-password" = {
+          sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
+          key = "chief-rs-password";
+        };
       };
       sops.templates."bird-bgp-password.conf" = {
         content = ''
           password "${config.sops.placeholder."bird-bgp-password"}";
+        '';
+        mode = "0400";
+        owner = "bird";
+      };
+      sops.templates."chief-rs-password.conf" = {
+        content = ''
+          password "${config.sops.placeholder."chief-rs-password"}";
         '';
         mode = "0400";
         owner = "bird";

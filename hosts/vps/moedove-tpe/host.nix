@@ -4,6 +4,7 @@
   tags = with tags; [
     dn42
     loki-net
+    loki-net-edge
     server
     firewall
     dn42-anycast-dns

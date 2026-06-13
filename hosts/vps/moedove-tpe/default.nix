@@ -14,9 +14,11 @@ in
     disko.nixosModules.default
     ../disko-config/vps-disko-fs.nix
     ../impermanence.nix
+    ./loki-net.nix
   ]
   ++ map mylib.relativeToRoot [
     "modules/nixos/server/dn42.nix"
+    "modules/nixos/server/loki-net.nix"
     "modules/nixos/server/bird"
     "modules/nixos/server/bind.nix"
     "modules/nixos/server/proxy.nix"
@@ -88,6 +90,7 @@ in
       AllMulticast = false;
     };
   };
+
   boot.kernel.sysctl = {
     # Chief / ens19
     # 防止内核使用来自其他网卡的地址来响应 ARP 请求。

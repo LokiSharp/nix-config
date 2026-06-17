@@ -58,6 +58,11 @@ in
             type = lib.types.nullOr lib.types.int;
             default = null;
           };
+          exportPrependCount = lib.mkOption {
+            type = lib.types.ints.unsigned;
+            default = 0;
+            description = "Number of times to prepend our AS when exporting routes to this peer.";
+          };
 
           # IP address inside tunnel
           addressing = lib.mkOption {

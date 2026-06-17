@@ -62,9 +62,25 @@ let
       remoteASN,
       passwordConf ? "",
       multihop ? null,
+      exportPrependCount ? 0,
     }:
     let
       gatewayMode = if multihop == null then "" else "gateway recursive;";
+      exportPrepend = lib.concatStrings (
+        lib.genList (_: ''
+          bgp_path.prepend(${toString LOKI_NET_AS});
+        '') exportPrependCount
+      );
+      exportFilterV6 = ''
+        filter {
+          # Make this peer less attractive for inbound traffic.
+          if net = LOKI_NET_OWN_NET_IPv6 && source ~ [RTS_STATIC] then {
+            ${exportPrepend}
+            accept;
+          }
+          reject;
+        }
+      '';
     in
     ''
       protocol bgp ebgp_loki_net_${configLib.tools.replaceHyphens name}_${family} from loki_net_dnpeers {
@@ -86,9 +102,12 @@ let
           };
         ''}
         ${lib.optionalString (family == "v6") ''
-          ${lib.optionalString (multihop != null) ''
+          ${lib.optionalString (multihop != null || exportPrependCount > 0) ''
             ipv6 {
               ${gatewayMode}
+              ${lib.optionalString (exportPrependCount > 0) ''
+                export ${exportFilterV6};
+              ''}
             };
           ''}
           ipv4 {
@@ -187,6 +206,7 @@ in
         remoteASN = v.remoteASN;
         passwordConf = v.peerBgpPasswordConf;
         multihop = v.multihop;
+        exportPrependCount = v.exportPrependCount;
       })}
       ${lib.optionalString (v.addressing.peerIPv6 != null) (mkEBgpPeer {
         name = n;
@@ -195,6 +215,7 @@ in
         remoteASN = v.remoteASN;
         passwordConf = v.peerBgpPasswordConf;
         multihop = v.multihop;
+        exportPrependCount = v.exportPrependCount;
       })}
     '') peers
   );

@@ -33,4 +33,21 @@
       };
     };
   };
+
+  services.dn42 = {
+    chimon = {
+      remoteASN = 4242423868;
+      tunnel = {
+        type = "wireguard";
+        localPort = 23868;
+        remoteAddress = "tyo.dn42.cio.bz";
+        remotePort = 23888;
+        wireguardPubkey = "Bh8/7a6H2u3VOxsA8o81FYpKUgXRJYajFQjE+PwuXlE=";
+      };
+      addressing = {
+        peerIPv4 = "172.21.65.161";
+        peerIPv6 = "fdc4:c9b0:e83e:392::1";
+      };
+    };
+  };
 }

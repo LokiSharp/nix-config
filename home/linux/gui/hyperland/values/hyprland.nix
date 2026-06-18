@@ -9,6 +9,7 @@ in
   wayland.windowManager.hyprland = {
     inherit package;
     enable = true;
+    configType = "hyprlang";
     settings = {
       env = [
         "NIXOS_OZONE_WL,1" # for any ozone-based browser & electron apps to run on wayland

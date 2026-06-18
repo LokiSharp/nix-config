@@ -27,7 +27,7 @@ in
 
   services.resolved = {
     enable = true;
-    domains = [ "lan" ];
+    settings.Resolve.Domains = [ "lan" ];
   };
 
   # This value determines the NixOS release from which the default

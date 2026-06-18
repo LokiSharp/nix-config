@@ -17,10 +17,10 @@
     package = pkgs.steam.override {
       extraPkgs = pkgs:
         with pkgs; [
-          xorg.libXcursor
-          xorg.libXi
-          xorg.libXinerama
-          xorg.libXScrnSaver
+          libxcursor
+          libxi
+          libxinerama
+          libxscrnsaver
           libpng
           libpulseaudio
           libvorbis
@@ -41,10 +41,10 @@
           udev
           alsa-lib
           vulkan-loader
-          xorg.libX11
-          xorg.libXcursor
-          xorg.libXi
-          xorg.libXrandr # To use the x11 feature
+          libx11
+          libxcursor
+          libxi
+          libxrandr # To use the x11 feature
           libxkbcommon
           wayland # To use the wayland feature
         ];

@@ -202,7 +202,7 @@ in
 
     filter sys_export_v6 {
       if net ~ SLK_UNMANAGED_NET_SET_IPv6 then reject;
-      if is_vpn_route() then reject;
+      if is_vpn_route() && net !~ LOKI_NET_OWN_NET_SET_IPv6 then reject;
       # Keep external full-table routes inside BIRD; do not install them into
       # the main kernel table where local services like sing-box will see them.
       if source = RTS_BGP && net ~ [ 2000::/3+ ] && net !~ LOKI_NET_OWN_NET_SET_IPv6 then reject;

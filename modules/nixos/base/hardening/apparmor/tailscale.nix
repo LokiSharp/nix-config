@@ -36,21 +36,27 @@ in
 
           ptrace (trace) peer=@{profile_name},
 
-          # Allow reading from nix store
-          /nix/store/** r,
+          # Allow reading and mapping Nix store libraries used by tailscaled
+          # and its iptables/nft helper processes.
+          /nix/store/** mr,
 
           # Tailscale state directory
           /var/lib/tailscale/** rwkl,
 
           # Runtime sockets
           /run/tailscale/** rwkl,
+          @{run}/systemd/notify w,
 
           # TUN device access
           /dev/net/tun rw,
 
-          # Networking sysctls
-          /proc/sys/net/ipv4/conf/all/forwarding r,
-          /proc/sys/net/ipv6/conf/all/forwarding r,
+          # Networking state and sysctls used while syncing routes/firewall
+          # rules through iptables, ip6tables, nft, and netlink.
+          /proc/net/** r,
+          /proc/sys/net/** r,
+          /run/xtables.lock rwk,
+          /sys/class/net/** r,
+          /sys/devices/** r,
 
           # Allow execution of itself
           ${pkgs.tailscale}/bin/tailscaled mr,

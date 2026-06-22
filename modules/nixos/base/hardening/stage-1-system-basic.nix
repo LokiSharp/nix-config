@@ -10,7 +10,14 @@ with lib;
 
 let
   cfg = config.modules.base.hardening;
-  auditRules = import ./audit-rules { inherit config lib myvars; };
+  auditRules = import ./audit-rules {
+    inherit
+      config
+      lib
+      myvars
+      pkgs
+      ;
+  };
 in
 {
   config = mkIf (cfg.enable && cfg."stage-1".enable) (mkMerge [

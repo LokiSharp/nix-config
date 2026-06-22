@@ -26,7 +26,7 @@ let
       '';
 
       ipv6 = lib.optionalString (v.addressing.myIPv6 != null) ''
-        ${pkgs.iproute2}/bin/ip addr add ${v.addressing.myIPv6}/${builtins.toString v.addressing.IPv6SubnetMask} dev ${interfaceName}
+        ${pkgs.iproute2}/bin/ip addr add ${v.addressing.myIPv6}/${builtins.toString v.addressing.IPv6SubnetMask}${lib.optionalString (v.addressing.peerIPv6 != null) " peer ${v.addressing.peerIPv6}/128"} dev ${interfaceName}
       '';
 
       sysctl = ''

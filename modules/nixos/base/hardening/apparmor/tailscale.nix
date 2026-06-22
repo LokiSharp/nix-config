@@ -31,6 +31,8 @@ in
           capability sys_admin,
           capability sys_module,
           capability dac_override,
+          capability dac_read_search,
+          capability sys_ptrace,
 
           network inet,
           network inet6,
@@ -40,7 +42,7 @@ in
 
           # Tailscale inspects local processes and may read procfs metadata
           # for unconfined services when collecting host/service state.
-          ptrace (read) peer=unconfined,
+          ptrace (read),
           ptrace (read, trace) peer=@{profile_name},
 
           # Tailscale state directory
@@ -56,6 +58,9 @@ in
 
           # Networking state and sysctls used while syncing routes/firewall
           # rules through iptables, ip6tables, nft, and netlink.
+          /proc/ r,
+          /proc/[0-9]*/fd/ r,
+          /proc/[0-9]*/fd/** r,
           /proc/[0-9]*/** r,
           /proc/net/** r,
           /proc/sys/net/** r,

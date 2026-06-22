@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -61,13 +62,14 @@
     };
     database = {
       type = "postgres";
-      port = "5432";
+      port = 5432;
       passwordFile = config.sops.secrets."gitea-db-password".path;
     };
   };
 
-  systemd.services.gitea.serviceConfig.EnvironmentFile =
-    config.sops.templates."gitea-mailer-env".path;
+  systemd.services.gitea.serviceConfig = {
+    EnvironmentFile = config.sops.templates."gitea-mailer-env".path;
+  };
 
   sops.templates."gitea-mailer-env" = {
     content = ''

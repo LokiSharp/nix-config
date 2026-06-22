@@ -1,9 +1,11 @@
-{
-  pkgs,
-  config,
-  ...
+{ pkgs
+, config
+, lib
+, ...
 }:
 let
+  caddyDataDir = "/data/apps/caddy";
+  caddyLogDir = "/var/log/caddy";
   hostCommonConfig = ''
     encode zstd gzip
     tls ${../../../certs/ecc-server.crt} ${config.sops.secrets."caddy-ecc-server.key".path} {
@@ -18,8 +20,8 @@ in
     # Reload Caddy instead of restarting it when configuration file changes.
     enableReload = true;
     user = "caddy"; # User account under which caddy runs.
-    dataDir = "/data/apps/caddy";
-    logDir = "/var/log/caddy";
+    dataDir = caddyDataDir;
+    logDir = caddyLogDir;
 
     # Additional lines of configuration appended to the global config section of the Caddyfile.
     # Refer to https://caddyserver.com/docs/caddyfile/options#global-options for details on supported values.
@@ -37,7 +39,7 @@ in
 
     # https://caddyserver.com/docs/caddyfile/directives/file_server
     virtualHosts."file.slk.moe".extraConfig = ''
-      root * /data/apps/caddy/fileserver/
+      root * ${caddyDataDir}/fileserver/
       ${hostCommonConfig}
       file_server browse {
         hide .git
@@ -120,11 +122,30 @@ in
     443
   ];
 
+  systemd.services.caddy.serviceConfig = {
+    Environment = lib.mkAfter [
+      "HOME=${caddyDataDir}"
+      "XDG_CONFIG_HOME=${caddyDataDir}/.config"
+      "XDG_DATA_HOME=${caddyDataDir}/.local/share"
+      "XDG_CACHE_HOME=${caddyDataDir}/.cache"
+    ];
+    ReadWritePaths = lib.mkAfter [ caddyLogDir ];
+    NotifyAccess = "all";
+    User = "caddy";
+    Group = "caddy";
+  };
+
   # Create Directories
   # https://www.freedesktop.org/software/systemd/man/latest/tmpfiles.d.html#Type
   systemd.tmpfiles.rules = [
-    "d /data/apps/caddy/fileserver/ 0755 caddy caddy"
+    "d ${caddyDataDir} 0750 caddy caddy - -"
+    "d ${caddyDataDir}/.config 0750 caddy caddy - -"
+    "d ${caddyDataDir}/.local 0750 caddy caddy - -"
+    "d ${caddyDataDir}/.local/share 0750 caddy caddy - -"
+    "d ${caddyDataDir}/.cache 0750 caddy caddy - -"
+    "d ${caddyLogDir} 0750 caddy caddy - -"
+    "d ${caddyDataDir}/fileserver/ 0755 caddy caddy - -"
     # directory for virtual machine's images
-    "d /data/apps/caddy/fileserver/vms 0755 caddy caddy"
+    "d ${caddyDataDir}/fileserver/vms 0755 caddy caddy - -"
   ];
 }

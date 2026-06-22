@@ -1,8 +1,7 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
+{ config
+, lib
+, pkgs
+, ...
 }:
 
 with lib;
@@ -36,12 +35,17 @@ in
           /nix/store/** r,
 
           # Allow read/write to the victoriametrics data directory
+          /data/apps/victoriametrics/ rw,
           /data/apps/victoriametrics/** rwkl,
-          
+
           # Allow read/write to the state dir created by systemd
+          /var/lib/victoriametrics/ rw,
           /var/lib/victoriametrics/** rwkl,
+          /var/lib/private/victoriametrics/ rw,
+          /var/lib/private/victoriametrics/** rwkl,
 
           # Allow read/write to the run directory for sockets and PIDs
+          /run/victoriametrics/ rw,
           /run/victoriametrics/** rwkl,
 
           # Allow execution of itself

@@ -1,8 +1,7 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
+{ config
+, lib
+, pkgs
+, ...
 }:
 
 with lib;
@@ -36,6 +35,11 @@ in
 
           # Caddy data directory (crucial for ACME certificates)
           /var/lib/caddy/** rwkl,
+          /data/apps/caddy/ rw,
+          /data/apps/caddy/** rwkl,
+          /var/log/caddy/ rw,
+          /var/log/caddy/** rwkl,
+          /run/systemd/notify w,
 
           # Allow execution of itself
           ${pkgs.caddy}/bin/caddy mr,

@@ -34,12 +34,14 @@ in
           network raw,
           network packet,
 
+          ptrace (trace) peer=@{profile_name},
+
           # Allow reading from nix store
           /nix/store/** r,
 
           # Tailscale state directory
           /var/lib/tailscale/** rwkl,
-          
+
           # Runtime sockets
           /run/tailscale/** rwkl,
 
@@ -52,9 +54,13 @@ in
 
           # Allow execution of itself
           ${pkgs.tailscale}/bin/tailscaled mr,
+          ${pkgs.tailscale}/bin/.tailscaled-wrapped mrix,
           ${pkgs.tailscale}/bin/tailscale mrix,
           ${pkgs.nftables}/bin/nft mrix,
           ${pkgs.iproute2}/bin/ip mrix,
+          ${pkgs.iptables}/bin/iptables mrix,
+          ${pkgs.iptables}/bin/ip6tables mrix,
+          ${pkgs.iptables}/bin/xtables-nft-multi mrix,
         }
       '';
     };

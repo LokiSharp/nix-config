@@ -36,11 +36,14 @@ in
 
           # Allow full read/write access to its state directory for keys and peers
           /var/lib/zerotier-one/** rwkl,
-          
+
           # Allow access to tun device for creating VPN interfaces
           /dev/net/tun rw,
 
           # Allow reading sysctls
+          /proc/*/net/dev r,
+          /proc/*/net/dev_mcast r,
+          /proc/*/net/if_inet6 r,
           /proc/sys/net/ipv4/conf/all/forwarding r,
           /proc/sys/net/ipv6/conf/all/forwarding r,
 

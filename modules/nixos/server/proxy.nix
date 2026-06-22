@@ -116,6 +116,8 @@ in
       };
     };
 
+    systemd.services.caddy.serviceConfig.Type = "simple";
+
     # BBR Congestion Control
     boot.kernel.sysctl = {
       "net.core.default_qdisc" = "fq";

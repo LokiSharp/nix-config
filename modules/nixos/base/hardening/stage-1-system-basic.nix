@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  myvars,
   pkgs,
   ...
 }:
@@ -9,13 +10,23 @@ with lib;
 
 let
   cfg = config.modules.base.hardening;
+  auditRules = import ./audit-rules { inherit config lib myvars; };
 in
 {
   config = mkIf (cfg.enable && cfg."stage-1".enable) (mkMerge [
     (mkIf cfg."stage-1".auditd.enable {
       # Security Auditing
       security.auditd.enable = true;
-      security.audit.enable = true;
+      security.audit.rules = auditRules;
+      # Keep audit enabled from early boot, but avoid the NixOS audit rules
+      # loader when no rules are configured. It reloads control parameters like
+      # -b at switch time, which can fail once audit is already active.
+      security.audit.enable = mkForce false;
+      boot.kernelParams = [
+        "audit=1"
+        "audit_backlog_limit=1024"
+      ];
+      environment.systemPackages = [ pkgs.audit ];
     })
 
     (mkIf cfg."stage-1".sysctl.enable {

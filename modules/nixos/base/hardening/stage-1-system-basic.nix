@@ -18,6 +18,10 @@ let
       pkgs
       ;
   };
+  auditRulesFile = pkgs.writeText "audit-local.rules" ''
+    ${lib.concatStringsSep "\n" auditRules}
+  '';
+  auditctl = lib.getExe' pkgs.audit "auditctl";
 in
 {
   config = mkIf (cfg.enable && cfg."stage-1".enable) (mkMerge [
@@ -34,6 +38,37 @@ in
         "audit_backlog_limit=1024"
       ];
       environment.systemPackages = [ pkgs.audit ];
+      systemd.services.audit-rules-local = {
+        description = "Load local audit rules";
+        wantedBy = [ "sysinit.target" ];
+        before = [
+          "sysinit.target"
+          "shutdown.target"
+        ];
+        conflicts = [ "shutdown.target" ];
+        restartIfChanged = false;
+        reloadIfChanged = true;
+        unitConfig = {
+          DefaultDependencies = false;
+          ConditionVirtualization = "!container";
+          ConditionKernelCommandLine = [
+            "!audit=0"
+            "!audit=off"
+          ];
+        };
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStart = pkgs.writeShellScript "load-audit-rules" ''
+            ${auditctl} -D
+            ${auditctl} -R ${auditRulesFile}
+          '';
+          ExecReload = pkgs.writeShellScript "reload-audit-rules" ''
+            ${auditctl} -D
+            ${auditctl} -R ${auditRulesFile}
+          '';
+        };
+      };
     })
 
     (mkIf cfg."stage-1".sysctl.enable {

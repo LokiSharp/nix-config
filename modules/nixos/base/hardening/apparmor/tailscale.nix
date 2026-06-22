@@ -9,18 +9,22 @@ with lib;
 
 let
   cfg = config.modules.base.hardening;
+  tailscalePkg = config.services.tailscale.package;
 in
 {
   config = mkIf (cfg.enable && cfg."stage-2".enable && config.services.tailscale.enable) {
     security.apparmor.policies.tailscale = {
       state = "complain";
       profile = ''
+        abi <abi/4.0>,
         #include <tunables/global>
 
-        ${pkgs.tailscale}/bin/tailscaled {
+        profile ${tailscalePkg}/bin/tailscaled flags=(attach_disconnected) {
           #include <abstractions/base>
+          #include <abstractions/golang>
           #include <abstractions/nameservice>
           #include <abstractions/dbus-strict>
+          include "${pkgs.apparmorRulesFromClosure { name = "tailscale"; } tailscalePkg}"
 
           capability net_admin,
           capability net_raw,
@@ -34,17 +38,17 @@ in
           network raw,
           network packet,
 
-          ptrace (trace) peer=@{profile_name},
-
-          # Allow reading and mapping Nix store libraries used by tailscaled
-          # and its iptables/nft helper processes.
-          /nix/store/** mr,
+          # Tailscale inspects local processes and may read procfs metadata
+          # for unconfined services when collecting host/service state.
+          ptrace (read) peer=unconfined,
+          ptrace (read, trace) peer=@{profile_name},
 
           # Tailscale state directory
           /var/lib/tailscale/** rwkl,
 
           # Runtime sockets
           /run/tailscale/** rwkl,
+          /run/systemd/notify w,
           @{run}/systemd/notify w,
 
           # TUN device access
@@ -52,6 +56,7 @@ in
 
           # Networking state and sysctls used while syncing routes/firewall
           # rules through iptables, ip6tables, nft, and netlink.
+          /proc/[0-9]*/** r,
           /proc/net/** r,
           /proc/sys/net/** r,
           /run/xtables.lock rwk,
@@ -59,9 +64,9 @@ in
           /sys/devices/** r,
 
           # Allow execution of itself
-          ${pkgs.tailscale}/bin/tailscaled mr,
-          ${pkgs.tailscale}/bin/.tailscaled-wrapped mrix,
-          ${pkgs.tailscale}/bin/tailscale mrix,
+          ${tailscalePkg}/bin/tailscaled mr,
+          ${tailscalePkg}/bin/.tailscaled-wrapped mrix,
+          ${tailscalePkg}/bin/tailscale mrix,
           ${pkgs.nftables}/bin/nft mrix,
           ${pkgs.iproute2}/bin/ip mrix,
           ${pkgs.iptables}/bin/iptables mrix,

@@ -7,4 +7,6 @@ in
     enable = configLib.this.hasTag configLib.tags.tailscale;
     interfaceName = "tailscale0";
   };
+
+  systemd.services.tailscaled.serviceConfig.NotifyAccess = "all";
 }

@@ -1,7 +1,6 @@
-{
-  lib,
-  myvars,
-  ...
+{ lib
+, myvars
+, ...
 }:
 {
   # Enable the OpenSSH daemon.
@@ -12,6 +11,7 @@
       # root user is used for remote deployment, so we need to allow it
       PermitRootLogin = "prohibit-password";
       PasswordAuthentication = false; # disable password login
+      KbdInteractiveAuthentication = false;
     };
   };
 

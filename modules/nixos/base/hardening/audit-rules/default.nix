@@ -1,12 +1,19 @@
-{
-  config,
-  lib,
-  myvars,
-  pkgs,
-  ...
+{ config
+, lib
+, myvars
+, pkgs
+, ...
 }:
 
+let
+  systemdExe = "${config.systemd.package}/lib/systemd/systemd";
+in
 lib.concatLists [
+  [
+    # systemd loads and unloads BPF programs during normal unit reloads.
+    "-a never,exit -F arch=b64 -S bpf -F exe=${systemdExe}"
+    "-A exclude,always -F msgtype=BPF -F exe=${systemdExe}"
+  ]
   (import ./identity.nix)
   (import ./ssh.nix { inherit config lib myvars; })
   (import ./privilege.nix { inherit config lib; })

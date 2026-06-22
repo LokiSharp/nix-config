@@ -1,8 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }:
 {
   environment.systemPackages = with pkgs; [
@@ -61,6 +60,7 @@
       # root 用户用于远程部署，禁止密码登录
       PermitRootLogin = "prohibit-password";
       PasswordAuthentication = false; # 禁止密码登录
+      KbdInteractiveAuthentication = false;
     };
   };
 

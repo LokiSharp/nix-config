@@ -40,6 +40,7 @@ in
 
               # Allow reading from nix store
               /nix/store/** r,
+              /nix/store/** m,
 
               # Config file from sops-nix templates
               ${config.sops.templates."sing-box.json".path} r,

@@ -37,21 +37,42 @@ in
 
           # Allow reading from nix store for executables, locales, etc.
           /nix/store/** r,
+          /nix/store/** m,
 
           # Allow read/write to the postgres data directory
+          ${config.services.postgresql.dataDir}/ rwkl,
           ${config.services.postgresql.dataDir}/** rwkl,
 
-          # Allow read/write to the run directory for sockets and PIDs
+          # Runtime directory for Unix socket / lock / pid
+          /run/postgresql/ rwkl,
           /run/postgresql/** rwkl,
 
-          # Allow reading necessary secrets and certs
+          # PostgreSQL dynamic shared memory
+          /dev/shm/ r,
+          /dev/shm/PostgreSQL.* rw,
+
+          # Secrets / certs
           ${config.sops.secrets."postgres-ecc-server.key".path} r,
+          /run/secrets/postgres-ecc-server.key r,
+          /run/secrets.d/*/postgres-ecc-server.key r,
+          /etc/ssl/certs/ r,
           /etc/ssl/certs/** r,
 
-          # Allow execution of itself
+          # Basic proc info; PostgreSQL / wrappers / monitoring may touch these
+          /proc/self/cgroup r,
+          /proc/self/mountinfo r,
+          /proc/self/status r,
+          /proc/self/limits r,
+          /proc/[0-9]*/cgroup r,
+          /proc/[0-9]*/mountinfo r,
+          /proc/[0-9]*/status r,
+          /proc/[0-9]*/limits r,
+
+          # Execute itself and postgres tools
           ${config.services.postgresql.package}/bin/postgres mr,
           ${config.services.postgresql.package}/bin/initdb mrix,
           ${config.services.postgresql.package}/bin/pg_ctl mrix,
+          ${config.services.postgresql.package}/bin/pg_isready mrix,
         }
       '';
     };

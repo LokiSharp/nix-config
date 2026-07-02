@@ -36,15 +36,36 @@ in
 
               # Allow reading from nix store for executables, etc.
               /nix/store/** r,
+              /nix/store/** m,
+
+              # Alertmanager substituted config
+              /tmp/alert-manager-substituted.yaml r,
 
               # Allow read/write to the alertmanager data directory
+              /var/lib/alertmanager/ rwkl,
               /var/lib/alertmanager/** rwkl,
 
+              # systemd DynamicUser/StateDirectory may resolve to /var/lib/private
+              /var/lib/private/alertmanager/ rwkl,
+              /var/lib/private/alertmanager/** rwkl,
+
               # Allow read/write to the run directory
+              /run/alertmanager/ rwkl,
               /run/alertmanager/** rwkl,
 
-              # Allow reading necessary secrets
+              # Secrets
               ${config.sops.templates."alertmanager-env".path} r,
+              /run/secrets/alertmanager-env r,
+              /run/secrets.d/*/alertmanager-env r,
+
+              # Runtime / Go / system introspection
+              /proc/self/cgroup r,
+              /proc/self/mountinfo r,
+              /proc/[0-9]*/cgroup r,
+              /proc/[0-9]*/mountinfo r,
+
+              # cgroup limits
+              /sys/fs/cgroup/system.slice/alertmanager.service/cpu.max r,
 
               # Allow execution of itself
               ${pkgs.prometheus-alertmanager}/bin/alertmanager mr,

@@ -62,13 +62,16 @@
     };
     database = {
       type = "postgres";
+      host = "127.0.0.1";
       port = 5432;
+      socket = null;
       passwordFile = config.sops.secrets."gitea-db-password".path;
     };
   };
 
   systemd.services.gitea.serviceConfig = {
     EnvironmentFile = config.sops.templates."gitea-mailer-env".path;
+    Type = lib.mkForce "simple";
   };
 
   sops.templates."gitea-mailer-env" = {

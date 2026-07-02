@@ -33,6 +33,7 @@ in
 
           # Allow reading from nix store for configs
           /nix/store/** r,
+          /nix/store/** m,
 
           # Allow reading bird config
           /etc/bird/** r,

@@ -64,6 +64,14 @@ in
           /proc/[0-9]*/** r,
           /proc/net/** r,
           /proc/sys/net/** r,
+
+          # Tailscale/WireGuard fwmark sysctl
+          /proc/sys/net/ipv4/conf/all/src_valid_mark rw,
+
+          # Misc runtime reads/writes seen in audit
+          /dev/tty rw,
+          /nix/store/*-etc-os-release r,
+
           /run/xtables.lock rwk,
           /sys/class/net/** r,
           /sys/devices/** r,

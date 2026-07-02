@@ -34,6 +34,7 @@ in
 
           # Allow reading from nix store for zone files
           /nix/store/** r,
+          /nix/store/** m,
 
           # Allow reading from bind directory
           ${config.services.bind.directory}/** r,

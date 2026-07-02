@@ -33,6 +33,7 @@ in
 
           # Allow reading from nix store for binaries
           /nix/store/** r,
+          /nix/store/** m,
 
           # Allow full read/write access to its state directory for keys and peers
           /var/lib/zerotier-one/** rwkl,

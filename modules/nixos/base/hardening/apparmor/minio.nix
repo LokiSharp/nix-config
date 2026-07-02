@@ -63,18 +63,15 @@
         /proc/version r,
         /proc/sys/net/core/somaxconn r,
         /proc/sys/kernel/threads-max r,
-        /proc/self/cgroup r,
-        /proc/self/mountinfo r,
+        ${mylib.apparmor.goRuntimeProcfs "minio"}
         /proc/self/mounts r,
         /proc/self/status r,
-        /proc/[0-9]*/cgroup r,
-        /proc/[0-9]*/mountinfo r,
         /proc/[0-9]*/mounts r,
         /proc/[0-9]*/net/dev r,
 
         # Cgroups
         /sys/devices/system/cpu/online r,
-        /sys/fs/cgroup/system.slice/minio.service/cpu.max r,
+        ${mylib.apparmor.cgroupLimits "minio"}
       }
     '';
   };

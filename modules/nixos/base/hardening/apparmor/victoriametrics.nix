@@ -46,13 +46,10 @@
 
         # Procfs
         /proc/sys/net/core/somaxconn r,
-        /proc/self/cgroup r,
-        /proc/self/mountinfo r,
-        /proc/[0-9]*/cgroup r,
-        /proc/[0-9]*/mountinfo r,
+        ${mylib.apparmor.goRuntimeProcfs "victoriametrics"}
 
         # Cgroups
-        /sys/fs/cgroup/system.slice/victoriametrics.service/cpu.max r,
+        ${mylib.apparmor.cgroupLimits "victoriametrics"}
         /sys/fs/cgroup/system.slice/victoriametrics.service/memory.max r,
         /sys/fs/cgroup/system.slice/victoriametrics.service/cpu.pressure r,
         /sys/fs/cgroup/system.slice/victoriametrics.service/io.pressure r,

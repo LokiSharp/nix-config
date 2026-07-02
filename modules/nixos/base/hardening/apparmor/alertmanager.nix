@@ -42,21 +42,17 @@
         # State
         /var/lib/alertmanager/ rwkl,
         /var/lib/alertmanager/** rwkl,
-        /var/lib/private/alertmanager/ rwkl,
-        /var/lib/private/alertmanager/** rwkl,
+        ${mylib.apparmor.dynamicUserState "alertmanager"}
 
         # Runtime
         /run/alertmanager/ rwkl,
         /run/alertmanager/** rwkl,
 
         # Procfs
-        /proc/self/cgroup r,
-        /proc/self/mountinfo r,
-        /proc/[0-9]*/cgroup r,
-        /proc/[0-9]*/mountinfo r,
+        ${mylib.apparmor.goRuntimeProcfs "alertmanager"}
 
         # Cgroups
-        /sys/fs/cgroup/system.slice/alertmanager.service/cpu.max r,
+        ${mylib.apparmor.cgroupLimits "alertmanager"}
       }
     '';
   };

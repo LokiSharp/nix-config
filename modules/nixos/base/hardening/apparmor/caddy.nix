@@ -52,14 +52,11 @@
 
         # Procfs
         /etc/machine-id r,
-        /proc/self/cgroup r,
-        /proc/self/mountinfo r,
-        /proc/[0-9]*/cgroup r,
-        /proc/[0-9]*/mountinfo r,
+        ${mylib.apparmor.goRuntimeProcfs "caddy"}
         /proc/sys/net/core/somaxconn r,
 
         # Cgroups
-        /sys/fs/cgroup/system.slice/caddy.service/cpu.max r,
+        ${mylib.apparmor.cgroupLimits "caddy"}
         /sys/fs/cgroup/system.slice/caddy.service/memory.max r,
         /sys/fs/cgroup/system.slice/memory.max r,
       }

@@ -20,3 +20,6 @@ Prefer shared helpers from `mylib.apparmor` for common fragments:
 - `nixStoreRead` for read/map access to the Nix store.
 - `sopsSecret "name"` for `/run/secrets` and `/run/secrets.d` fallback paths.
 - `systemdNotify` for `/run/systemd/notify`.
+- `goRuntimeProcfs "service"` for common Go runtime procfs reads.
+- `cgroupLimits "service"` for `/sys/fs/cgroup/system.slice/<service>.service/cpu.max`.
+- `dynamicUserState "name"` for `/var/lib/private/<name>` state directories.

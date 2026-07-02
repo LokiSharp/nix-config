@@ -57,12 +57,9 @@
         # Procfs and devices
         /etc/machine-id r,
         /dev/tty rw,
-        /proc/self/cgroup r,
-        /proc/self/mountinfo r,
+        ${mylib.apparmor.goRuntimeProcfs "gitea"}
         /proc/self/status r,
         /proc/self/limits r,
-        /proc/[0-9]*/cgroup r,
-        /proc/[0-9]*/mountinfo r,
       }
     '';
   };

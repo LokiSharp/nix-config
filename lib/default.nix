@@ -72,6 +72,25 @@ let
           /run/systemd/notify w,
         '';
 
+        goRuntimeProcfs =
+          _serviceName: ''
+            /proc/self/cgroup r,
+            /proc/self/mountinfo r,
+            /proc/[0-9]*/cgroup r,
+            /proc/[0-9]*/mountinfo r,
+          '';
+
+        cgroupLimits =
+          serviceName: ''
+            /sys/fs/cgroup/system.slice/${serviceName}.service/cpu.max r,
+          '';
+
+        dynamicUserState =
+          name: ''
+            /var/lib/private/${name}/ rwkl,
+            /var/lib/private/${name}/** rwkl,
+          '';
+
         mkPolicy =
           { config
           , name

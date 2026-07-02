@@ -59,17 +59,14 @@
         /proc/sys/net/core/somaxconn r,
         /proc/self/stat r,
         /proc/self/limits r,
-        /proc/self/cgroup r,
-        /proc/self/mountinfo r,
+        ${mylib.apparmor.goRuntimeProcfs "grafana"}
         /proc/self/net/netstat r,
         /proc/[0-9]*/stat r,
         /proc/[0-9]*/limits r,
-        /proc/[0-9]*/cgroup r,
-        /proc/[0-9]*/mountinfo r,
         /proc/[0-9]*/net/netstat r,
 
         # Cgroups
-        /sys/fs/cgroup/system.slice/grafana.service/cpu.max r,
+        ${mylib.apparmor.cgroupLimits "grafana"}
       }
     '';
   };

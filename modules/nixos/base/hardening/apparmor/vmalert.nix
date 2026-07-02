@@ -42,13 +42,10 @@ in
 
         # Procfs
         /proc/sys/net/core/somaxconn r,
-        /proc/self/cgroup r,
-        /proc/self/mountinfo r,
-        /proc/[0-9]*/cgroup r,
-        /proc/[0-9]*/mountinfo r,
+        ${mylib.apparmor.goRuntimeProcfs "vmalert"}
 
         # Cgroups
-        /sys/fs/cgroup/system.slice/vmalert.service/cpu.max r,
+        ${mylib.apparmor.cgroupLimits "vmalert"}
         /sys/fs/cgroup/system.slice/vmalert.service/cpu.pressure r,
         /sys/fs/cgroup/system.slice/vmalert.service/io.pressure r,
         /sys/fs/cgroup/system.slice/vmalert.service/memory.pressure r,

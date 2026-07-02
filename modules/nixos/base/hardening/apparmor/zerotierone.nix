@@ -15,7 +15,6 @@
         #include <abstractions/base>
         #include <abstractions/nameservice>
 
-        # ZeroTier needs raw access for VPN tunneling and interface creation
         capability net_admin,
         capability net_raw,
         capability sys_admin,
@@ -25,27 +24,27 @@
         network raw,
         network packet,
 
-        # Allow reading from nix store for binaries
+        # Nix store
         /nix/store/** r,
         /nix/store/** m,
 
-        # Allow full read/write access to its state directory for keys and peers
+        # Executables
+        ${pkgs.zerotierone}/bin/zerotier-one mr,
+        ${pkgs.zerotierone}/bin/zerotier-cli mrix,
+        ${pkgs.zerotierone}/bin/zerotier-idtool mrix,
+
+        # State
         /var/lib/zerotier-one/** rwkl,
 
-        # Allow access to tun device for creating VPN interfaces
+        # Devices
         /dev/net/tun rw,
 
-        # Allow reading sysctls
+        # Procfs and network sysctls
         /proc/*/net/dev r,
         /proc/*/net/dev_mcast r,
         /proc/*/net/if_inet6 r,
         /proc/sys/net/ipv4/conf/all/forwarding r,
         /proc/sys/net/ipv6/conf/all/forwarding r,
-
-        # Allow execution of itself and its CLI tools
-        ${pkgs.zerotierone}/bin/zerotier-one mr,
-        ${pkgs.zerotierone}/bin/zerotier-cli mrix,
-        ${pkgs.zerotierone}/bin/zerotier-idtool mrix,
       }
     '';
   };

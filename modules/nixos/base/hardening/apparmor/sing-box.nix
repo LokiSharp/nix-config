@@ -24,27 +24,27 @@
         network inet6,
         network raw,
 
-        # Allow reading from nix store
+        # Nix store
         /nix/store/** r,
         /nix/store/** m,
 
-        # Config file from sops-nix templates
-        ${config.sops.templates."sing-box.json".path} r,
+        # Executables
+        ${pkgs.sing-box}/bin/sing-box mr,
 
-        # Common system files
+        # Configuration and certificates
+        ${config.sops.templates."sing-box.json".path} r,
         /etc/resolv.conf r,
         /etc/nsswitch.conf r,
         /etc/ssl/certs/** r,
         /etc/static/ssl/certs/** r,
 
-        # Runtime and data directories
-        /run/sing-box/** rw,
+        # State and runtime
         /var/lib/sing-box/** rw,
+        /run/sing-box/** rw,
+
+        # Network sysctls
         /proc/sys/net/ipv4/ip_forward r,
         /proc/sys/net/ipv6/conf/all/forwarding r,
-
-        # Allow execution of itself (needed for some setups)
-        ${pkgs.sing-box}/bin/sing-box mr,
       }
     '';
   };

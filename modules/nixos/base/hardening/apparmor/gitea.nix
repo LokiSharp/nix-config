@@ -29,46 +29,40 @@
         network udp,
         network unix,
 
-        ${pkgs.gitea}/bin/gitea mr,
-        ${pkgs.gitea}/bin/.gitea-wrapped mr,
-
-        # Allow mapping and executing programs from the nix store.
+        # Nix store and executables
         # Gitea needs to fork 'git', 'ssh', 'bash' and itself heavily.
         /nix/store/ r,
         /nix/store/** mrix,
+        ${pkgs.gitea}/bin/gitea mrix,
+        ${pkgs.gitea}/bin/.gitea-wrapped mrix,
 
-        # Allow read/write to the gitea home/state directory where repos live
+        # Secrets
+        ${config.sops.secrets."gitea-db-password".path} r,
+        ${config.sops.templates."gitea-mailer-env".path} r,
+
+        # State and repositories
         ${config.services.gitea.stateDir}/** rwkl,
-
-        # Allow read/write to the run directory for sockets and PIDs
-        /run/gitea/ rwkl,
-        /run/gitea/** rwkl,
-
         /data/apps/gitea/ rwkl,
         /data/apps/gitea/** rwkl,
 
+        # Runtime
+        /run/gitea/ rwkl,
+        /run/gitea/** rwkl,
+        /run/systemd/notify w,
+
+        /run/postgresql/ r,
+        /run/postgresql/.s.PGSQL.5432 rw,
+        /run/postgresql/.s.PGSQL.5432.lock r,
+
+        # Procfs and devices
         /etc/machine-id r,
+        /dev/tty rw,
         /proc/self/cgroup r,
         /proc/self/mountinfo r,
         /proc/self/status r,
         /proc/self/limits r,
         /proc/[0-9]*/cgroup r,
         /proc/[0-9]*/mountinfo r,
-        /dev/tty rw,
-
-        /run/postgresql/ r,
-        /run/postgresql/.s.PGSQL.5432 rw,
-        /run/postgresql/.s.PGSQL.5432.lock r,
-
-        # Allow reading necessary secrets
-        ${config.sops.secrets."gitea-db-password".path} r,
-        ${config.sops.templates."gitea-mailer-env".path} r,
-
-        /run/systemd/notify w,
-
-        # Specific execution rights for its own binary
-        ${pkgs.gitea}/bin/gitea mrix,
-        ${pkgs.gitea}/bin/.gitea-wrapped mrix,
       }
     '';
   };

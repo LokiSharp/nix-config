@@ -29,30 +29,36 @@
         network udp,
         network unix,
 
-        # Allow reading from nix store for executables, locales, etc.
+        # Nix store
         /nix/store/** r,
         /nix/store/** m,
 
-        # Allow read/write to the postgres data directory
-        ${config.services.postgresql.dataDir}/ rwkl,
-        ${config.services.postgresql.dataDir}/** rwkl,
+        # Executables
+        ${config.services.postgresql.package}/bin/postgres mr,
+        ${config.services.postgresql.package}/bin/initdb mrix,
+        ${config.services.postgresql.package}/bin/pg_ctl mrix,
+        ${config.services.postgresql.package}/bin/pg_isready mrix,
 
-        # Runtime directory for Unix socket / lock / pid
-        /run/postgresql/ rwkl,
-        /run/postgresql/** rwkl,
-
-        # PostgreSQL dynamic shared memory
-        /dev/shm/ r,
-        /dev/shm/PostgreSQL.* rw,
-
-        # Secrets / certs
+        # Secrets and certificates
         ${config.sops.secrets."postgres-ecc-server.key".path} r,
         /run/secrets/postgres-ecc-server.key r,
         /run/secrets.d/*/postgres-ecc-server.key r,
         /etc/ssl/certs/ r,
         /etc/ssl/certs/** r,
 
-        # Basic proc info; PostgreSQL / wrappers / monitoring may touch these
+        # State
+        ${config.services.postgresql.dataDir}/ rwkl,
+        ${config.services.postgresql.dataDir}/** rwkl,
+
+        # Runtime
+        /run/postgresql/ rwkl,
+        /run/postgresql/** rwkl,
+
+        # IPC
+        /dev/shm/ r,
+        /dev/shm/PostgreSQL.* rw,
+
+        # Procfs
         /proc/self/cgroup r,
         /proc/self/mountinfo r,
         /proc/self/status r,
@@ -61,12 +67,6 @@
         /proc/[0-9]*/mountinfo r,
         /proc/[0-9]*/status r,
         /proc/[0-9]*/limits r,
-
-        # Execute itself and postgres tools
-        ${config.services.postgresql.package}/bin/postgres mr,
-        ${config.services.postgresql.package}/bin/initdb mrix,
-        ${config.services.postgresql.package}/bin/pg_ctl mrix,
-        ${config.services.postgresql.package}/bin/pg_isready mrix,
       }
     '';
   };

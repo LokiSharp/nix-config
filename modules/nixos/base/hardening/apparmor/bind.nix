@@ -26,23 +26,21 @@
         network inet6,
         network raw,
 
-        # Allow reading from nix store for zone files
+        # Nix store
         /nix/store/** r,
         /nix/store/** m,
 
-        # Allow reading from bind directory
-        ${config.services.bind.directory}/** r,
+        # Executables
+        ${pkgs.bind.out}/bin/named mr,
 
-        # Allow write access to cache and run directories
+        # Configuration and zones
+        ${config.services.bind.directory}/** r,
+        /etc/ssl/openssl.cnf r,
+
+        # State and runtime
         /var/cache/bind/** rw,
         /run/named/** rwkl,
         /var/db/bind/** rw,
-
-        # Allow read access to OpenSSL config
-        /etc/ssl/openssl.cnf r,
-
-        # Allow execution of itself
-        ${pkgs.bind.out}/bin/named mr,
       }
     '';
   };

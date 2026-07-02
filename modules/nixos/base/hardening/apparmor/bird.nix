@@ -25,22 +25,22 @@
         network inet6,
         network raw,
 
-        # Allow reading from nix store for configs
+        # Nix store
         /nix/store/** r,
         /nix/store/** m,
 
-        # Allow reading bird config
+        # Executables
+        ${pkgs.bird3}/bin/bird mr,
+
+        # Configuration
         /etc/bird/** r,
 
-        # Allow read/write to bird runtime directory for sockets and pid
+        # Runtime
         /run/bird/** rwkl,
 
-        # Allow reading network sysctls
+        # Network sysctls
         /proc/sys/net/ipv4/conf/all/forwarding r,
         /proc/sys/net/ipv6/conf/all/forwarding r,
-
-        # Allow execution of itself
-        ${pkgs.bird3}/bin/bird mr,
       }
     '';
   };

@@ -27,36 +27,34 @@ in
         network tcp,
         network udp,
 
-        # Allow reading from nix store for executables and rules
+        # Nix store
         /nix/store/** r,
         /nix/store/** m,
 
-        # Local rule files
+        # Executables
+        ${pkgs.victoriametrics}/bin/vmalert mr,
+
+        # Rule files
         /etc/vmalert/ r,
         /etc/vmalert/** r,
 
-        # Runtime / Go / system introspection
+        # Devices
         /dev/tty r,
 
+        # Procfs
         /proc/sys/net/core/somaxconn r,
-
         /proc/self/cgroup r,
         /proc/self/mountinfo r,
-
         /proc/[0-9]*/cgroup r,
         /proc/[0-9]*/mountinfo r,
 
-        # cgroup limits / pressure
+        # Cgroups
         /sys/fs/cgroup/system.slice/vmalert.service/cpu.max r,
         /sys/fs/cgroup/system.slice/vmalert.service/cpu.pressure r,
         /sys/fs/cgroup/system.slice/vmalert.service/io.pressure r,
         /sys/fs/cgroup/system.slice/vmalert.service/memory.pressure r,
-
         /sys/fs/cgroup/system.slice/cpu.max r,
         /sys/fs/cgroup/system.slice/memory.max r,
-
-        # Allow execution of itself
-        ${pkgs.victoriametrics}/bin/vmalert mr,
       }
     '';
   };

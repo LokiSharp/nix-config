@@ -48,6 +48,32 @@ let
     macosSystem = import ./system/macosSystem.nix;
 
     attrs = import ./fn/attrs.nix { inherit lib; };
+    apparmor =
+      let
+        stage2Enabled =
+          config:
+          config.modules.base.hardening.enable && config.modules.base.hardening."stage-2".enable;
+      in
+      {
+        inherit stage2Enabled;
+
+        mkPolicy =
+          { config
+          , name
+          , enable
+          , profile
+          , state ? "complain"
+          ,
+          }:
+          lib.mkIf (stage2Enabled config && enable) {
+            security.apparmor.policies.${name} = {
+              inherit
+                profile
+                state
+                ;
+            };
+          };
+      };
     serviceHarden = call ./fn/service-harden.nix;
     tools = call ./fn/tools.nix;
 

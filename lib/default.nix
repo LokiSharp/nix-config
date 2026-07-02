@@ -57,6 +57,21 @@ let
       {
         inherit stage2Enabled;
 
+        nixStoreRead = ''
+          /nix/store/** r,
+          /nix/store/** m,
+        '';
+
+        sopsSecret =
+          name: ''
+            /run/secrets/${name} r,
+            /run/secrets.d/*/${name} r,
+          '';
+
+        systemdNotify = ''
+          /run/systemd/notify w,
+        '';
+
         mkPolicy =
           { config
           , name

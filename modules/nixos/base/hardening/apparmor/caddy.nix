@@ -25,8 +25,7 @@
         network udp,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
         /nix/store/**/*.so* mr,
         /nix/store/**/lib/*.so* mr,
 
@@ -38,8 +37,7 @@
         /etc/caddy/** r,
 
         # Secrets
-        /run/secrets/caddy-ecc-server.key r,
-        /run/secrets.d/*/caddy-ecc-server.key r,
+        ${mylib.apparmor.sopsSecret "caddy-ecc-server.key"}
 
         # State and logs
         /var/lib/caddy/ rwkl,
@@ -50,7 +48,7 @@
         /var/log/caddy/** rwkl,
 
         # Runtime
-        /run/systemd/notify w,
+        ${mylib.apparmor.systemdNotify}
 
         # Procfs
         /etc/machine-id r,

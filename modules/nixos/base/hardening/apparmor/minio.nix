@@ -28,8 +28,7 @@
         network udp,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
 
         # Executables
         ${pkgs.minio}/bin/minio mr,
@@ -38,8 +37,7 @@
         ${config.services.minio.configDir}/ rwkl,
         ${config.services.minio.configDir}/** rwkl,
         ${config.sops.templates."minio-root-credentials".path} r,
-        /run/secrets/minio-root-credentials r,
-        /run/secrets.d/*/minio-root-credentials r,
+        ${mylib.apparmor.sopsSecret "minio-root-credentials"}
 
         # State and data
         ${lib.concatMapStringsSep "\n" (dir: ''

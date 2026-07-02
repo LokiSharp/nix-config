@@ -30,8 +30,7 @@
         network unix,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
 
         # Executables
         ${config.services.postgresql.package}/bin/postgres mr,
@@ -41,8 +40,7 @@
 
         # Secrets and certificates
         ${config.sops.secrets."postgres-ecc-server.key".path} r,
-        /run/secrets/postgres-ecc-server.key r,
-        /run/secrets.d/*/postgres-ecc-server.key r,
+        ${mylib.apparmor.sopsSecret "postgres-ecc-server.key"}
         /etc/ssl/certs/ r,
         /etc/ssl/certs/** r,
 

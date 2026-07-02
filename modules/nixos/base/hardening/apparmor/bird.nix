@@ -26,8 +26,7 @@
         network raw,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
 
         # Executables
         ${pkgs.bird3}/bin/bird mr,

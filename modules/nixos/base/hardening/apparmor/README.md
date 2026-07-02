@@ -14,3 +14,9 @@ profile body grouped in this order:
 
 Keep profiles in `complain` while collecting audit logs, then set
 `state = "enforce";` per service after the observed workload is covered.
+
+Prefer shared helpers from `mylib.apparmor` for common fragments:
+
+- `nixStoreRead` for read/map access to the Nix store.
+- `sopsSecret "name"` for `/run/secrets` and `/run/secrets.d` fallback paths.
+- `systemdNotify` for `/run/systemd/notify`.

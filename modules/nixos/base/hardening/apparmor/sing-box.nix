@@ -25,8 +25,7 @@
         network raw,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
 
         # Executables
         ${pkgs.sing-box}/bin/sing-box mr,

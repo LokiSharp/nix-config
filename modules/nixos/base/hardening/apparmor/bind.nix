@@ -27,8 +27,7 @@
         network raw,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
 
         # Executables
         ${pkgs.bind.out}/bin/named mr,

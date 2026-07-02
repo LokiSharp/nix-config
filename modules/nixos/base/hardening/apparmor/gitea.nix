@@ -48,7 +48,7 @@
         # Runtime
         /run/gitea/ rwkl,
         /run/gitea/** rwkl,
-        /run/systemd/notify w,
+        ${mylib.apparmor.systemdNotify}
 
         /run/postgresql/ r,
         /run/postgresql/.s.PGSQL.5432 rw,

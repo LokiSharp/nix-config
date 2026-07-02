@@ -27,8 +27,7 @@
         network udp,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
 
         # Executables
         ${pkgs.victoriametrics}/bin/victoria-metrics mr,

@@ -25,8 +25,7 @@
         network packet,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
 
         # Executables
         ${pkgs.zerotierone}/bin/zerotier-one mr,

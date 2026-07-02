@@ -29,16 +29,14 @@
         network udp,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
 
         # Executables
         ${pkgs.sftpgo}/bin/sftpgo mr,
 
         # Secrets
         ${config.sops.templates."sftpgo-env".path} r,
-        /run/secrets/sftpgo-env r,
-        /run/secrets.d/*/sftpgo-env r,
+        ${mylib.apparmor.sopsSecret "sftpgo-env"}
 
         # State
         ${config.services.sftpgo.dataDir}/ rwkl,

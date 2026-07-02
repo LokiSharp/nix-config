@@ -29,8 +29,7 @@
         network udp,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
 
         # Executables
         ${pkgs.grafana}/bin/grafana mr,
@@ -42,8 +41,7 @@
 
         # Secrets
         ${config.sops.templates."grafana-env".path} r,
-        /run/secrets/grafana-env r,
-        /run/secrets.d/*/grafana-env r,
+        ${mylib.apparmor.sopsSecret "grafana-env"}
 
         # State and plugins
         ${config.services.grafana.dataDir}/ rwkl,

@@ -27,8 +27,7 @@
         network udp,
 
         # Nix store
-        /nix/store/** r,
-        /nix/store/** m,
+        ${mylib.apparmor.nixStoreRead}
 
         # Executables
         ${pkgs.prometheus-alertmanager}/bin/alertmanager mr,
@@ -38,8 +37,7 @@
 
         # Secrets
         ${config.sops.templates."alertmanager-env".path} r,
-        /run/secrets/alertmanager-env r,
-        /run/secrets.d/*/alertmanager-env r,
+        ${mylib.apparmor.sopsSecret "alertmanager-env"}
 
         # State
         /var/lib/alertmanager/ rwkl,

@@ -139,7 +139,6 @@ in
       "firefox"
       "google-chrome"
       "visual-studio-code"
-      "antigravity" # Google's AI-powered code editor
       "ghostty" # terminal emulator
 
       "obsidian" # note app

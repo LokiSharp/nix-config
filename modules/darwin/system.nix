@@ -23,7 +23,7 @@
   # Add ability to used TouchID for sudo authentication
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  time.timeZone = "Asia/Shanghai";
+  time.timeZone = "Asia/Singapore";
 
   system = {
     primaryUser = myvars.username;
@@ -113,7 +113,7 @@
           # Display have separate spaces
           #   true => disable this feature
           #   false => enable this feature
-          "spans-displays" = true;
+          "spans-displays" = false;
         };
         "com.apple.WindowManager" = {
           EnableStandardClickToShowDesktop = 0; # Click wallpaper to reveal desktop
@@ -145,8 +145,4 @@
     };
   };
 
-  # Set your time zone.
-  # comment this due to the issue:
-  #   https://github.com/LnL7/nix-darwin/issues/359
-  # time.timeZone = "Asia/shanghai";
 }

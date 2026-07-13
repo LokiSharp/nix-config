@@ -41,6 +41,7 @@ in
       systemd.services.audit-rules-local = {
         description = "Load local audit rules";
         wantedBy = [ "sysinit.target" ];
+        after = [ "suid-sgid-wrappers.service" ];
         before = [
           "sysinit.target"
           "shutdown.target"

@@ -19,7 +19,7 @@
 #        1. right click on the running app's icon in Dock, select "Options" -> "Show in Finder" and delete it
 #    4. hold down the Option key, a `x` button will appear on the icon, click it to remove the icon
 #
-# TODO Fell free to modify this file to fit your needs.
+# TODO Feel free to modify this file to fit your needs.
 #
 ##########################################################################
 let
@@ -55,8 +55,8 @@ in
     neovim
     git
     nushell # my custom shell
-    gnugrep # replacee macos's grep
-    gnutar # replacee macos's tar
+    gnugrep # replace macOS's grep
+    gnutar # replace macOS's tar
   ];
 
   environment.variables = {
@@ -88,8 +88,8 @@ in
     enable = true; # disable homebrew for fast deploy
 
     onActivation = {
-      autoUpdate = true; # Fetch the newest stable branch of Homebrew's git repo
-      upgrade = true; # Upgrade outdated casks, formulae, and App Store apps
+      autoUpdate = false; # Do not fetch Homebrew updates during darwin-rebuild
+      upgrade = false; # Keep package upgrades as an explicit manual action
       # 'zap': uninstalls all formulae(and related files) not listed in the generated Brewfile
       cleanup = "zap";
     };
@@ -107,7 +107,7 @@ in
     brews = [
       # `brew install`
       "wget" # download tool
-      "curl" # no not install curl via nixpkgs, it's not working well on macOS!
+      "curl" # do not install curl via nixpkgs, it's not working well on macOS!
       "aria2" # download tool
       "httpie" # http client
       "wireguard-tools" # wireguard

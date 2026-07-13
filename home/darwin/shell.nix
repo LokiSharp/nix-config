@@ -1,7 +1,7 @@
 { config, lib, ... }:
 let
   envExtra = ''
-    export PATH="$PATH:$HOME/.cargo/bin:/opt/homebrew/bin:/usr/local/bin"
+    export PATH="$HOME/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
   '';
 in
 {

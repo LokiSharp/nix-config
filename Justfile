@@ -107,6 +107,25 @@ darwin-rollback:
   use {{utils_nu}} *;
   darwin-rollback
 
+# Update Homebrew formulae and casks manually
+[macos]
+[group('desktop')]
+brew-upgrade:
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  brew_without_git_mirror=(
+    env
+    -u HOMEBREW_BREW_GIT_REMOTE
+    -u HOMEBREW_CORE_GIT_REMOTE
+    brew
+  )
+
+  "${brew_without_git_mirror[@]}" update
+  HOMEBREW_NO_UPGRADE_AUTO_UPDATES_CASKS=1 "${brew_without_git_mirror[@]}" upgrade --formula
+  "${brew_without_git_mirror[@]}" upgrade --cask
+  "${brew_without_git_mirror[@]}" cleanup
+
 # Deploy to MacbookAir(macOS host)
 [macos]
 [group('desktop')]

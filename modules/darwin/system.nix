@@ -28,6 +28,11 @@
   system = {
     primaryUser = myvars.username;
 
+    activationScripts.screenshotDirectory.text = ''
+      mkdir -p "/Users/${myvars.username}/Pictures/Screenshots"
+      chown "${myvars.username}:staff" "/Users/${myvars.username}/Pictures/Screenshots"
+    '';
+
     defaults = {
       menuExtraClock.Show24Hour = true; # show 24 hour clock
 
@@ -101,6 +106,8 @@
           ShowMountedServersOnDesktop = false;
           ShowRemovableMediaOnDesktop = true;
           _FXSortFoldersFirst = true;
+          AppleShowAllExtensions = true;
+          FXEnableExtensionChangeWarning = false;
           # When performing a search, search the current folder by default
           FXDefaultSearchScope = "SCcf";
         };
@@ -128,7 +135,7 @@
           askForPasswordDelay = 0;
         };
         "com.apple.screencapture" = {
-          location = "~/Desktop";
+          location = "/Users/${myvars.username}/Pictures/Screenshots";
           type = "png";
         };
         "com.apple.AdLib" = {

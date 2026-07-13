@@ -42,6 +42,15 @@ in
         default = true;
         description = "Enable Stage 2: ACL Hardening (AppArmor).";
       };
+      enforceProfiles = mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        example = [ "named" ];
+        description = ''
+          AppArmor policy names to switch from complain mode to enforce mode
+          on this host. Names must refer to policies enabled by this host.
+        '';
+      };
     };
   };
 

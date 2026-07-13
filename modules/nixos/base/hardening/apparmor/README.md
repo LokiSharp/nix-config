@@ -12,8 +12,10 @@ profile body grouped in this order:
 7. Devices and IPC files.
 8. `/proc` and `/sys` runtime introspection.
 
-Keep profiles in `complain` while collecting audit logs, then set
-`state = "enforce";` per service after the observed workload is covered.
+Keep profiles in `complain` while collecting audit logs, then add validated
+policy names to `modules.base.hardening.stage-2.enforceProfiles` in the target
+host configuration. This keeps enforcement decisions host-specific while the
+shared profile remains reusable.
 
 Prefer shared helpers from `mylib.apparmor` for common fragments:
 

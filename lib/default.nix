@@ -96,14 +96,18 @@ let
             name,
             enable,
             profile,
-            state ? "complain",
+            state ? null,
           }:
           lib.mkIf (stage2Enabled config && enable) {
             security.apparmor.policies.${name} = {
-              inherit
-                profile
-                state
-                ;
+              inherit profile;
+              state =
+                if state != null then
+                  state
+                else if builtins.elem name config.modules.base.hardening."stage-2".enforceProfiles then
+                  "enforce"
+                else
+                  "complain";
             };
           };
       };

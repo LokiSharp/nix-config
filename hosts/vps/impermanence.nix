@@ -1,4 +1,5 @@
 {
+  lib,
   myvars,
   impermanence,
   pkgs,
@@ -8,6 +9,10 @@
   imports = [
     impermanence.nixosModules.impermanence
   ];
+
+  # The root filesystem is tmpfs, so growPartition cannot infer the backing
+  # disk partition.
+  boot.growPartition = lib.mkForce false;
 
   environment.systemPackages = [
     # `sudo ncdu -x /`

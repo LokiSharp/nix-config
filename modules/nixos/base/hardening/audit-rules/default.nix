@@ -27,6 +27,7 @@ lib.concatLists [
   })
   (import ./privilege.nix { inherit config helpers lib; })
   (import ./mount.nix { inherit config helpers lib; })
+  (import ./sensitive-syscalls.nix { inherit helpers; })
   (import ./kernel.nix { inherit helpers; })
   (lib.optionals config.services.tailscale.enable [
     # Tailscale periodically syncs kernel netfilter state through iptables/nft.

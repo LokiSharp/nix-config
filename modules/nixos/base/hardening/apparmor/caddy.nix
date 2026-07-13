@@ -1,7 +1,8 @@
-{ config
-, mylib
-, pkgs
-, ...
+{
+  config,
+  mylib,
+  pkgs,
+  ...
 }:
 {
   config = mylib.apparmor.mkPolicy {
@@ -9,7 +10,7 @@
     name = "caddy";
     enable = config.services.caddy.enable;
     profile = ''
-      #include <tunables/global>
+      ${mylib.apparmor.profileHeader}
 
       ${pkgs.caddy}/bin/caddy flags=(attach_disconnected) {
         #include <abstractions/base>

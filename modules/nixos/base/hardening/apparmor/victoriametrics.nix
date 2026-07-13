@@ -1,7 +1,8 @@
-{ config
-, mylib
-, pkgs
-, ...
+{
+  config,
+  mylib,
+  pkgs,
+  ...
 }:
 {
   config = mylib.apparmor.mkPolicy {
@@ -9,7 +10,7 @@
     name = "victoriametrics";
     enable = config.services.victoriametrics.enable;
     profile = ''
-      #include <tunables/global>
+      ${mylib.apparmor.profileHeader}
 
       ${pkgs.victoriametrics}/bin/victoria-metrics {
         #include <abstractions/base>

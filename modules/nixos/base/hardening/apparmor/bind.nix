@@ -1,7 +1,8 @@
-{ config
-, mylib
-, pkgs
-, ...
+{
+  config,
+  mylib,
+  pkgs,
+  ...
 }:
 {
   config = mylib.apparmor.mkPolicy {
@@ -9,7 +10,7 @@
     name = "named";
     enable = config.services.bind.enable;
     profile = ''
-      #include <tunables/global>
+      ${mylib.apparmor.profileHeader}
 
       ${pkgs.bind.out}/bin/named {
         #include <abstractions/base>

@@ -17,6 +17,7 @@ Keep profiles in `complain` while collecting audit logs, then set
 
 Prefer shared helpers from `mylib.apparmor` for common fragments:
 
+- `profileHeader` for the AppArmor ABI and global tunables declarations.
 - `nixStoreRead` for read/map access to the Nix store.
 - `sopsSecret "name"` for `/run/secrets` and `/run/secrets.d` fallback paths.
 - `systemdNotify` for `/run/systemd/notify`.

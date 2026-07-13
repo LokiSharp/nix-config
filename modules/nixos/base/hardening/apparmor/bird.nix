@@ -1,7 +1,8 @@
-{ config
-, mylib
-, pkgs
-, ...
+{
+  config,
+  mylib,
+  pkgs,
+  ...
 }:
 {
   config = mylib.apparmor.mkPolicy {
@@ -9,7 +10,7 @@
     name = "bird";
     enable = config.services.bird.enable;
     profile = ''
-      #include <tunables/global>
+      ${mylib.apparmor.profileHeader}
 
       ${pkgs.bird3}/bin/bird {
         #include <abstractions/base>

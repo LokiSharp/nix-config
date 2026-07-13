@@ -1,7 +1,8 @@
-{ config
-, mylib
-, pkgs
-, ...
+{
+  config,
+  mylib,
+  pkgs,
+  ...
 }:
 {
   config = mylib.apparmor.mkPolicy {
@@ -9,7 +10,7 @@
     name = "grafana";
     enable = config.services.grafana.enable;
     profile = ''
-      #include <tunables/global>
+      ${mylib.apparmor.profileHeader}
 
       ${pkgs.grafana}/bin/grafana {
         #include <abstractions/base>

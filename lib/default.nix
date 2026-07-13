@@ -51,53 +51,52 @@ let
     apparmor =
       let
         stage2Enabled =
-          config:
-          config.modules.base.hardening.enable && config.modules.base.hardening."stage-2".enable;
+          config: config.modules.base.hardening.enable && config.modules.base.hardening."stage-2".enable;
       in
       {
         inherit stage2Enabled;
 
-        nixStoreRead = ''
-          /nix/store/** r,
-          /nix/store/** m,
+        profileHeader = ''
+          abi <abi/4.0>,
+          #include <tunables/global>
         '';
 
-        sopsSecret =
-          name: ''
-            /run/secrets/${name} r,
-            /run/secrets.d/*/${name} r,
-          '';
+        nixStoreRead = ''
+          /nix/store/** mr,
+        '';
+
+        sopsSecret = name: ''
+          /run/secrets/${name} r,
+          /run/secrets.d/*/${name} r,
+        '';
 
         systemdNotify = ''
           /run/systemd/notify w,
         '';
 
-        goRuntimeProcfs =
-          _serviceName: ''
-            /proc/self/cgroup r,
-            /proc/self/mountinfo r,
-            /proc/[0-9]*/cgroup r,
-            /proc/[0-9]*/mountinfo r,
-          '';
+        goRuntimeProcfs = _serviceName: ''
+          /proc/self/cgroup r,
+          /proc/self/mountinfo r,
+          /proc/[0-9]*/cgroup r,
+          /proc/[0-9]*/mountinfo r,
+        '';
 
-        cgroupLimits =
-          serviceName: ''
-            /sys/fs/cgroup/system.slice/${serviceName}.service/cpu.max r,
-          '';
+        cgroupLimits = serviceName: ''
+          /sys/fs/cgroup/system.slice/${serviceName}.service/cpu.max r,
+        '';
 
-        dynamicUserState =
-          name: ''
-            /var/lib/private/${name}/ rwkl,
-            /var/lib/private/${name}/** rwkl,
-          '';
+        dynamicUserState = name: ''
+          /var/lib/private/${name}/ rwkl,
+          /var/lib/private/${name}/** rwkl,
+        '';
 
         mkPolicy =
-          { config
-          , name
-          , enable
-          , profile
-          , state ? "complain"
-          ,
+          {
+            config,
+            name,
+            enable,
+            profile,
+            state ? "complain",
           }:
           lib.mkIf (stage2Enabled config && enable) {
             security.apparmor.policies.${name} = {

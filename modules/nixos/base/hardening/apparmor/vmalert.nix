@@ -1,7 +1,8 @@
-{ config
-, mylib
-, pkgs
-, ...
+{
+  config,
+  mylib,
+  pkgs,
+  ...
 }:
 let
   vmalertInstances = config.services.vmalert.instances or { };
@@ -12,7 +13,7 @@ in
     name = "vmalert";
     enable = vmalertInstances != { };
     profile = ''
-      #include <tunables/global>
+      ${mylib.apparmor.profileHeader}
 
       ${pkgs.victoriametrics}/bin/vmalert {
         #include <abstractions/base>

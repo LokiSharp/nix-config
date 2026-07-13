@@ -1,8 +1,9 @@
-{ config
-, lib
-, mylib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  mylib,
+  pkgs,
+  ...
 }:
 {
   config = mylib.apparmor.mkPolicy {
@@ -10,7 +11,7 @@
     name = "minio";
     enable = config.services.minio.enable;
     profile = ''
-      #include <tunables/global>
+      ${mylib.apparmor.profileHeader}
 
       ${pkgs.minio}/bin/minio {
         #include <abstractions/base>

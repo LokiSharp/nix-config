@@ -1,7 +1,8 @@
-{ config
-, mylib
-, pkgs
-, ...
+{
+  config,
+  mylib,
+  pkgs,
+  ...
 }:
 let
   tailscalePkg = config.services.tailscale.package;
@@ -12,8 +13,7 @@ in
     name = "tailscale";
     enable = config.services.tailscale.enable;
     profile = ''
-      abi <abi/4.0>,
-      #include <tunables/global>
+      ${mylib.apparmor.profileHeader}
 
       profile ${tailscalePkg}/bin/tailscaled flags=(attach_disconnected) {
         #include <abstractions/base>
@@ -56,7 +56,7 @@ in
 
         # Runtime
         /run/tailscale/** rwkl,
-        /run/systemd/notify w,
+        ${mylib.apparmor.systemdNotify}
         @{run}/systemd/notify w,
         /run/xtables.lock rwk,
 

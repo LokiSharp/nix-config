@@ -35,6 +35,7 @@
 
         # Configuration and zones
         ${config.services.bind.directory}/** r,
+        /etc/bind/rndc.key r,
         /etc/ssl/openssl.cnf r,
 
         # State and runtime

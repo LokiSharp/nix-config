@@ -29,6 +29,9 @@ in
       # Security Auditing
       security.auditd.enable = true;
       security.audit.rules = auditRules;
+      # The filter plugin is disabled by default. Its generated argument line
+      # exceeds auditd's parser limit when it contains Nix store paths.
+      security.auditd.plugins.filter.args = mkForce null;
       # Keep audit enabled from early boot, but avoid the NixOS audit rules
       # loader when no rules are configured. It reloads control parameters like
       # -b at switch time, which can fail once audit is already active.

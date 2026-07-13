@@ -42,7 +42,7 @@
   };
 
   # 时区，根据你的所在地修改
-  time.timeZone = "Asia/Shanghai";
+  time.timeZone = "Asia/Singapore";
 
   # Root 用户的密码和 SSH 密钥。如果网络配置有误，可以用此处的密码在控制台上登录进去手动调整网络配置。
   users.mutableUsers = false;

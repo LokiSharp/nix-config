@@ -1,12 +1,14 @@
-{ config
-, lib
-, myvars
-, pkgs
-, ...
+{
+  config,
+  lib,
+  myvars,
+  pkgs,
+  ...
 }:
 
 let
   systemdExe = "${config.systemd.package}/lib/systemd/systemd";
+  helpers = import ./helpers.nix;
 in
 lib.concatLists [
   [
@@ -14,11 +16,18 @@ lib.concatLists [
     "-a never,exit -F arch=b64 -S bpf -F exe=${systemdExe}"
     "-A exclude,always -F msgtype=BPF -F exe=${systemdExe}"
   ]
-  (import ./identity.nix)
-  (import ./ssh.nix { inherit config lib myvars; })
-  (import ./privilege.nix { inherit config lib; })
-  (import ./mount.nix { inherit config lib; })
-  (import ./kernel.nix)
+  (import ./identity.nix { inherit helpers; })
+  (import ./ssh.nix {
+    inherit
+      config
+      helpers
+      lib
+      myvars
+      ;
+  })
+  (import ./privilege.nix { inherit config helpers lib; })
+  (import ./mount.nix { inherit config helpers lib; })
+  (import ./kernel.nix { inherit helpers; })
   (lib.optionals config.services.tailscale.enable [
     # Tailscale periodically syncs kernel netfilter state through iptables/nft.
     # Keep interactive/admin firewall changes auditable by only suppressing

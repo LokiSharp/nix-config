@@ -1,4 +1,10 @@
-{ config, lib, myvars, ... }:
+{
+  config,
+  helpers,
+  lib,
+  myvars,
+  ...
+}:
 
 let
   userAuthorizedKeys = [
@@ -7,9 +13,11 @@ let
   ];
 in
 lib.optionals config.services.openssh.enable (
-  (map (user: "-w /etc/ssh/authorized_keys.d/${user} -p wa -k ssh_auth") userAuthorizedKeys)
-  ++ [
-    "-w /etc/ssh/sshd_config -p wa -k ssh_config"
-  ]
-  ++ (map (key: "-w ${key.path} -p wa -k ssh_hostkey") config.services.openssh.hostKeys)
+  (builtins.concatMap (
+    user: helpers.pathRules "/etc/ssh/authorized_keys.d/${user}" "wa" "ssh_auth"
+  ) userAuthorizedKeys)
+  ++ helpers.pathRules "/etc/ssh/sshd_config" "wa" "ssh_config"
+  ++ (builtins.concatMap (
+    key: helpers.pathRules key.path "wa" "ssh_hostkey"
+  ) config.services.openssh.hostKeys)
 )

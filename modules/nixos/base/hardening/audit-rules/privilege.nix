@@ -1,16 +1,18 @@
-{ config, lib, ... }:
+{
+  config,
+  helpers,
+  lib,
+  ...
+}:
 
 let
   wrapperRule =
     name: key:
-    lib.optional (
-      builtins.hasAttr name config.security.wrappers
-      && config.security.wrappers.${name}.enable
-    ) "-w /run/wrappers/bin/${name} -p x -k ${key}";
+    lib.optionals (
+      builtins.hasAttr name config.security.wrappers && config.security.wrappers.${name}.enable
+    ) (helpers.pathRules "/run/wrappers/bin/${name}" "x" key);
 in
-lib.optionals config.security.sudo.enable [
-  "-w /etc/sudoers -p wa -k privilege"
-]
+lib.optionals config.security.sudo.enable (helpers.pathRules "/etc/sudoers" "wa" "privilege")
 ++ wrapperRule "sudo" "privilege_exec"
 ++ wrapperRule "sudoedit" "privilege_exec"
 ++ wrapperRule "su" "privilege_exec"

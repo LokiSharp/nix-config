@@ -1,5 +1,7 @@
-[
-  "-w /etc/passwd -p wa -k identity"
-  "-w /etc/group -p wa -k identity"
-  "-w /etc/shadow -p wa -k identity"
+{ helpers, ... }:
+
+builtins.concatMap (path: helpers.pathRules path "wa" "identity") [
+  "/etc/passwd"
+  "/etc/group"
+  "/etc/shadow"
 ]

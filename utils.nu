@@ -42,14 +42,14 @@ export def darwin-switch [
     mode: string
 ] {
     if "debug" == $mode {
-        ./result/sw/bin/darwin-rebuild switch --flake $".#($name)" --show-trace --verbose
+        sudo ./result/sw/bin/darwin-rebuild switch --flake $".#($name)" --show-trace --verbose
     } else {
-        ./result/sw/bin/darwin-rebuild switch --flake $".#($name)"
+        sudo ./result/sw/bin/darwin-rebuild switch --flake $".#($name)"
     }
 }
 
 export def darwin-rollback [] {
-    ./result/sw/bin/darwin-rebuild --rollback
+    sudo ./result/sw/bin/darwin-rebuild --rollback
 }
 
 # Build and upload a VM image

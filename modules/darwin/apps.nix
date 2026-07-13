@@ -90,8 +90,8 @@ in
     onActivation = {
       autoUpdate = false; # Do not fetch Homebrew updates during darwin-rebuild
       upgrade = false; # Keep package upgrades as an explicit manual action
-      # 'zap': uninstalls all formulae(and related files) not listed in the generated Brewfile
-      cleanup = "zap";
+      # Disable automatic Brewfile cleanup because `brew bundle --cleanup` is deprecated.
+      cleanup = "none";
     };
 
     # Applications to install from Mac App Store using mas.

@@ -126,6 +126,18 @@ brew-upgrade:
   "${brew_without_git_mirror[@]}" upgrade --cask
   "${brew_without_git_mirror[@]}" cleanup
 
+# Clean Homebrew caches and stale downloads
+[macos]
+[group('desktop')]
+brew-cleanup:
+  brew cleanup
+
+# Uninstall and zap specific Homebrew casks
+[macos]
+[group('desktop')]
+brew-zap *casks:
+  brew uninstall --cask --zap {{casks}}
+
 # Deploy to MacbookAir(macOS host)
 [macos]
 [group('desktop')]

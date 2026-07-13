@@ -3,8 +3,18 @@
 # Attribute direct kernel operations to interactive/login sessions while
 # avoiding normal systemd and daemon activity, whose login audit UID is unset.
 helpers.sessionSyscallRules [
+  # Traditional mount API
   "mount"
   "umount2"
+
+  # Modern mount API
+  "fsopen"
+  "fsconfig"
+  "fsmount"
+  "fspick"
+  "open_tree"
+  "move_mount"
+  "mount_setattr"
 ] "mount_change"
 ++ helpers.sessionSyscallRules [
   "unshare"

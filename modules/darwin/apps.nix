@@ -136,6 +136,7 @@ in
     # `brew install --cask`
     casks = [
       "squirrel-app" # input method for Chinese, rime-squirrel
+      "1password" # password manager
       "firefox"
       "google-chrome"
       "visual-studio-code"
@@ -143,24 +144,34 @@ in
 
       "obsidian" # note app
 
+      # Window management
+      "bartender" # menu bar manager
+      "moom" # window manager
+      "notchnook" # notch utility
+
       # IM & audio & remote desktop & meeting
+      "remoteviewer" # remote desktop client
       "telegram"
 
       # Misc
+      "daisydisk" # disk space analyzer
       "iina" # video player
       "spotify" # music player
-
-      # AI
-      "ollama-app" # AI model server
+      "istat-menus" # system monitor
 
       # Finance
       "tradingview" # trading view
 
       # Development
+      "fork" # git client
+      "gns3" # network simulator
       "mitmproxy" # HTTP/HTTPS traffic inspector
+      "reqable" # HTTP/HTTPS traffic inspector
+      "sublime-text" # text editor
+      "tabby" # terminal emulator
       "wireshark-app" # network analyzer
       "orbstack" # docker alternative
-      "surge" # network proxy tool
+      "clash-verge-rev" # network proxy client
     ];
   };
 }

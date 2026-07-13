@@ -28,6 +28,23 @@ in
     (mkIf cfg."stage-1".auditd.enable {
       # Security Auditing
       security.auditd.enable = true;
+      security.auditd.settings = {
+        # Bound local audit log usage while retaining enough history for
+        # incident review. max_log_file is measured in MiB.
+        max_log_file = 64;
+        num_logs = 10;
+        max_log_file_action = "ROTATE";
+
+        # Warn before the persistent log filesystem becomes critically full.
+        # Keep the host available at the final threshold, but stop auditd from
+        # consuming the remaining space.
+        space_left = "10%";
+        space_left_action = "SYSLOG";
+        admin_space_left = "5%";
+        admin_space_left_action = "SUSPEND";
+        disk_full_action = "SUSPEND";
+        disk_error_action = "SYSLOG";
+      };
       security.audit.rules = auditRules;
       # The filter plugin is disabled by default. Its generated argument line
       # exceeds auditd's parser limit when it contains Nix store paths.

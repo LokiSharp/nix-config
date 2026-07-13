@@ -6,6 +6,19 @@
 }:
 let
   configLib = mylib.withConfig config;
+  sysctl = config.boot.kernel.sysctl;
+  isEnabled =
+    name:
+    let
+      value = sysctl.${name} or 0;
+    in
+    value == 1 || value == "1" || value == true;
+  hostNeedsForward =
+    isEnabled "net.ipv4.ip_forward"
+    || isEnabled "net.ipv4.conf.all.forwarding"
+    || isEnabled "net.ipv6.conf.all.forwarding"
+    || isEnabled "net.ipv6.conf.default.forwarding"
+    || (config.virtualisation.podman.enable or false);
 in
 {
   networking.firewall.enable = lib.mkDefault false;
@@ -125,7 +138,8 @@ in
           iifname "tailscale0" oifname "zt-slk0" drop
           iifname "zt-slk0" oifname "tailscale0" drop
 
-          accept
+          # Routing, Kubernetes, and Podman hosts need forwarded traffic.
+          ${if hostNeedsForward then "accept" else "counter drop"}
         }
       }    
     '';

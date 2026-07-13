@@ -21,6 +21,8 @@ in
     "modules/nixos/server/bind.nix"
   ];
 
+  modules.base.hardening."stage-2".enforceProfiles = [ "named" ];
+
   systemd.network.enable = true;
   systemd.network.links."10-wan-alias" = {
     matchConfig.OriginalName = "ens18";

@@ -16,7 +16,7 @@ lib.concatLists [
     "-a never,exit -F arch=b64 -S bpf -F exe=${systemdExe}"
     "-A exclude,always -F msgtype=BPF -F exe=${systemdExe}"
   ]
-  (import ./identity.nix { inherit helpers; })
+  (import ./identity.nix { inherit config helpers lib; })
   (import ./ssh.nix {
     inherit
       config

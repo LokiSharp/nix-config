@@ -19,6 +19,8 @@ in
 
   modules.base.hardening."stage-2".enforceProfiles = [
     "caddy"
+    "gitea"
+    "sftpgo"
     "tailscale"
     "zerotierone"
   ];

@@ -33,6 +33,7 @@
 
         # Configuration and certificates
         ${config.sops.templates."sing-box.json".path} r,
+        /run/secrets.d/*/rendered/sing-box.json r,
         /etc/resolv.conf r,
         /etc/nsswitch.conf r,
         /etc/ssl/certs/** r,

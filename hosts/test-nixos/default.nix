@@ -25,6 +25,7 @@ in
     "named"
     "bird"
     "zerotierone"
+    "tailscale"
   ];
 
   systemd.network.enable = true;

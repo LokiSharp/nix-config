@@ -17,6 +17,12 @@ in
     ./impermanence.nix
   ];
 
+  modules.base.hardening."stage-2".enforceProfiles = [
+    "caddy"
+    "tailscale"
+    "zerotierone"
+  ];
+
   systemd.network.enable = true;
   networking = {
     inherit hostName;

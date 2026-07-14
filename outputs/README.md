@@ -22,6 +22,30 @@ nix eval .#evalTestReportText --raw --show-trace
 nix eval .#evalTestResults --show-trace
 ```
 
+### 部署后 smoke test
+
+在目标 NixOS 节点上运行：
+
+```bash
+just smoke
+```
+
+可以指定 journal 检查窗口：
+
+```bash
+just smoke "-2 minutes"
+```
+
+### 公网暴露面测试
+
+从不在当前内网、VPN、ZeroTier、Tailscale 里的外部机器运行：
+
+```bash
+just public-exposure
+```
+
+这个命令会从 flake 的 `publicNixosHosts` 自动读取公网节点和预期开放 TCP 端口。不要在受信网络内部执行后直接当作公网结论；内部路径可能绕过公网防火墙策略，导致误报。
+
 ### NixOS 测试
 
 NixOS 测试使用我们的 NixOS 配置构建并启动虚拟机，并在其上运行测试。与评估测试相比，它运行较慢，但构建了真实的机器，我们可以测试整个系统是否按预期工作。

@@ -51,6 +51,14 @@ smoke since="-5 minutes":
   use {{utils_nu}} *;
   nixos-smoke --since "{{since}}"
 
+# Check public TCP exposure for public NixOS hosts
+[linux]
+[group('nix')]
+public-exposure:
+  #!/usr/bin/env nu
+  use {{utils_nu}} *;
+  public-exposure
+
 # Update all the flake inputs
 [group('nix')]
 up:

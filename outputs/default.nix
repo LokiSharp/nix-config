@@ -47,38 +47,12 @@ let
   nixosSystemValues = builtins.attrValues nixosSystems;
   darwinSystemValues = builtins.attrValues darwinSystems;
   allSystemValues = nixosSystemValues ++ darwinSystemValues;
-
-  # Helper function to generate a set of attributes for each system
-  forAllSystems = func: (nixpkgs.lib.genAttrs allSystemNames func);
-  formatTestReport =
-    system: tests:
-    lib.concatStringsSep "\n" (
-      map (
-        name:
-        let
-          result = tests.${name};
-        in
-        "[${result.status}] ${system}/${name}"
-      ) (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
-    );
-in
-{
-  # Add attribute sets into outputs, for debugging
-  debugAttrs = {
-    inherit
-      nixosSystems
-      darwinSystems
-      allSystems
-      allSystemNames
-      ;
-  };
-
-  # NixOS Hosts
   nixosConfigurations = lib.attrsets.mergeAttrsList (
     map (it: it.nixosConfigurations or { }) nixosSystemValues
   );
-
-  # Colmena - remote deployment via SSH
+  darwinConfigurations = lib.attrsets.mergeAttrsList (
+    map (it: it.darwinConfigurations or { }) darwinSystemValues
+  );
   colmena = {
     meta =
       (
@@ -106,13 +80,65 @@ in
   }
   // lib.attrsets.mergeAttrsList (map (it: it.colmena or { }) nixosSystemValues);
 
+  # Helper function to generate a set of attributes for each system
+  forAllSystems = func: (nixpkgs.lib.genAttrs allSystemNames func);
+  formatTestReport =
+    system: tests:
+    lib.concatStringsSep "\n" (
+      map (
+        name:
+        let
+          result = tests.${name};
+        in
+        "[${result.status}] ${system}/${name}"
+      ) (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
+    );
+in
+{
+  # Add attribute sets into outputs, for debugging
+  debugAttrs = {
+    inherit
+      nixosSystems
+      darwinSystems
+      allSystems
+      allSystemNames
+      ;
+  };
+
+  # NixOS Hosts
+  inherit nixosConfigurations;
+
+  # Colmena - remote deployment via SSH
+  inherit colmena;
+
   # macOS Hosts
-  darwinConfigurations = lib.attrsets.mergeAttrsList (
-    map (it: it.darwinConfigurations or { }) darwinSystemValues
-  );
+  inherit darwinConfigurations;
 
   # Packages
   packages = forAllSystems (system: allSystems.${system}.packages or { });
+
+  publicNixosHosts =
+    let
+      publicHostNames = lib.filter (
+        name:
+        let
+          host = mylib.hosts.${lib.toLower name};
+        in
+        host.public.IPv4 != ""
+    ) (builtins.attrNames nixosConfigurations);
+      sortedUnique = values: lib.lists.sort builtins.lessThan (lib.lists.unique values);
+    in
+    lib.genAttrs publicHostNames (
+      name:
+      let
+        host = mylib.hosts.${lib.toLower name};
+        config = nixosConfigurations.${name}.config;
+      in
+      {
+        ipv4 = host.public.IPv4;
+        expectedOpenTcpPorts = sortedUnique ([ 22 ] ++ config.networking.firewall.allowedTCPPorts);
+      }
+    );
 
   # Eval Tests for all NixOS & darwin systems.
   evalTests = lib.lists.all (it: it.evalTests == { }) allSystemValues;

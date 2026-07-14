@@ -224,6 +224,116 @@ export def nixos-smoke [
     }
 }
 
+export def public-exposure [
+    --full
+    --min-rate: int = 3000
+] {
+    if (which nmap | is-empty) {
+        print -e "[FAIL] nmap not found"
+        exit 1
+    }
+
+    mut failures = 0
+    let watched_tcp_ports = [
+        22
+        53
+        80
+        179
+        443
+        9100
+        9993
+        10000
+        41641
+    ]
+    let scan_type = if (id -u | into int) == 0 { "-sS" } else { "-sT" }
+
+    let targets_result = (nix eval .#publicNixosHosts --json --show-trace | complete)
+    if $targets_result.exit_code != 0 {
+        print -e "[FAIL] failed to evaluate .#publicNixosHosts"
+        print -e ($targets_result.stderr | str trim)
+        exit 1
+    }
+
+    let targets = ($targets_result.stdout | from json)
+    if ($targets | is-empty) {
+        print -e "[FAIL] no public NixOS hosts found"
+        exit 1
+    }
+
+    for item in ($targets | transpose name value) {
+        let name = $item.name
+        let ip = $item.value.ipv4
+        let expected_open = ($item.value.expectedOpenTcpPorts | each {|port| $port | into int })
+        let expected_set = ($expected_open | each {|port| $port | into string })
+        let scan_ports = (
+            $watched_tcp_ports
+            | append $expected_open
+            | uniq
+            | sort
+            | str join ","
+        )
+
+        print $"[INFO] scanning ($name) \(($ip)\), expected open tcp: (($expected_open | sort | str join ', '))"
+
+        let scan = if $full {
+            nmap -Pn $scan_type -p- --min-rate ($min_rate | into string) --reason $ip | complete
+        } else {
+            nmap -Pn $scan_type -p $scan_ports --reason $ip | complete
+        }
+
+        if $scan.exit_code != 0 {
+            print -e $"[FAIL] nmap scan failed for ($name) \(($ip)\)"
+            print -e ($scan.stderr | str trim)
+            $failures = $failures + 1
+            continue
+        }
+
+        let open_ports = (
+            $scan.stdout
+            | lines
+            | parse --regex '^\s*(?P<port>\d+)/tcp\s+(?P<state>\S+)'
+            | where state == "open"
+            | get port
+            | uniq
+            | sort
+        )
+
+        let unexpected_open = (
+            $open_ports
+            | where {|port| not ($port in $expected_set)}
+        )
+        let missing_expected = (
+            $expected_set
+            | where {|port| not ($port in $open_ports)}
+        )
+
+        if ($unexpected_open | is-empty) and ($missing_expected | is-empty) {
+            print $"[PASS] ($name) public TCP exposure matches expected ports: (($expected_set | sort | str join ', '))"
+        } else {
+            print -e $"[FAIL] ($name) public TCP exposure mismatch"
+            print -e $"       expected open: (($expected_set | sort | str join ', '))"
+            print -e $"       observed open: (($open_ports | sort | str join ', '))"
+
+            if not ($unexpected_open | is-empty) {
+                print -e $"       unexpected open: (($unexpected_open | str join ', '))"
+            }
+
+            if not ($missing_expected | is-empty) {
+                print -e $"       missing expected: (($missing_expected | str join ', '))"
+            }
+
+            $failures = $failures + 1
+        }
+    }
+
+    if $failures == 0 {
+        print "[PASS] public exposure checks passed"
+    } else {
+        print -e $"[FAIL] ($failures) public exposure check\(s\) failed"
+        exit $failures
+    }
+}
+
 # ====================== Misc =============================
 
 export def make-editable [

@@ -18,10 +18,14 @@ in
   ];
 
   modules.base.hardening."stage-2".enforceProfiles = [
+    "alertmanager"
     "caddy"
     "gitea"
+    "grafana"
     "sftpgo"
     "tailscale"
+    "victoriametrics"
+    "vmalert"
     "zerotierone"
   ];
 

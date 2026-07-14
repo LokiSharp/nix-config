@@ -21,7 +21,10 @@ in
     "modules/nixos/server/bind.nix"
   ];
 
-  modules.base.hardening."stage-2".enforceProfiles = [ "named" ];
+  modules.base.hardening."stage-2".enforceProfiles = [
+    "named"
+    "bird"
+  ];
 
   systemd.network.enable = true;
   systemd.network.links."10-wan-alias" = {

@@ -23,12 +23,12 @@ in
     "modules/nixos/server/zerotierone-controller"
   ];
 
-  # Keep zerotierone in complain mode until the controller workload has been
-  # validated separately from the regular client tested on Test-NixOS.
+  # Keep the regular zerotierone client profile out of this controller-only host.
   modules.base.hardening."stage-2".enforceProfiles = [
     "named"
     "bird"
     "tailscale"
+    "zerotierone-controller"
   ];
 
   systemd.network.enable = true;

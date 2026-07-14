@@ -90,8 +90,8 @@ let
         NETWORK_URL="${zturl}/controller/network/''${ZTADDR}${name}"
         echo "Updating Network: $NETWORK_URL"
 
-        # Use curl with retry to wait for controller to be ready
-        ${ztcurl} --retry 5 --retry-delay 2 -XPOST "$NETWORK_URL" -d ${lib.escapeShellArg jsonPayload}
+        # Use curl with retry to wait for the controller API to become ready.
+        ${ztcurl} --retry 30 --retry-delay 1 --retry-connrefused -XPOST "$NETWORK_URL" -d ${lib.escapeShellArg jsonPayload}
       ''
       + (lib.concatStrings (
         lib.mapAttrsToList (n: v: ''

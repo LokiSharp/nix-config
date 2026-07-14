@@ -10,9 +10,20 @@ let
     lib.unique (lib.filter (path: path != "") (
       lib.mapAttrsToList (_name: peer: peer.peerBgpPasswordConf) (config.services.loki-net or { })
     ));
-  bgpPasswordConfRules = lib.concatMapStrings (path: ''
-    ${path} r,
-  '') bgpPasswordConfs;
+  bgpPasswordConfRules =
+    lib.concatMapStringsSep "\n" (
+      path:
+      let
+        renderedPrefix = "/run/secrets/rendered/";
+        renderedName = lib.removePrefix renderedPrefix path;
+        rules = [
+          "${path} r,"
+        ] ++ lib.optionals (lib.hasPrefix renderedPrefix path) [
+          "/run/secrets.d/*/rendered/${renderedName} r,"
+        ];
+      in
+      lib.concatStringsSep "\n" rules
+    ) bgpPasswordConfs;
 in
 {
   config = mylib.apparmor.mkPolicy {

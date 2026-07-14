@@ -5,12 +5,15 @@
   pkgs,
   ...
 }:
+let
+  controllerEnabled = config.services.zerotierone ? controller && config.services.zerotierone.controller.enable;
+in
 {
   config = lib.mkMerge [
     (mylib.apparmor.mkPolicy {
       inherit config;
       name = "zerotierone-controller";
-      enable = config.services.zerotierone.controller.enable;
+      enable = controllerEnabled;
       profile = ''
         ${mylib.apparmor.profileHeader}
 
@@ -51,7 +54,7 @@
       '';
     })
 
-    (lib.mkIf (mylib.apparmor.stage2Enabled config && config.services.zerotierone.controller.enable) {
+    (lib.mkIf (mylib.apparmor.stage2Enabled config && controllerEnabled) {
       systemd.services.zerotierone-controller.serviceConfig.AppArmorProfile = "zerotierone-controller";
     })
   ];

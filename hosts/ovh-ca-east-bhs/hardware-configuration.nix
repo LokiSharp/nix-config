@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  myvars,
   pkgs,
   modulesPath,
   ...
@@ -44,7 +45,12 @@
       ];
     };
     kernelModules = [ "kvm-intel" ];
-    swraid.enable = true;
+    swraid = {
+      enable = true;
+      mdadmConf = ''
+        MAILADDR root ${myvars.username} ${myvars.useremail}
+      '';
+    };
   };
 
   networking.useDHCP = lib.mkDefault true;

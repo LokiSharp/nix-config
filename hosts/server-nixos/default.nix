@@ -22,6 +22,7 @@ in
     "caddy"
     "gitea"
     "grafana"
+    "minio"
     "sftpgo"
     "tailscale"
     "victoriametrics"

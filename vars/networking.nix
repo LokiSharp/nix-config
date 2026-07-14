@@ -8,10 +8,6 @@ rec {
   prefixLength = 24;
 
   hostsAddr = {
-    DESKTOP-NixOS = {
-      iface = "enp0s31f6";
-      ipv4 = "192.168.0.10";
-    };
     VM-NixOS = {
       iface = "enp6s18";
       ipv4 = "192.168.0.11";

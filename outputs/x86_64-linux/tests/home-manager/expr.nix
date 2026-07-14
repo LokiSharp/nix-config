@@ -6,7 +6,6 @@
 let
   username = myvars.username;
   hosts = [
-    "DESKTOP-NixOS"
     "VM-NixOS"
   ];
 in

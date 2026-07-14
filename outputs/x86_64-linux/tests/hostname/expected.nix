@@ -4,7 +4,6 @@
 }:
 let
   specialExpected = {
-    "DESKTOP-NixOS" = "DESKTOP-NixOS";
     "VM-NixOS" = "VM-NixOS";
   };
   specialHostNames = builtins.attrNames specialExpected;

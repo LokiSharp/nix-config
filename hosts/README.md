@@ -1,7 +1,6 @@
 # 主机
 
-1. `desktop-nixos`: 物理机上的 NixOS
-2. `vm-nixos`: 虚拟机上的 NixOS，作为物理机的测试配置
+1. `vm-nixos`: 虚拟机上的 NixOS，作为桌面环境测试配置
 
 # 如何添加新的主机
 1. 位于 `hosts/`

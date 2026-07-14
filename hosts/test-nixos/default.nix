@@ -24,6 +24,7 @@ in
   modules.base.hardening."stage-2".enforceProfiles = [
     "named"
     "bird"
+    "zerotierone"
   ];
 
   systemd.network.enable = true;

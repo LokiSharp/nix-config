@@ -22,6 +22,13 @@ in
     "modules/nixos/server/proxy.nix"
   ];
 
+  modules.base.hardening."stage-2".enforceProfiles = [
+    "named"
+    "bird"
+    "zerotierone"
+    "tailscale"
+  ];
+
   disko.devices.disk.main.device = lib.mkForce "/dev/sda";
 
   systemd.network.enable = true;

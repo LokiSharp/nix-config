@@ -22,6 +22,13 @@ in
     "modules/nixos/server/proxy.nix"
   ];
 
+  modules.base.hardening."stage-2".enforceProfiles = [
+    "named"
+    "bird"
+    "zerotierone"
+    "tailscale"
+  ];
+
   systemd.network.enable = true;
   systemd.network.links."10-wan-alias" = {
     matchConfig.OriginalName = "ens3";

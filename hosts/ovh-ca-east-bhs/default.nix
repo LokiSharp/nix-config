@@ -23,6 +23,14 @@ in
     "modules/nixos/server/zerotierone-controller"
   ];
 
+  # Keep zerotierone in complain mode until the controller workload has been
+  # validated separately from the regular client tested on Test-NixOS.
+  modules.base.hardening."stage-2".enforceProfiles = [
+    "named"
+    "bird"
+    "tailscale"
+  ];
+
   systemd.network.enable = true;
   systemd.network.networks."10-wan" = {
     matchConfig.Name = "eno1";

@@ -1,0 +1,5 @@
+{ ... }:
+{
+  desktopNixosConfigurationAbsent = true;
+  desktopNixosColmenaAbsent = true;
+}

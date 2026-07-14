@@ -50,6 +50,17 @@ let
 
   # Helper function to generate a set of attributes for each system
   forAllSystems = func: (nixpkgs.lib.genAttrs allSystemNames func);
+  formatTestReport =
+    system: tests:
+    lib.concatStringsSep "\n" (
+      map (
+        name:
+        let
+          result = tests.${name};
+        in
+        "[${result.status}] ${system}/${name}"
+      ) (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
+    );
 in
 {
   # Add attribute sets into outputs, for debugging
@@ -105,6 +116,16 @@ in
 
   # Eval Tests for all NixOS & darwin systems.
   evalTests = lib.lists.all (it: it.evalTests == { }) allSystemValues;
+  evalTestResults = lib.mapAttrs (_system: it: it.evalTestResults or { }) allSystems;
+  evalTestReport = lib.mapAttrs (_system: it: it.evalTestReport or { }) allSystems;
+  evalTestReportText =
+    (lib.concatStringsSep "\n" (
+      map (
+        system:
+        formatTestReport system allSystems.${system}.evalTestReport
+      ) (lib.lists.sort builtins.lessThan allSystemNames)
+    ))
+    + "\n";
 
   devShells = forAllSystems (system: {
     default = nixpkgs.legacyPackages.${system}.mkShell {

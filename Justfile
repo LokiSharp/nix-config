@@ -21,7 +21,27 @@ default:
 # Run eval tests
 [group('nix')]
 test:
-  nix eval .#evalTests --show-trace --print-build-logs --verbose
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  report_stderr="$(mktemp)"
+  result_stderr="$(mktemp)"
+  trap 'rm -f "$report_stderr" "$result_stderr"' EXIT
+
+  if ! nix --quiet eval .#evalTestReportText --raw --show-trace 2>"$report_stderr"; then
+    cat "$report_stderr" >&2
+    exit 1
+  fi
+
+  if ! result="$(nix --quiet eval .#evalTests --show-trace 2>"$result_stderr")"; then
+    cat "$result_stderr" >&2
+    exit 1
+  fi
+  if [ "$result" != "true" ]; then
+    echo "Evaluation tests failed. Inspect details with:"
+    echo "  nix eval .#evalTestResults --show-trace"
+    exit 1
+  fi
 
 # Update all the flake inputs
 [group('nix')]

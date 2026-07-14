@@ -4,6 +4,7 @@
 } @ args:
 let
   inherit (inputs) haumea;
+  testsSrc = ./tests;
 
   # Contains all the flake outputs of this system architecture.
   data = haumea.lib.load {
@@ -17,14 +18,39 @@ let
   outputs = {
     darwinConfigurations = lib.attrsets.mergeAttrsList (map (it: it.darwinConfigurations or {}) dataWithoutPaths);
   };
+  testInputs = args // { inherit outputs; };
+  testDirs = lib.filterAttrs (
+    _name: type:
+    type == "directory"
+  ) (builtins.readDir testsSrc);
+  evalTestResults = lib.mapAttrs (
+    name: _:
+    let
+      testDir = testsSrc + "/${name}";
+      callTest =
+        test:
+        test (builtins.intersectAttrs (builtins.functionArgs test) testInputs);
+      actual = callTest (import (testDir + "/expr.nix"));
+      expected = callTest (import (testDir + "/expected.nix"));
+    in
+    {
+      inherit actual expected;
+      passed = builtins.deepSeq actual (builtins.deepSeq expected (actual == expected));
+    }
+  ) testDirs;
 in
 outputs
   // {
   inherit data; # for debugging purposes
+  inherit evalTestResults;
+  evalTestReport = lib.mapAttrs (_name: result: {
+    status = if result.passed then "PASS" else "FAIL";
+    assertions = result.actual;
+  }) evalTestResults;
 
   # NixOS's unit tests.
   evalTests = haumea.lib.loadEvalTests {
-    src = ./tests;
-    inputs = args // { inherit outputs; };
+    src = testsSrc;
+    inputs = testInputs;
   };
 }

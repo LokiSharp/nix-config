@@ -23,6 +23,7 @@ in
     "gitea"
     "grafana"
     "minio"
+    "postgres"
     "sftpgo"
     "tailscale"
     "victoriametrics"

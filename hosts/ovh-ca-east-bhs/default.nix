@@ -20,6 +20,7 @@ in
     "modules/nixos/server/dn42.nix"
     "modules/nixos/server/bird"
     "modules/nixos/server/bind.nix"
+    "modules/nixos/server/proxy.nix"
     "modules/nixos/server/zerotierone-controller"
   ];
 
@@ -27,6 +28,7 @@ in
   modules.base.hardening."stage-2".enforceProfiles = [
     "named"
     "bird"
+    "sing-box"
     "tailscale"
     "zerotierone-controller"
   ];
@@ -51,6 +53,10 @@ in
   networking = {
     inherit hostName;
     useDHCP = false;
+  };
+
+  modules.server.proxy = {
+    enable = true;
   };
 
   # This value determines the NixOS release from which the default

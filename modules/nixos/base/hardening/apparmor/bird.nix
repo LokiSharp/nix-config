@@ -1,9 +1,19 @@
 {
   config,
+  lib,
   mylib,
   pkgs,
   ...
 }:
+let
+  bgpPasswordConfs =
+    lib.unique (lib.filter (path: path != "") (
+      lib.mapAttrsToList (_name: peer: peer.peerBgpPasswordConf) (config.services.loki-net or { })
+    ));
+  bgpPasswordConfRules = lib.concatMapStrings (path: ''
+    ${path} r,
+  '') bgpPasswordConfs;
+in
 {
   config = mylib.apparmor.mkPolicy {
     inherit config;
@@ -34,6 +44,7 @@
 
         # Configuration
         /etc/bird/** r,
+        ${bgpPasswordConfRules}
 
         # Runtime
         /run/bird/** rwkl,

@@ -43,6 +43,14 @@ test:
     exit 1
   fi
 
+# Run post-deploy smoke checks on the current NixOS host
+[linux]
+[group('nix')]
+smoke since="-5 minutes":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *;
+  nixos-smoke --since "{{since}}"
+
 # Update all the flake inputs
 [group('nix')]
 up:

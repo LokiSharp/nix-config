@@ -7,7 +7,19 @@
 如何运行所有运行测试：
 
 ```bash
-nix eval .#evalTests --show-trace --print-build-logs --verbose
+just test
+```
+
+只查看测试报告：
+
+```bash
+nix eval .#evalTestReportText --raw --show-trace
+```
+
+查看失败时的 actual/expected 细节：
+
+```bash
+nix eval .#evalTestResults --show-trace
 ```
 
 ### NixOS 测试

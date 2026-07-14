@@ -38,7 +38,9 @@ test:
     exit 1
   fi
   if [ "$result" != "true" ]; then
-    echo "Evaluation tests failed. Inspect details with:"
+    echo "Evaluation tests failed:"
+    nix --quiet eval .#evalTestFailureText --raw --show-trace || true
+    echo "Inspect details with:"
     echo "  nix eval .#evalTestResults --show-trace"
     exit 1
   fi

@@ -93,6 +93,19 @@ let
         "[${result.status}] ${system}/${name}"
       ) (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
     );
+  evalTestFailures =
+    lib.mapAttrs (
+      _system: tests:
+      lib.filterAttrs (_name: result: result.status != "PASS") tests
+    ) (lib.mapAttrs (_system: it: it.evalTestReport or { }) allSystems);
+  formatTestFailures =
+    system: tests:
+    lib.concatStringsSep "\n" (
+      map (
+        name:
+        "[FAIL] ${system}/${name}"
+      ) (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
+    );
 in
 {
   # Add attribute sets into outputs, for debugging
@@ -144,6 +157,7 @@ in
   evalTests = lib.lists.all (it: it.evalTests == { }) allSystemValues;
   evalTestResults = lib.mapAttrs (_system: it: it.evalTestResults or { }) allSystems;
   evalTestReport = lib.mapAttrs (_system: it: it.evalTestReport or { }) allSystems;
+  inherit evalTestFailures;
   evalTestReportText =
     (lib.concatStringsSep "\n" (
       map (
@@ -152,6 +166,18 @@ in
       ) (lib.lists.sort builtins.lessThan allSystemNames)
     ))
     + "\n";
+  evalTestFailureText =
+    let
+      text = lib.concatStringsSep "\n" (
+        lib.filter (line: line != "") (
+          map (
+            system:
+            formatTestFailures system evalTestFailures.${system}
+          ) (lib.lists.sort builtins.lessThan allSystemNames)
+        )
+      );
+    in
+    lib.optionalString (text != "") (text + "\n");
 
   devShells = forAllSystems (system: {
     default = nixpkgs.legacyPackages.${system}.mkShell {

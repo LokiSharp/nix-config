@@ -19,6 +19,7 @@ nix eval .#evalTestReportText --raw --show-trace
 查看失败时的 actual/expected 细节：
 
 ```bash
+nix eval .#evalTestFailureText --raw --show-trace
 nix eval .#evalTestResults --show-trace
 ```
 

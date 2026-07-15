@@ -61,6 +61,12 @@ in
             "wayland"
           ];
         }
+        {
+          _args = [
+            "SSH_AUTH_SOCK"
+            (lib.generators.mkLuaInline ''os.getenv("XDG_RUNTIME_DIR") .. "/ssh-agent"'')
+          ];
+        }
       ];
     };
     extraConfig = builtins.readFile ../conf/hyprland.lua;

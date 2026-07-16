@@ -15,6 +15,7 @@
     sqlite
 
     # misc
+    pkgs-unstable.codex
     devbox
     protobuf
   ];

@@ -30,6 +30,7 @@
 
     he = {
       remoteASN = 6939;
+      exportPrependCount = 2;
       addressing = {
         peerIPv4 = "203.163.222.43";
         peerIPv6 = "2406:d400:1:133:203:163:222:43";

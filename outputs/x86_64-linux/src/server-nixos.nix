@@ -13,11 +13,7 @@
 let
   hostName = "Server-NixOS";
   hostNameLower = lib.toLower hostName;
-  tags = [
-    hostName
-    hostNameLower
-    "homelab-network"
-  ];
+  tags = [ hostName ] ++ mylib.hosts.${hostNameLower}.deploymentTags;
   ssh-user = "root";
 
   modules = {

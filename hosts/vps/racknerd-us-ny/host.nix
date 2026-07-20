@@ -1,26 +1,27 @@
-{ tags, ... }:
+{ ... }:
 {
   index = 3;
-  tags = with tags; [
-    dn42
-    loki-net
-    server
-    firewall
-    dn42-anycast-dns
+  role = "server";
+  kind = "vps";
 
-    tailscale
-    zerotier
-  ];
-
-  zerotier = "6ff46d1b8b";
+  features = {
+    firewall.enable = true;
+    tailscale.enable = true;
+    zerotier = {
+      enable = true;
+      nodeId = "6ff46d1b8b";
+    };
+  };
   public = {
     IPv4 = "107.172.61.229";
   };
-  dn42 = {
-    IPv4 = "172.20.190.3";
-    IPv6 = "fd6a:11d4:cacb::3";
-  };
-  loki-net = {
-    IPv6 = "2a0e:aa07:e220:3::1";
+  networks = {
+    dn42 = {
+      enable = true;
+      anycastDns = true;
+      IPv4 = "172.20.190.3";
+      IPv6 = "fd6a:11d4:cacb::3";
+    };
+    loki-net.enable = true;
   };
 }

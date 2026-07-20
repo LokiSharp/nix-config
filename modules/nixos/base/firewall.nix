@@ -24,7 +24,7 @@ in
   networking.firewall.enable = lib.mkDefault false;
 
   networking.nftables = {
-    enable = configLib.this.hasTag configLib.tags.firewall;
+    enable = configLib.this.features.firewall.enable;
     ruleset = ''
       # Check out https://wiki.nftables.org/ for better documentation.
       # Table for both IPv4 and IPv6.
@@ -44,7 +44,7 @@ in
           iifname dummy0 accept
 
           ${
-            if configLib.this.hasTag configLib.tags.zerotier then
+            if configLib.this.features.zerotier.enable then
               ''
                 # accept ZeroTier traffic
                 iifname "zt-slk0" accept
@@ -54,7 +54,7 @@ in
           }
 
           ${
-            if configLib.this.hasTag configLib.tags.dn42 then
+            if configLib.this.networks.dn42.enable then
               ''
                 # accept DN42 traffic
                 iifname "dn42-*" accept
@@ -64,7 +64,7 @@ in
           }
 
           ${
-            if configLib.this.hasTag configLib.tags.tailscale then
+            if configLib.this.features.tailscale.enable then
               ''
                 # accept Tailscale traffic
                 iifname "tailscale0" accept
@@ -90,7 +90,7 @@ in
 
           ${
             if
-              configLib.this.hasTag configLib.tags.loki-net
+              configLib.this.networks.loki-net.enable
               && config.services ? loki-net
               && config.services.loki-net != { }
             then

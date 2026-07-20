@@ -13,13 +13,7 @@
 let
   hostName = "MoeDove-TPE";
   hostNameLower = lib.toLower hostName;
-  tags = [
-    hostName
-    hostNameLower
-    "vps"
-    "dn42"
-    "loki-net"
-  ];
+  tags = [ hostName ] ++ mylib.hosts.${hostNameLower}.deploymentTags;
   targetHost = "moedove-tpe.slk.moe";
   ssh-user = "root";
 

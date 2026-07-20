@@ -42,6 +42,8 @@ let
 
     hostsWithTag = tag: lib.filterAttrs (_n: v: v.hasTag tag) hosts;
     hostsWithoutTag = tag: lib.filterAttrs (_n: v: !(v.hasTag tag)) hosts;
+    hostsWithDeploymentTag = tag: lib.filterAttrs (_n: v: v.hasDeploymentTag tag) hosts;
+    hostsWithoutDeploymentTag = tag: lib.filterAttrs (_n: v: !(v.hasDeploymentTag tag)) hosts;
 
     colmenaSystem = import ./system/colmenaSystem.nix;
     nixosSystem = import ./system/nixosSystem.nix;

@@ -1,13 +1,16 @@
-{ tags, ... }:
+{ ... }:
 {
   index = 11;
-  tags = with tags; [
-    client
-    firewall
+  role = "client";
+  kind = "vm";
+  deployment.extraTags = [ "desktop" ];
 
-    tailscale
-    zerotier
-  ];
-
-  zerotier = "a2444b031c";
+  features = {
+    firewall.enable = true;
+    tailscale.enable = true;
+    zerotier = {
+      enable = true;
+      nodeId = "a2444b031c";
+    };
+  };
 }

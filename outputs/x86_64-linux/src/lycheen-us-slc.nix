@@ -13,13 +13,7 @@
 let
   hostName = "Lycheen-US-SLC";
   hostNameLower = lib.toLower hostName;
-  tags = [
-    hostName
-    hostNameLower
-    "vps"
-    "dn42"
-    "loki-net"
-  ];
+  tags = [ hostName ] ++ mylib.hosts.${hostNameLower}.deploymentTags;
   targetHost = "lycheen-us-slc.slk.moe";
   ssh-user = "root";
 

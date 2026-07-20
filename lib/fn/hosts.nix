@@ -1,6 +1,5 @@
 {
   lib,
-  tags,
   hostsBase,
   ...
 }:
@@ -62,14 +61,21 @@ let
 in
 lib.mapAttrs (
   name: path:
-  (lib.evalModules {
-    modules = [
-      ../host-options.nix
-      path
-    ];
-    specialArgs = {
-      inherit tags;
-      name = name;
-    };
-  }).config
+  let
+    host =
+      (lib.evalModules {
+        modules = [
+          ../host-options.nix
+          path
+        ];
+        specialArgs.name = name;
+      }).config;
+  in
+  if host.validationErrors == [ ] then
+    host
+  else
+    builtins.throw ''
+      Invalid host metadata for ${name}:
+      ${lib.concatMapStringsSep "\n" (error: "- ${error}") host.validationErrors}
+    ''
 ) safeHostPaths

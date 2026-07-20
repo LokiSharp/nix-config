@@ -87,11 +87,11 @@ in
                 };
                 myIPv4 = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
-                  default = this.loki-net.IPv4;
+                  default = this.networks.loki-net.IPv4;
                 };
                 myIPv6 = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
-                  default = this.loki-net.IPv6;
+                  default = this.networks.loki-net.IPv6;
                 };
                 myIPv6LinkLocal = lib.mkOption {
                   type = lib.types.str;

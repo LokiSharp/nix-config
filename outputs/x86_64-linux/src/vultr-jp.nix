@@ -13,13 +13,7 @@
 let
   hostName = "Vultr-JP";
   hostNameLower = lib.toLower hostName;
-  tags = [
-    hostName
-    hostNameLower
-    "vps"
-    "dn42"
-    "loki-net"
-  ];
+  tags = [ hostName ] ++ mylib.hosts.${hostNameLower}.deploymentTags;
   targetHost = "vultr-jp.slk.moe";
   ssh-user = "root";
 

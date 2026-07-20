@@ -27,9 +27,9 @@ in
   systemd.network.networks."50-dummy0" = {
     matchConfig.Name = "dummy0";
     address = [
-      "${this.dn42.IPv4}/24"
-      "${this.dn42.IPv6}/128"
-      "${this.loki-net.IPv6}/128"
+      "${this.networks.dn42.IPv4}/24"
+      "${this.networks.dn42.IPv6}/128"
+      "${this.networks.loki-net.IPv6}/128"
     ];
   };
 
@@ -46,7 +46,7 @@ in
         ];
 
         dn42Config =
-          if this.hasTag configLib.tags.dn42 then
+          if this.networks.dn42.enable then
             [
               dn42.function
               dn42.roa
@@ -57,7 +57,7 @@ in
             [ ];
 
         loki-netConfig =
-          if this.hasTag configLib.tags.loki-net then
+          if this.networks.loki-net.enable then
             [
               loki-net.function
               loki-net.static

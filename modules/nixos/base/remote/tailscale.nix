@@ -4,7 +4,7 @@ let
 in
 {
   services.tailscale = {
-    enable = configLib.this.hasTag configLib.tags.tailscale;
+    enable = configLib.this.features.tailscale.enable;
     interfaceName = "tailscale0";
   };
 

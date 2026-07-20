@@ -13,13 +13,7 @@
 let
   hostName = "RackNerd-US-SJ";
   hostNameLower = lib.toLower hostName;
-  tags = [
-    hostName
-    hostNameLower
-    "vps"
-    "dn42"
-    "loki-net"
-  ];
+  tags = [ hostName ] ++ mylib.hosts.${hostNameLower}.deploymentTags;
   targetHost = "racknerd-us-sj.slk.moe";
   ssh-user = "root";
 

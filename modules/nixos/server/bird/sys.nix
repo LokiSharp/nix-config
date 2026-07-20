@@ -11,7 +11,7 @@ in
 {
   common = ''
     log stderr { warning, error, fatal };
-    router id ${this.slk-net.IPv4};
+    router id ${this.networks.slk-net.IPv4};
     timeformat protocol iso long;
     # debug protocols all;
 
@@ -193,10 +193,10 @@ in
         krt_metric = 65535;
       }
 
-      krt_prefsrc = ${this.slk-net.IPv4};
+      krt_prefsrc = ${this.networks.slk-net.IPv4};
       ${lib.optionalString (
-        this.dn42.IPv4 != ""
-      ) "if net ~ DN42_NET_SET_IPv4 then krt_prefsrc = ${this.dn42.IPv4};"}
+        this.networks.dn42.IPv4 != ""
+      ) "if net ~ DN42_NET_SET_IPv4 then krt_prefsrc = ${this.networks.dn42.IPv4};"}
       accept;
     }
 
@@ -212,16 +212,16 @@ in
         krt_metric = 65535;
       }
 
-      krt_prefsrc = ${this.slk-net.IPv6};
+      krt_prefsrc = ${this.networks.slk-net.IPv6};
       ${lib.optionalString (
-        this.dn42.IPv6 != ""
-      ) "if net ~ DN42_NET_SET_IPv6 then krt_prefsrc = ${this.dn42.IPv6};"}
+        this.networks.dn42.IPv6 != ""
+      ) "if net ~ DN42_NET_SET_IPv6 then krt_prefsrc = ${this.networks.dn42.IPv6};"}
       ${lib.optionalString (
-        this.hasTag configLib.tags.loki-net && this.loki-net.IPv6 != ""
-      ) "if net ~ LOKI_NET_OWN_NET_SET_IPv6 then krt_prefsrc = ${this.loki-net.IPv6};"}
+        this.networks.loki-net.enable && this.networks.loki-net.IPv6 != ""
+      ) "if net ~ LOKI_NET_OWN_NET_SET_IPv6 then krt_prefsrc = ${this.networks.loki-net.IPv6};"}
       ${lib.optionalString (
-        this.hasTag configLib.tags.loki-net && this.loki-net.IPv6 != ""
-      ) "if net = ::/0 then krt_prefsrc = ${this.loki-net.IPv6};"}
+        this.networks.loki-net.enable && this.networks.loki-net.IPv6 != ""
+      ) "if net = ::/0 then krt_prefsrc = ${this.networks.loki-net.IPv6};"}
       accept;
     }
 

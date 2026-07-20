@@ -13,13 +13,7 @@
 let
   hostName = "OVH-CA-EAST-BHS";
   hostNameLower = lib.toLower hostName;
-  tags = [
-    hostName
-    hostNameLower
-    "vps"
-    "dn42"
-    "loki-net"
-  ];
+  tags = [ hostName ] ++ mylib.hosts.${hostNameLower}.deploymentTags;
   targetHost = "ovh-ca-east-bhs.slk.moe";
   ssh-user = "root";
 

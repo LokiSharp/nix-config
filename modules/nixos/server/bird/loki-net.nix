@@ -9,7 +9,7 @@ let
   LOKI_NET_AS = myvars.constants.LOKI_NET_AS;
 
   peers = config.services.loki-net or { };
-  isEdge = this.hasTag configLib.tags.loki-net-edge;
+  isEdge = this.networks.loki-net.role == "edge";
 
   # Generate static routes for eBGP peers
   ebgp_routes = lib.concatStrings (
@@ -25,14 +25,14 @@ let
     lib.mapAttrsToList (
       n: v:
       let
-        isRemoteLoki = v.hasTag configLib.tags.loki-net;
-        isRemoteEdge = v.hasTag configLib.tags.loki-net-edge;
+        isRemoteLoki = v.networks.loki-net.enable;
+        isRemoteEdge = v.networks.loki-net.role == "edge";
       in
       if n == lib.toLower config.networking.hostName then
         ""
       else if isRemoteLoki && isRemoteEdge && !isEdge then
-        (lib.optionalString (v.loki-net.IPv6NextHop != "") ''
-          route ${v.loki-net.IPv6NextHop}/128 via ${v.slk-net.IPv6};
+        (lib.optionalString (v.networks.loki-net.IPv6NextHop != "") ''
+          route ${v.networks.loki-net.IPv6NextHop}/128 via ${v.networks.slk-net.IPv6};
         '')
       else
         ""
@@ -224,8 +224,8 @@ in
     lib.mapAttrsToList (
       n: v:
       let
-        isRemoteLoki = v.hasTag configLib.tags.loki-net;
-        isRemoteEdge = v.hasTag configLib.tags.loki-net-edge;
+        isRemoteLoki = v.networks.loki-net.enable;
+        isRemoteEdge = v.networks.loki-net.role == "edge";
       in
       if n == lib.toLower config.networking.hostName then
         ""
@@ -233,7 +233,7 @@ in
         if isRemoteLoki then
           mkIBgpPeer {
             name = n;
-            neighbor = v.slk-net.IPv6;
+            neighbor = v.networks.slk-net.IPv6;
             isRRClient = !isRemoteEdge;
           }
         else
@@ -241,7 +241,7 @@ in
       else if isRemoteLoki && isRemoteEdge then
         mkIBgpPeer {
           name = n;
-          neighbor = v.slk-net.IPv6;
+          neighbor = v.networks.slk-net.IPv6;
         }
       else
         ""

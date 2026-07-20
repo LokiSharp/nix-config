@@ -26,7 +26,7 @@ in
 
     filter slk_import_filter_v6 {
       ${lib.optionalString (
-        this.hasTag configLib.tags.loki-net && !this.hasTag configLib.tags.loki-net-edge
+        this.networks.loki-net.enable && this.networks.loki-net.role != "edge"
       ) "if net = ::/0 then accept;"}
       if net ~ SLK_UNMANAGED_NET_SET_IPv6 then reject;
       if net ~ SLK_OWN_NET_SET_IPv6 || net ~ DN42_NET_SET_IPv6 then accept;
@@ -35,7 +35,7 @@ in
 
     filter slk_export_filter_v6 {
       ${lib.optionalString (
-        this.hasTag configLib.tags.loki-net && this.hasTag configLib.tags.loki-net-edge
+        this.networks.loki-net.enable && this.networks.loki-net.role == "edge"
       ) "if net = ::/0 then accept;"}
       if dest ~ [RTD_BLACKHOLE, RTD_UNREACHABLE, RTD_PROHIBIT] then reject;
       if ifindex = 0 then reject;

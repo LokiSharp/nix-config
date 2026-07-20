@@ -10,7 +10,7 @@ let
   slk-net = "b1078f34eb000001";
   interfaceName = "zt-slk0";
 
-  isEnabled = configLib.this.hasTag configLib.tags.zerotier;
+  isEnabled = configLib.this.features.zerotier.enable;
 in
 {
   services.zerotierone = {

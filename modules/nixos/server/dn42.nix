@@ -144,11 +144,11 @@ in
                 };
                 myIPv4 = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
-                  default = this.dn42.IPv4;
+                  default = this.networks.dn42.IPv4;
                 };
                 myIPv6 = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
-                  default = this.dn42.IPv6;
+                  default = this.networks.dn42.IPv6;
                 };
                 myIPv6LinkLocal = lib.mkOption {
                   type = lib.types.str;

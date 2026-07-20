@@ -13,11 +13,7 @@
 let
   hostName = "VM-NixOS";
   hostNameLower = lib.toLower hostName;
-  tags = [
-    hostName
-    hostNameLower
-    "desktop"
-  ];
+  tags = [ hostName ] ++ mylib.hosts.${hostNameLower}.deploymentTags;
   ssh-user = "root";
 
   base-modules = {

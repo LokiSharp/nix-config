@@ -1,2 +1,5 @@
-{ tags, ... }:
-{}
+{ ... }:
+{
+  role = "client";
+  kind = "darwin";
+}

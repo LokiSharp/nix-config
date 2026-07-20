@@ -93,18 +93,13 @@ let
         "[${result.status}] ${system}/${name}"
       ) (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
     );
-  evalTestFailures =
-    lib.mapAttrs (
-      _system: tests:
-      lib.filterAttrs (_name: result: result.status != "PASS") tests
-    ) (lib.mapAttrs (_system: it: it.evalTestReport or { }) allSystems);
+  evalTestFailures = lib.mapAttrs (
+    _system: tests: lib.filterAttrs (_name: result: result.status != "PASS") tests
+  ) (lib.mapAttrs (_system: it: it.evalTestReport or { }) allSystems);
   formatTestFailures =
     system: tests:
     lib.concatStringsSep "\n" (
-      map (
-        name:
-        "[FAIL] ${system}/${name}"
-      ) (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
+      map (name: "[FAIL] ${system}/${name}") (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
     );
 in
 {
@@ -138,7 +133,7 @@ in
           host = mylib.hosts.${lib.toLower name};
         in
         host.public.IPv4 != ""
-    ) (builtins.attrNames nixosConfigurations);
+      ) (builtins.attrNames nixosConfigurations);
       sortedUnique = values: lib.lists.sort builtins.lessThan (lib.lists.unique values);
     in
     lib.genAttrs publicHostNames (
@@ -153,6 +148,70 @@ in
       }
     );
 
+  # Machine-readable data for the Nushell deployment and health-check helpers.
+  # SSH targets remain owned by Colmena and are merged into this data at runtime.
+  deploymentHostMetadata =
+    let
+      candidateUnits = [
+        "apparmor"
+        "auditd"
+        "nftables"
+        "sshd"
+        "systemd-networkd"
+        "systemd-resolved"
+        "tailscaled"
+        "zerotierone"
+        "sing-box"
+        "bird"
+        "bind"
+        "caddy"
+        "gitea"
+        "grafana"
+        "postgresql"
+        "minio"
+        "victoriametrics"
+        "vmalert"
+        "alertmanager"
+        "sftpgo"
+        "podman-homepage"
+        "prometheus-node-exporter"
+        "prometheus-postgres-exporter"
+        "qemu-guest-agent"
+      ];
+    in
+    lib.genAttrs (builtins.attrNames nixosConfigurations) (
+      name:
+      let
+        host = mylib.hosts.${lib.toLower name};
+        config = nixosConfigurations.${name}.config;
+      in
+      {
+        inherit name;
+        inherit (host) role kind deploymentTags;
+        requiredUnits = lib.filter (unit: builtins.hasAttr unit config.systemd.services) candidateUnits;
+        features = {
+          firewall = host.features.firewall.enable;
+          tailscale = host.features.tailscale.enable;
+          zerotier = host.features.zerotier.enable;
+        };
+        networks = {
+          slk-net = {
+            ipv4 = if host.features.zerotier.nodeId != null then host.networks.slk-net.IPv4 else "";
+            ipv6 = if host.features.zerotier.nodeId != null then host.networks.slk-net.IPv6 else "";
+          };
+          dn42 = {
+            inherit (host.networks.dn42) enable anycastDns;
+            ipv4 = host.networks.dn42.IPv4;
+            ipv6 = if host.networks.dn42.enable then host.networks.dn42.IPv6 else "";
+          };
+          loki-net = {
+            inherit (host.networks.loki-net) enable role;
+            ipv6 = if host.networks.loki-net.enable then host.networks.loki-net.IPv6 else "";
+          };
+        };
+      }
+    );
+
   # Eval Tests for all NixOS & darwin systems.
   evalTests = lib.lists.all (it: it.evalTests == { }) allSystemValues;
   evalTestResults = lib.mapAttrs (_system: it: it.evalTestResults or { }) allSystems;
@@ -160,20 +219,18 @@ in
   inherit evalTestFailures;
   evalTestReportText =
     (lib.concatStringsSep "\n" (
-      map (
-        system:
-        formatTestReport system allSystems.${system}.evalTestReport
-      ) (lib.lists.sort builtins.lessThan allSystemNames)
+      map (system: formatTestReport system allSystems.${system}.evalTestReport) (
+        lib.lists.sort builtins.lessThan allSystemNames
+      )
     ))
     + "\n";
   evalTestFailureText =
     let
       text = lib.concatStringsSep "\n" (
         lib.filter (line: line != "") (
-          map (
-            system:
-            formatTestFailures system evalTestFailures.${system}
-          ) (lib.lists.sort builtins.lessThan allSystemNames)
+          map (system: formatTestFailures system evalTestFailures.${system}) (
+            lib.lists.sort builtins.lessThan allSystemNames
+          )
         )
       );
     in

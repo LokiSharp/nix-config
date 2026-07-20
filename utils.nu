@@ -334,6 +334,438 @@ export def public-exposure [
     }
 }
 
+# ================= Deployment orchestration =================
+
+def deployment-inventory [] {
+    let metadata_result = (nix eval .#deploymentHostMetadata --json --show-trace | complete)
+    if $metadata_result.exit_code != 0 {
+        print -e "[FAIL] failed to evaluate .#deploymentHostMetadata"
+        print -e ($metadata_result.stderr | str trim)
+        exit 1
+    }
+
+    let colmena_expression = '{ nodes, lib, ... }: lib.mapAttrs (_: node: { targetHost = node.config.deployment.targetHost; targetUser = node.config.deployment.targetUser; }) nodes'
+    # Health checks are read-only and should also work while deployment helpers
+    # themselves are being edited in a dirty worktree.
+    let targets_result = (colmena eval --impure -E $colmena_expression --show-trace | complete)
+    if $targets_result.exit_code != 0 {
+        print -e "[FAIL] failed to evaluate Colmena SSH targets"
+        print -e ($targets_result.stderr | str trim)
+        exit 1
+    }
+
+    let metadata = ($metadata_result.stdout | from json)
+    let targets = ($targets_result.stdout | from json)
+
+    $metadata
+    | transpose name metadata
+    | each {|item|
+        let target = ($targets | get $item.name)
+        $item.metadata | merge {
+            targetHost: $target.targetHost
+            targetUser: $target.targetUser
+        }
+    }
+    | sort-by name
+}
+
+def select-deployment-hosts [inventory: list<any>, requested: list<string>] {
+    if ($requested | is-empty) {
+        return $inventory
+    }
+
+    let known = ($inventory | get name)
+    let unknown = ($requested | uniq | where {|name| not ($name in $known) })
+    if not ($unknown | is-empty) {
+        print -e $"[FAIL] unknown deployment host\(s\): (($unknown | str join ', '))"
+        print -e $"[INFO] known hosts: (($known | str join ', '))"
+        exit 1
+    }
+
+    $inventory | where {|host| $host.name in $requested }
+}
+
+def ssh-command [host: record, command: string] {
+    let destination = $"($host.targetUser)@($host.targetHost)"
+    ^ssh -o BatchMode=yes -o ConnectTimeout=12 -o ConnectionAttempts=3 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o ControlMaster=auto -o ControlPersist=60 -o ControlPath=/tmp/nix-config-health-%C $destination $command | complete
+}
+
+def ping-loss [output: string] {
+    let rows = (
+        $output
+        | lines
+        | parse --regex '(?P<loss>[0-9.]+)% packet loss'
+    )
+
+    if ($rows | is-empty) {
+        null
+    } else {
+        ($rows | last | get loss | into float)
+    }
+}
+
+def check-ping [host: record, address: string, ipv6: bool, label: string] {
+    let family = if $ipv6 { "-6" } else { "-4" }
+    let first = (ssh-command $host $"ping ($family) -c 5 -W 3 ($address)")
+    let first_loss = (ping-loss $first.stdout)
+    if ($first.exit_code == 0) and ($first_loss != null) and ($first_loss == 0.0) {
+        print $"[PASS] ($host.name): ($label) reachable without loss"
+        return 0
+    }
+
+    print $"[INFO] ($host.name): retrying ($label) after a lossy/failed probe"
+    let retry = (ssh-command $host $"ping ($family) -c 10 -i 0.2 -W 3 ($address)")
+    let retry_loss = (ping-loss $retry.stdout)
+    if ($retry.exit_code == 0) and ($retry_loss != null) and ($retry_loss <= 10.0) {
+        if $retry_loss == 0.0 {
+            print $"[PASS] ($host.name): ($label) retry passed without loss"
+        } else {
+            print $"[WARN] ($host.name): ($label) reachable with ($retry_loss)% loss"
+        }
+        0
+    } else {
+        print -e $"[FAIL] ($host.name): ($label) is unreachable or lossy"
+        let details = (($retry.stdout + $retry.stderr) | str trim)
+        if $details != "" {
+            print -e $details
+        }
+        1
+    }
+}
+
+def check-http-probes [host: record] {
+    let probes = [
+        { unit: "gitea", url: "http://127.0.0.1:3301/api/healthz" }
+        { unit: "grafana", url: "http://127.0.0.1:3351/api/health" }
+        { unit: "minio", url: "http://127.0.0.1:9096/minio/health/live" }
+        { unit: "victoriametrics", url: "http://127.0.0.1:9090/health" }
+        { unit: "alertmanager", url: "http://127.0.0.1:9093/-/healthy" }
+        { unit: "podman-homepage", url: "http://127.0.0.1:54401/" }
+    ]
+    mut failures = 0
+
+    for probe in $probes {
+        if not ($probe.unit in $host.requiredUnits) {
+            continue
+        }
+
+        let result = (ssh-command $host $"curl --fail --silent --show-error --max-time 8 ($probe.url)")
+        if $result.exit_code == 0 {
+            print $"[PASS] ($host.name): ($probe.unit) HTTP probe"
+        } else {
+            print -e $"[FAIL] ($host.name): ($probe.unit) HTTP probe failed: ($probe.url)"
+            print -e (($result.stdout + $result.stderr) | str trim)
+            $failures = $failures + 1
+        }
+    }
+
+    if "postgresql" in $host.requiredUnits {
+        let result = (ssh-command $host "runuser -u postgres -- psql --quiet --tuples-only --command 'SELECT 1' postgres")
+        if ($result.exit_code == 0) and (($result.stdout | str trim) == "1") {
+            print $"[PASS] ($host.name): PostgreSQL query probe"
+        } else {
+            print -e $"[FAIL] ($host.name): PostgreSQL query probe failed"
+            print -e (($result.stdout + $result.stderr) | str trim)
+            $failures = $failures + 1
+        }
+    }
+
+    $failures
+}
+
+def check-deployment-host [host: record, reference: record, since: string] {
+    mut failures = 0
+    print $"\n[INFO] checking ($host.name) via ($host.targetUser)@($host.targetHost)"
+
+    let hostname = (ssh-command $host "hostname")
+    if ($hostname.exit_code == 0) and (($hostname.stdout | str trim) == $host.name) {
+        print $"[PASS] ($host.name): SSH and hostname"
+    } else {
+        print -e $"[FAIL] ($host.name): SSH failed or hostname mismatch"
+        print -e (($hostname.stdout + $hostname.stderr) | str trim)
+        return 1
+    }
+
+    let system_state = (ssh-command $host "systemctl is-system-running")
+    if ($system_state.exit_code == 0) and (($system_state.stdout | str trim) == "running") {
+        print $"[PASS] ($host.name): systemd system state is running"
+    } else {
+        print -e $"[FAIL] ($host.name): systemd state is (($system_state.stdout | str trim))"
+        $failures = $failures + 1
+    }
+
+    let current_kernel = (ssh-command $host "readlink -f /run/current-system/kernel")
+    let booted_kernel = (ssh-command $host "readlink -f /run/booted-system/kernel")
+    if ($current_kernel.exit_code == 0) and ($booted_kernel.exit_code == 0) {
+        let current = ($current_kernel.stdout | str trim)
+        let booted = ($booted_kernel.stdout | str trim)
+        if $current == $booted {
+            print $"[PASS] ($host.name): running the current kernel"
+        } else {
+            print $"[WARN] ($host.name): reboot required to run the current kernel"
+            print $"       current: ($current)"
+            print $"       booted:  ($booted)"
+        }
+    }
+
+    let failed_units = (ssh-command $host "systemctl --failed --no-legend --no-pager")
+    if ($failed_units.exit_code == 0) and (($failed_units.stdout | str trim) == "") {
+        print $"[PASS] ($host.name): no failed systemd units"
+    } else {
+        print -e $"[FAIL] ($host.name): failed systemd units detected"
+        print -e (($failed_units.stdout + $failed_units.stderr) | str trim)
+        $failures = $failures + 1
+    }
+
+    if not ($host.requiredUnits | is-empty) {
+        let units = ($host.requiredUnits | each {|unit| $"($unit).service" } | str join " ")
+        let active_units = (ssh-command $host $"systemctl is-active ($units)")
+        if $active_units.exit_code == 0 {
+            print $"[PASS] ($host.name): (($host.requiredUnits | length)) required systemd units active"
+        } else {
+            print -e $"[FAIL] ($host.name): one or more required systemd units inactive"
+            print -e (($active_units.stdout + $active_units.stderr) | str trim)
+            $failures = $failures + 1
+        }
+    }
+
+    if "auditd" in $host.requiredUnits {
+        let audit = (ssh-command $host "auditctl -s")
+        let fields = if $audit.exit_code == 0 {
+            $audit.stdout | lines | parse "{name} {value}"
+        } else {
+            []
+        }
+        let lost_rows = ($fields | where name == "lost")
+        let backlog_rows = ($fields | where name == "backlog")
+
+        if (not ($lost_rows | is-empty)) and (not ($backlog_rows | is-empty)) {
+            let lost = ($lost_rows.0.value | into int)
+            let backlog = ($backlog_rows.0.value | into int)
+            if ($lost == 0) and ($backlog == 0) {
+                print $"[PASS] ($host.name): audit lost and backlog counters are zero"
+            } else {
+                print -e $"[FAIL] ($host.name): audit lost=($lost), backlog=($backlog)"
+                $failures = $failures + 1
+            }
+        } else {
+            print -e $"[FAIL] ($host.name): unable to read audit status"
+            print -e (($audit.stdout + $audit.stderr) | str trim)
+            $failures = $failures + 1
+        }
+    }
+
+    if $host.features.zerotier {
+        let zerotier = (ssh-command $host "zerotier-cli status")
+        if ($zerotier.exit_code == 0) and ($zerotier.stdout | str contains "ONLINE") {
+            print $"[PASS] ($host.name): ZeroTier ONLINE"
+        } else {
+            print -e $"[FAIL] ($host.name): ZeroTier is not ONLINE"
+            print -e (($zerotier.stdout + $zerotier.stderr) | str trim)
+            $failures = $failures + 1
+        }
+    }
+
+    if "bird" in $host.requiredUnits {
+        let bird = (ssh-command $host "birdc show protocols")
+        if $bird.exit_code != 0 {
+            print -e $"[FAIL] ($host.name): BIRD control socket failed"
+            print -e (($bird.stdout + $bird.stderr) | str trim)
+            $failures = $failures + 1
+        } else {
+            let internal_bgp = ($bird.stdout | lines | where {|line| $line | str contains "ibgp_loki_net_" })
+            let bad_bgp = ($internal_bgp | where {|line| not ($line | str contains "Established") })
+            let ospf = ($bird.stdout | lines | where {|line| $line =~ '^slk_ospf_' })
+            let bad_ospf = ($ospf | where {|line| not ($line | str contains "Running") })
+
+            if ($bad_bgp | is-empty) and ($bad_ospf | is-empty) {
+                print $"[PASS] ($host.name): internal BGP and OSPF protocols healthy"
+            } else {
+                print -e $"[FAIL] ($host.name): unhealthy internal routing protocols"
+                $bad_bgp | append $bad_ospf | each {|line| print -e $line }
+                $failures = $failures + 1
+            }
+        }
+    }
+
+    if $host.networks.dn42.anycastDns {
+        let dns = (ssh-command $host "dig +time=5 +tries=1 +short @127.0.0.1 slk.dn42 SOA")
+        if ($dns.exit_code == 0) and (($dns.stdout | str trim) != "") {
+            print $"[PASS] ($host.name): local DN42 DNS SOA query"
+        } else {
+            print -e $"[FAIL] ($host.name): local DN42 DNS query failed"
+            print -e (($dns.stdout + $dns.stderr) | str trim)
+            $failures = $failures + 1
+        }
+    }
+
+    if ($host.kind == "vps") and ($host.name != $reference.name) {
+        $failures = $failures + (check-ping $host $reference.networks.slk-net.ipv4 false $"SLK IPv4 -> ($reference.name)")
+        $failures = $failures + (check-ping $host $reference.networks.slk-net.ipv6 true $"SLK IPv6 -> ($reference.name)")
+        if $reference.networks.loki-net.enable {
+            $failures = $failures + (check-ping $host $reference.networks.loki-net.ipv6 true $"Loki-Net IPv6 -> ($reference.name)")
+        }
+    }
+
+    $failures = $failures + (check-http-probes $host)
+
+    let journal = (ssh-command $host $"journalctl -b --since '($since)' --priority=0..3 --no-pager")
+    if $journal.exit_code != 0 {
+        print -e $"[FAIL] ($host.name): unable to read high-priority journal"
+        print -e (($journal.stdout + $journal.stderr) | str trim)
+        $failures = $failures + 1
+    } else {
+        let unexpected = (
+            $journal.stdout
+            | lines
+            | where {|line|
+                let trimmed = ($line | str trim)
+                let duplicate_dbus = ($line | str contains "Ignoring duplicate name")
+                let ssh_preauth_reset = (($line | str contains "kex_exchange_identification") and ($line | str contains "[preauth]"))
+                ($trimmed != "") and ($trimmed != "-- No entries --") and not $duplicate_dbus and not $ssh_preauth_reset
+            }
+        )
+        if ($unexpected | is-empty) {
+            print $"[PASS] ($host.name): no unexpected priority 0..3 logs since ($since)"
+        } else {
+            print -e $"[FAIL] ($host.name): unexpected priority 0..3 logs since ($since)"
+            $unexpected | first 30 | each {|line| print -e $line }
+            $failures = $failures + 1
+        }
+    }
+
+    if $failures == 0 {
+        print $"[PASS] ($host.name): health checks passed"
+    } else {
+        print -e $"[FAIL] ($host.name): ($failures) health check\(s\) failed"
+    }
+    $failures
+}
+
+def run-deployment-health [inventory: list<any>, selected: list<any>, since: string] {
+    let references = ($inventory | where name == "Test-NixOS")
+    if ($references | is-empty) {
+        print -e "[FAIL] Test-NixOS is missing from the deployment inventory"
+        exit 1
+    }
+    let reference = ($references | first)
+    mut failures = 0
+
+    for host in $selected {
+        $failures = $failures + (check-deployment-host $host $reference $since)
+    }
+
+    if $failures == 0 {
+        print $"\n[PASS] deployment health checks passed for (($selected | length)) host\(s\)"
+    } else {
+        print -e $"\n[FAIL] ($failures) deployment health check\(s\) failed"
+    }
+    $failures
+}
+
+def apply-colmena-hosts [hosts: list<any>, parallel: int] {
+    if ($hosts | is-empty) {
+        return
+    }
+
+    let selector = ($hosts | get name | str join ",")
+    print $"[INFO] deploying with Colmena: ($selector)"
+    ^colmena apply --on $selector --parallel ($parallel | into string) --verbose --show-trace
+    if $env.LAST_EXIT_CODE != 0 {
+        print -e $"[FAIL] Colmena deployment failed: ($selector)"
+        exit $env.LAST_EXIT_CODE
+    }
+}
+
+def ensure-deployment-worktree [] {
+    let git_status = (git status --porcelain | complete)
+    if ($git_status.exit_code != 0) or (($git_status.stdout | str trim) != "") {
+        print -e "[FAIL] deployment requires a clean Git worktree"
+        if (($git_status.stdout | str trim) != "") {
+            print -e ($git_status.stdout | str trim)
+        }
+        print -e "[INFO] commit or stash changes before deploying"
+        exit 1
+    }
+}
+
+def run-deployment-preflight [] {
+    print "[INFO] running flake checks before deployment"
+    ^nix flake check --all-systems --no-build --show-trace
+    if $env.LAST_EXIT_CODE != 0 {
+        print -e "[FAIL] flake checks failed; deployment stopped"
+        exit $env.LAST_EXIT_CODE
+    }
+}
+
+export def deployment-health [
+    --since: string = "-15 minutes"
+    ...hosts: string
+] {
+    if $since !~ '^-[0-9]+ (minute|minutes|hour|hours)$' {
+        print -e $"[FAIL] unsupported --since value: ($since)"
+        print -e "[INFO] use values such as '-15 minutes' or '-1 hour'"
+        exit 1
+    }
+
+    let inventory = (deployment-inventory)
+    let selected = (select-deployment-hosts $inventory $hosts)
+    let failures = (run-deployment-health $inventory $selected $since)
+    if $failures != 0 {
+        exit 1
+    }
+}
+
+export def deployment-test [
+    --parallel: int = 2
+    --skip-check
+    --since: string = "-15 minutes"
+] {
+    ensure-deployment-worktree
+    if not $skip_check {
+        run-deployment-preflight
+    }
+
+    let inventory = (deployment-inventory)
+    let selected = (select-deployment-hosts $inventory ["Test-NixOS"])
+    apply-colmena-hosts $selected $parallel
+    let failures = (run-deployment-health $inventory $selected $since)
+    if $failures != 0 {
+        print -e "[FAIL] Test-NixOS canary failed; rollout stopped"
+        exit 1
+    }
+}
+
+export def deployment-rollout [
+    --parallel: int = 2
+    --skip-check
+    --since: string = "-15 minutes"
+] {
+    ensure-deployment-worktree
+    if not $skip_check {
+        run-deployment-preflight
+    }
+
+    let inventory = (deployment-inventory)
+    let canary = (select-deployment-hosts $inventory ["Test-NixOS"])
+    let remaining = ($inventory | where name != "Test-NixOS")
+
+    apply-colmena-hosts $canary $parallel
+    let canary_failures = (run-deployment-health $inventory $canary $since)
+    if $canary_failures != 0 {
+        print -e "[FAIL] Test-NixOS canary failed; remaining hosts were not deployed"
+        exit 1
+    }
+
+    apply-colmena-hosts $remaining $parallel
+    let failures = (run-deployment-health $inventory $inventory $since)
+    if $failures != 0 {
+        exit 1
+    }
+
+    print "[PASS] canary-first deployment rollout completed"
+}
+
 # ====================== Misc =============================
 
 export def make-editable [

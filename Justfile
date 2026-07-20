@@ -61,6 +61,31 @@ public-exposure:
   use {{utils_nu}} *;
   public-exposure
 
+# Run configuration-derived health checks over all nodes or selected node names
+# Usage: just deploy-health Test-NixOS Server-NixOS
+[linux]
+[group('deployment')]
+deploy-health *hosts:
+  #!/usr/bin/env nu
+  use {{utils_nu}} *;
+  deployment-health {{hosts}}
+
+# Check the flake, deploy Test-NixOS, and stop if its canary checks fail
+[linux]
+[group('deployment')]
+deploy-test parallel="2":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *;
+  deployment-test --parallel {{parallel}}
+
+# Check the flake, deploy and verify Test-NixOS, then deploy and verify every other node
+[linux]
+[group('deployment')]
+deploy-all parallel="2":
+  #!/usr/bin/env nu
+  use {{utils_nu}} *;
+  deployment-rollout --parallel {{parallel}}
+
 # Update all the flake inputs
 [group('nix')]
 up:

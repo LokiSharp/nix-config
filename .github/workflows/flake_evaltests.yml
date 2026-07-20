@@ -35,3 +35,6 @@ jobs:
             echo "  nix eval .#evalTestResults --show-trace"
             exit 1
           fi
+
+      - name: Check all flake outputs
+        run: nix flake check --all-systems --no-build --show-trace

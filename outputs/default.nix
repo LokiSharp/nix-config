@@ -188,7 +188,7 @@ in
       {
         inherit name;
         inherit (host) role kind deploymentTags;
-        healthUser = myvars.deploymentUsername;
+        healthUser = myvars.healthcheckUsername;
         requiredUnits = lib.filter (unit: builtins.hasAttr unit config.systemd.services) candidateUnits;
         features = {
           firewall = host.features.firewall.enable;

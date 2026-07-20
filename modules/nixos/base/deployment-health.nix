@@ -56,11 +56,11 @@ let
   };
 in
 {
-  users.groups.${myvars.deploymentUsername} = { };
-  users.users.${myvars.deploymentUsername} = {
+  users.groups.${myvars.healthcheckUsername} = { };
+  users.users.${myvars.healthcheckUsername} = {
     isNormalUser = true;
-    group = myvars.deploymentUsername;
-    home = "/var/lib/${myvars.deploymentUsername}";
+    group = myvars.healthcheckUsername;
+    home = "/var/lib/${myvars.healthcheckUsername}";
     createHome = true;
     shell = pkgs.bashInteractive;
     openssh.authorizedKeys.keys = myvars.sshAuthorizedKeys;
@@ -70,7 +70,7 @@ in
 
   security.sudo.extraRules = [
     {
-      users = [ myvars.deploymentUsername ];
+      users = [ myvars.healthcheckUsername ];
       commands = [
         {
           command = "${rootHelper}/bin/deployment-health-root";

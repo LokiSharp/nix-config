@@ -2,6 +2,18 @@
 {
   allHostsValid = true;
   deploymentTagsUnique = true;
+  legacyDeploymentTagsAbsent = true;
+
+  globalUniqueness = {
+    indexes = true;
+    zerotierNodeIds = true;
+    slkNetIPv4 = true;
+    slkNetIPv6 = true;
+    dn42IPv4 = true;
+    dn42IPv6 = true;
+    lokiNetIPv4 = true;
+    lokiNetIPv6 = true;
+  };
 
   vultrMetadata = {
     role = "server";

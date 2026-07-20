@@ -65,6 +65,24 @@ just deploy-all 4
 
 当前已知的 D-Bus `Ignoring duplicate name` 和公网 SSH pre-auth 连接重置会从日志失败条件中排除；AppArmor、audit、内核或服务产生的其他高优先级日志仍会阻止发布通过。
 
+## 普通用户与 root 检查
+
+健康检查通过专用普通用户 `deploy` 建立 SSH 连接。该用户只允许 SSH key 登录，不属于 `wheel`，也不是 Nix trusted user。以下检查不提权：
+
+- 主机名、systemd 状态和必检单元；
+- 当前与已启动内核比较；
+- DNS、HTTP 和 PostgreSQL 以外的网络连通性探测。
+
+只有确实需要特权的操作通过 `sudo -n deployment-health-root` 执行：
+
+- audit 状态；
+- 当前启动的高优先级 journal；
+- BIRD 控制套接字；
+- ZeroTier 控制套接字；
+- 以 `postgres` 用户执行只读的 `SELECT 1`。
+
+`deployment-health-root` 由 Nix 生成到不可变 store 路径，只接受上述固定动作和 1–1440 分钟的日志窗口。sudoers 仅允许 `deploy` 执行该 helper，不允许它执行任意 root 命令。所有提权调用都使用 `sudo -n`，配置错误时立即失败，不会询问或保存密码。
+
 ## 数据来源
 
 flake 输出 `deploymentHostMetadata`，包含健康检查所需的结构化数据：
@@ -73,7 +91,7 @@ flake 输出 `deploymentHostMetadata`，包含健康检查所需的结构化数�
 nix eval .#deploymentHostMetadata --json
 ```
 
-SSH 的 `targetHost` 和 `targetUser` 则在运行时通过 `colmena eval` 获取。这保证修改主机元数据、服务或 Colmena 目标后，Nushell 无需维护第二份节点清单。
+SSH 的 `targetHost` 和部署用 `targetUser` 在运行时通过 `colmena eval` 获取；健康检查用户来自 `myvars.deploymentUsername`。这保证修改主机元数据、服务或 Colmena 目标后，Nushell 无需维护第二份节点清单。
 
 ## 直接使用 Nushell
 

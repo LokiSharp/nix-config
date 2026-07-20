@@ -336,6 +336,35 @@ export def public-exposure [
 
 # ================= Deployment orchestration =================
 
+# Privileged probes exposed through a Nix-owned sudo wrapper. Keep this
+# interface deliberately closed: callers select a fixed action, never a shell
+# command or an arbitrary executable.
+export def deployment-health-root [
+    action: string
+    --since-minutes: int = 15
+] {
+    if (id -u | into int) != 0 {
+        print -e "deployment-health-root must run as root"
+        exit 1
+    }
+
+    match $action {
+        "audit-status" => { ^auditctl -s }
+        "bird-protocols" => { ^birdc show protocols }
+        "journal" => { ^journalctl -b --since $"-($since_minutes) minutes" --priority=0..3 --no-pager }
+        "postgresql" => { ^runuser -u postgres -- psql --quiet --tuples-only --command "SELECT 1" postgres }
+        "zerotier-status" => { ^zerotier-cli status }
+        _ => {
+            print -e $"unsupported root health-check action: ($action)"
+            exit 2
+        }
+    }
+
+    if $env.LAST_EXIT_CODE != 0 {
+        exit $env.LAST_EXIT_CODE
+    }
+}
+
 def deployment-inventory [] {
     let metadata_result = (nix eval .#deploymentHostMetadata --json --show-trace | complete)
     if $metadata_result.exit_code != 0 {
@@ -386,8 +415,28 @@ def select-deployment-hosts [inventory: list<any>, requested: list<string>] {
 }
 
 def ssh-command [host: record, command: string] {
-    let destination = $"($host.targetUser)@($host.targetHost)"
+    let destination = $"($host.healthUser)@($host.targetHost)"
     ^ssh -o BatchMode=yes -o ConnectTimeout=12 -o ConnectionAttempts=3 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o ControlMaster=auto -o ControlPersist=60 -o ControlPath=/tmp/nix-config-health-%C $destination $command | complete
+}
+
+def root-health-command [host: record, helper: string, action: string, since_minutes: int] {
+    ssh-command $host $"sudo -n ($helper) ($action) ($since_minutes)"
+}
+
+def since-to-minutes [since: string] {
+    if $since !~ '^-[0-9]+ (minute|minutes|hour|hours)$' {
+        print -e $"[FAIL] unsupported --since value: ($since)"
+        print -e "[INFO] use values such as '-15 minutes' or '-1 hour'"
+        exit 1
+    }
+
+    let parts = ($since | split row " ")
+    let value = ($parts.0 | str replace "-" "" | into int)
+    if ($parts.1 | str starts-with "hour") {
+        $value * 60
+    } else {
+        $value
+    }
 }
 
 def ping-loss [output: string] {
@@ -433,7 +482,7 @@ def check-ping [host: record, address: string, ipv6: bool, label: string] {
     }
 }
 
-def check-http-probes [host: record] {
+def check-http-probes [host: record, root_helper: string, since_minutes: int] {
     let probes = [
         { unit: "gitea", url: "http://127.0.0.1:3301/api/healthz" }
         { unit: "grafana", url: "http://127.0.0.1:3351/api/health" }
@@ -460,7 +509,7 @@ def check-http-probes [host: record] {
     }
 
     if "postgresql" in $host.requiredUnits {
-        let result = (ssh-command $host "runuser -u postgres -- psql --quiet --tuples-only --command 'SELECT 1' postgres")
+        let result = (root-health-command $host $root_helper "postgresql" $since_minutes)
         if ($result.exit_code == 0) and (($result.stdout | str trim) == "1") {
             print $"[PASS] ($host.name): PostgreSQL query probe"
         } else {
@@ -473,9 +522,9 @@ def check-http-probes [host: record] {
     $failures
 }
 
-def check-deployment-host [host: record, reference: record, since: string] {
+def check-deployment-host [host: record, reference: record, since_minutes: int] {
     mut failures = 0
-    print $"\n[INFO] checking ($host.name) via ($host.targetUser)@($host.targetHost)"
+    print $"\n[INFO] checking ($host.name) via ($host.healthUser)@($host.targetHost)"
 
     let hostname = (ssh-command $host "hostname")
     if ($hostname.exit_code == 0) and (($hostname.stdout | str trim) == $host.name) {
@@ -483,6 +532,14 @@ def check-deployment-host [host: record, reference: record, since: string] {
     } else {
         print -e $"[FAIL] ($host.name): SSH failed or hostname mismatch"
         print -e (($hostname.stdout + $hostname.stderr) | str trim)
+        return 1
+    }
+
+    let helper_result = (ssh-command $host "readlink -f /run/current-system/sw/bin/deployment-health-root")
+    let root_helper = ($helper_result.stdout | str trim)
+    if ($helper_result.exit_code != 0) or (not ($root_helper | str starts-with "/nix/store/")) or (not ($root_helper | str ends-with "/bin/deployment-health-root")) {
+        print -e $"[FAIL] ($host.name): privileged health-check helper is missing or invalid"
+        print -e (($helper_result.stdout + $helper_result.stderr) | str trim)
         return 1
     }
 
@@ -530,7 +587,7 @@ def check-deployment-host [host: record, reference: record, since: string] {
     }
 
     if "auditd" in $host.requiredUnits {
-        let audit = (ssh-command $host "auditctl -s")
+        let audit = (root-health-command $host $root_helper "audit-status" $since_minutes)
         let fields = if $audit.exit_code == 0 {
             $audit.stdout | lines | parse "{name} {value}"
         } else {
@@ -556,7 +613,7 @@ def check-deployment-host [host: record, reference: record, since: string] {
     }
 
     if $host.features.zerotier {
-        let zerotier = (ssh-command $host "zerotier-cli status")
+        let zerotier = (root-health-command $host $root_helper "zerotier-status" $since_minutes)
         if ($zerotier.exit_code == 0) and ($zerotier.stdout | str contains "ONLINE") {
             print $"[PASS] ($host.name): ZeroTier ONLINE"
         } else {
@@ -567,7 +624,7 @@ def check-deployment-host [host: record, reference: record, since: string] {
     }
 
     if "bird" in $host.requiredUnits {
-        let bird = (ssh-command $host "birdc show protocols")
+        let bird = (root-health-command $host $root_helper "bird-protocols" $since_minutes)
         if $bird.exit_code != 0 {
             print -e $"[FAIL] ($host.name): BIRD control socket failed"
             print -e (($bird.stdout + $bird.stderr) | str trim)
@@ -607,9 +664,9 @@ def check-deployment-host [host: record, reference: record, since: string] {
         }
     }
 
-    $failures = $failures + (check-http-probes $host)
+    $failures = $failures + (check-http-probes $host $root_helper $since_minutes)
 
-    let journal = (ssh-command $host $"journalctl -b --since '($since)' --priority=0..3 --no-pager")
+    let journal = (root-health-command $host $root_helper "journal" $since_minutes)
     if $journal.exit_code != 0 {
         print -e $"[FAIL] ($host.name): unable to read high-priority journal"
         print -e (($journal.stdout + $journal.stderr) | str trim)
@@ -626,9 +683,9 @@ def check-deployment-host [host: record, reference: record, since: string] {
             }
         )
         if ($unexpected | is-empty) {
-            print $"[PASS] ($host.name): no unexpected priority 0..3 logs since ($since)"
+            print $"[PASS] ($host.name): no unexpected priority 0..3 logs in the last ($since_minutes) minute\(s\)"
         } else {
-            print -e $"[FAIL] ($host.name): unexpected priority 0..3 logs since ($since)"
+            print -e $"[FAIL] ($host.name): unexpected priority 0..3 logs in the last ($since_minutes) minute\(s\)"
             $unexpected | first 30 | each {|line| print -e $line }
             $failures = $failures + 1
         }
@@ -649,10 +706,11 @@ def run-deployment-health [inventory: list<any>, selected: list<any>, since: str
         exit 1
     }
     let reference = ($references | first)
+    let since_minutes = (since-to-minutes $since)
     mut failures = 0
 
     for host in $selected {
-        $failures = $failures + (check-deployment-host $host $reference $since)
+        $failures = $failures + (check-deployment-host $host $reference $since_minutes)
     }
 
     if $failures == 0 {
@@ -702,12 +760,6 @@ export def deployment-health [
     --since: string = "-15 minutes"
     ...hosts: string
 ] {
-    if $since !~ '^-[0-9]+ (minute|minutes|hour|hours)$' {
-        print -e $"[FAIL] unsupported --since value: ($since)"
-        print -e "[INFO] use values such as '-15 minutes' or '-1 hour'"
-        exit 1
-    }
-
     let inventory = (deployment-inventory)
     let selected = (select-deployment-hosts $inventory $hosts)
     let failures = (run-deployment-health $inventory $selected $since)

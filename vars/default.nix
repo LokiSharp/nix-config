@@ -1,5 +1,6 @@
 { lib }: {
   username = "loki-sharp";
+  deploymentUsername = "deploy";
   userfullname = "LokiSharp";
   useremail = "loki.sharp@gmail.com";
   networking = import ./networking.nix { inherit lib; };

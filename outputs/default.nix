@@ -179,15 +179,21 @@ in
     in
     lib.optionalString (text != "") (text + "\n");
 
-  devShells = forAllSystems (system: {
-    default = nixpkgs.legacyPackages.${system}.mkShell {
-      packages = with nixpkgs.legacyPackages.${system}; [
-        just
-        colmena
-        nixpkgs-fmt
-      ];
-    };
-  });
+  devShells = forAllSystems (
+    system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      default = pkgs.mkShell {
+        packages = [
+          pkgs.just
+          pkgs.colmena
+          pkgs.nixpkgs-fmt
+        ];
+      };
+    }
+  );
 
   checks = forAllSystems (system: {
     # eval-tests per system wrapped in a dummy derivation

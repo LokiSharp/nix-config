@@ -243,12 +243,12 @@ Test-NixOS-local mode="default":
 [linux]
 [group('vps')]
 NodeSet-DN42:
-  colmena apply --on '@dn42' --verbose --show-trace
+  colmena apply --on '@net:dn42' --verbose --show-trace
 
 [linux]
 [group('vps')]
 NodeSet-LOKI-NET:
-  colmena apply --on '@loki-net' --verbose --show-trace
+  colmena apply --on '@net:loki-net' --verbose --show-trace
 
 [linux]
 [group('vps')]

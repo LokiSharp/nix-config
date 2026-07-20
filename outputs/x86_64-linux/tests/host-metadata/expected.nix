@@ -12,11 +12,6 @@
     lokiNetRole = "edge";
   };
 
-  compatibilityTags = {
-    server = true;
-    lokiNetEdge = true;
-  };
-
   namespacedDeploymentTags = {
     role = true;
     kind = true;

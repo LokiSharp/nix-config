@@ -4,24 +4,15 @@
   ...
 }@args:
 let
-  enabledFeatureTags =
+  enabledFeatures =
     lib.optional config.features.firewall.enable "firewall"
     ++ lib.optional config.features.tailscale.enable "tailscale"
     ++ lib.optional config.features.zerotier.enable "zerotier";
 
-  enabledNetworkTags =
-    lib.optional config.networks.dn42.enable "dn42"
-    ++ lib.optional config.networks.loki-net.enable "loki-net"
-    ++ lib.optional (config.networks.loki-net.role == "edge") "loki-net-edge"
-    ++ lib.optional config.networks.dn42.anycastDns "dn42-anycast-dns";
-
-  legacyTags =
-    lib.optional (config.role != null) config.role ++ enabledFeatureTags ++ enabledNetworkTags;
-
   namespacedTags =
     lib.optional (config.role != null) "role:${config.role}"
     ++ lib.optional (config.kind != null) "kind:${config.kind}"
-    ++ map (tag: "feature:${tag}") enabledFeatureTags
+    ++ map (feature: "feature:${feature}") enabledFeatures
     ++ lib.optional config.networks.dn42.enable "net:dn42"
     ++ lib.optional config.networks.loki-net.enable "net:loki-net"
     ++ lib.optional (config.networks.loki-net.role == "edge") "topology:loki-net-edge"
@@ -78,12 +69,6 @@ in
       };
     };
 
-    tags = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      readOnly = true;
-      default = legacyTags;
-      description = "Compatibility tags derived from structured host metadata.";
-    };
     deploymentTags = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       readOnly = true;
@@ -92,8 +77,6 @@ in
           config.name
           config.hostname
         ]
-        ++ lib.optional (config.kind != null) config.kind
-        ++ legacyTags
         ++ namespacedTags
         ++ config.deployment.extraTags
       );
@@ -111,10 +94,6 @@ in
     hasDeploymentTag = lib.mkOption {
       readOnly = true;
       default = tag: builtins.elem tag config.deploymentTags;
-    };
-    hasTag = lib.mkOption {
-      readOnly = true;
-      default = tag: builtins.elem tag config.tags;
     };
     validationErrors = lib.mkOption {
       type = lib.types.listOf lib.types.str;

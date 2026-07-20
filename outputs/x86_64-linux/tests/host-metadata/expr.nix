@@ -20,11 +20,6 @@ in
     lokiNetRole = vultr.networks.loki-net.role;
   };
 
-  compatibilityTags = {
-    server = vultr.hasTag mylib.tags.server;
-    lokiNetEdge = vultr.hasTag mylib.tags.loki-net-edge;
-  };
-
   namespacedDeploymentTags = {
     role = vultr.hasDeploymentTag "role:server";
     kind = vultr.hasDeploymentTag "kind:vps";

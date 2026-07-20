@@ -3,7 +3,6 @@
   index = 10;
   role = "server";
   kind = "test";
-  deployment.extraTags = [ "vps" ];
 
   features = {
     firewall.enable = true;

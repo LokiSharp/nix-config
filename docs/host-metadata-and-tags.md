@@ -43,7 +43,7 @@ networks.loki-net = {
 
 ### 想增加一种新的系统能力
 
-当新标签需要改变 NixOS 行为时，应在 `lib/host-options.nix` 的 `features` 或 `networks` 下增加有类型的选项，然后让模块读取该选项。若还需要通过 Colmena 筛选，再把相应派生标签加入 `enabledFeatureTags`、`enabledNetworkTags` 或 `namespacedTags`。
+当新标签需要改变 NixOS 行为时，应在 `lib/host-options.nix` 的 `features` 或 `networks` 下增加有类型的选项，然后让模块读取该选项。若还需要通过 Colmena 筛选，再把相应派生标签加入 `enabledFeatures` 或 `namespacedTags`。
 
 ## 数据模型
 
@@ -90,23 +90,23 @@ networks.loki-net = {
 
 ## 自动生成的标签
 
-`deploymentTags` 是 Colmena 的唯一标签数据源，输出定义不再维护第二份手写列表。系统会生成两组标签：
+`deploymentTags` 是 Colmena 的唯一标签数据源，输出定义不再维护第二份手写列表。结构化字段只生成命名空间标签：
 
-| 来源 | 兼容标签 | 命名空间标签 |
-| --- | --- | --- |
-| `role = "server"` | `server` | `role:server` |
-| `kind = "vps"` | `vps` | `kind:vps` |
-| `features.firewall.enable` | `firewall` | `feature:firewall` |
-| `features.tailscale.enable` | `tailscale` | `feature:tailscale` |
-| `features.zerotier.enable` | `zerotier` | `feature:zerotier` |
-| `networks.dn42.enable` | `dn42` | `net:dn42` |
-| `networks.loki-net.enable` | `loki-net` | `net:loki-net` |
-| Loki-Net edge 角色 | `loki-net-edge` | `topology:loki-net-edge` |
-| DN42 anycast DNS | `dn42-anycast-dns` | `service:dn42-anycast-dns` |
+| 来源 | 标签 |
+| --- | --- |
+| `role = "server"` | `role:server` |
+| `kind = "vps"` | `kind:vps` |
+| `features.firewall.enable` | `feature:firewall` |
+| `features.tailscale.enable` | `feature:tailscale` |
+| `features.zerotier.enable` | `feature:zerotier` |
+| `networks.dn42.enable` | `net:dn42` |
+| `networks.loki-net.enable` | `net:loki-net` |
+| Loki-Net edge 角色 | `topology:loki-net-edge` |
+| DN42 anycast DNS | `service:dn42-anycast-dns` |
 
 主机名的小写形式也会自动加入。输出定义会额外保留原始大小写主机名。
 
-旧标签暂时保留，因此原来的 `@vps`、`@dn42` 等部署命令仍可使用。新脚本建议采用命名空间标签，含义更加明确。
+部署脚本应使用命名空间标签，例如 `@kind:vps`、`@net:dn42`。主机名标签不带命名空间，以保持 `@Test-NixOS` 这类单节点部署命令简洁。
 
 ## 一致性约束
 
@@ -125,7 +125,6 @@ networks.loki-net = {
 
 迁移期间仍提供以下只读接口：
 
-- `host.tags` 与 `host.hasTag`：由结构化字段生成的旧行为标签。
 - `host.dn42`、`host.loki-net`、`host.slk-net`：对应 `host.networks.*` 的兼容视图。
 - `host.zerotier`：对应 `host.features.zerotier.nodeId`。
 
@@ -139,4 +138,4 @@ networks.loki-net = {
 just test
 ```
 
-`host-metadata` 求值测试会检查所有主机的验证结果、部署标签唯一性、结构化字段、兼容标签、命名空间标签和自由标签。
+`host-metadata` 求值测试会检查所有主机的验证结果、部署标签唯一性、结构化字段、命名空间标签和自由标签。

@@ -149,13 +149,6 @@ in
       default = 0;
     };
 
-    # Compatibility view for callers not migrated to features.zerotier.nodeId yet.
-    zerotier = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      readOnly = true;
-      default = config.features.zerotier.nodeId;
-    };
-
     public = {
       IPv4 = lib.mkOption {
         type = lib.types.str;
@@ -248,18 +241,5 @@ in
       };
     };
 
-    # Read-only compatibility views. New code should use networks.*.
-    slk-net = lib.mkOption {
-      readOnly = true;
-      default = config.networks.slk-net;
-    };
-    dn42 = lib.mkOption {
-      readOnly = true;
-      default = config.networks.dn42;
-    };
-    loki-net = lib.mkOption {
-      readOnly = true;
-      default = config.networks.loki-net;
-    };
   };
 }

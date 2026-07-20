@@ -7,13 +7,13 @@
 }:
 let
   configLib = mylib.withConfig config;
-  ztHosts = lib.filterAttrs (_n: v: v.zerotier != null) configLib.hosts;
+  ztHosts = lib.filterAttrs (_n: v: v.features.zerotier.nodeId != null) configLib.hosts;
   ztMembers = lib.mapAttrs' (
     n: v:
     let
       i = builtins.toString v.index;
     in
-    lib.nameValuePair v.zerotier {
+    lib.nameValuePair v.features.zerotier.nodeId {
       name = n;
       ipAssignments = [
         "198.18.0.${i}"
@@ -46,10 +46,10 @@ let
           "198.19.${i}.0/24"
           "fdbc:f9dc:67ad:${i}::/64"
         ]
-        ++ (lib.optionals (v.dn42.IPv4 != "") [ "${v.dn42.IPv4}/32" ])
-        ++ (lib.optionals (v.dn42.IPv6 != "") [ "${v.dn42.IPv6}/128" ])
-        ++ (lib.optionals (v.loki-net.IPv4 != "") [ "${v.loki-net.IPv4}/32" ])
-        ++ (lib.optionals (v.loki-net.IPv6 != "") [ "${v.loki-net.IPv6}/128" ]);
+        ++ (lib.optionals (v.networks.dn42.IPv4 != "") [ "${v.networks.dn42.IPv4}/32" ])
+        ++ (lib.optionals (v.networks.dn42.IPv6 != "") [ "${v.networks.dn42.IPv6}/128" ])
+        ++ (lib.optionals (v.networks.loki-net.IPv4 != "") [ "${v.networks.loki-net.IPv4}/32" ])
+        ++ (lib.optionals (v.networks.loki-net.IPv6 != "") [ "${v.networks.loki-net.IPv6}/128" ]);
       in
       builtins.map (r: {
         target = r;

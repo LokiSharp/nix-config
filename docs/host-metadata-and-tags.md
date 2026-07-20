@@ -121,15 +121,6 @@ networks.loki-net = {
 
 任何错误都会带主机名和具体原因终止求值，避免把不完整配置带入部署阶段。
 
-## 兼容接口
-
-迁移期间仍提供以下只读接口：
-
-- `host.dn42`、`host.loki-net`、`host.slk-net`：对应 `host.networks.*` 的兼容视图。
-- `host.zerotier`：对应 `host.features.zerotier.nodeId`。
-
-新代码应使用 `features.*`、`networks.*`、`deploymentTags` 和 `hasDeploymentTag`。兼容接口不应再作为新配置的写入位置。
-
 ## 验证
 
 修改主机元数据后运行：

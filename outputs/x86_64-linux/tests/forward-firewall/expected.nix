@@ -10,4 +10,5 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (_: {
   tailscaleScoped = true;
   lokiNetScoped = true;
   podmanScoped = true;
+  preservesDynamicTables = true;
 })

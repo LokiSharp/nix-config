@@ -20,7 +20,7 @@ lib.genAttrs publicHostNames (
   let
     host = mylib.hosts.${lib.toLower name};
     config = outputs.nixosConfigurations.${name}.config;
-    nftRuleset = config.networking.nftables.ruleset;
+    nftRuleset = config.networking.nftables.tables.filter.content;
     sshPort = builtins.toString host.sshPort;
   in
   {

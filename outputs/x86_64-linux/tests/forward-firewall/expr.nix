@@ -10,7 +10,7 @@ lib.mapAttrs
     let
       host = mylib.hosts.${lib.toLower name};
       config = system.config;
-      ruleset = config.networking.nftables.ruleset;
+      ruleset = config.networking.nftables.tables.filter.content;
       hasRule = rule: lib.hasInfix rule ruleset;
     in
     {
@@ -23,6 +23,7 @@ lib.mapAttrs
       tailscaleScoped = !host.features.tailscale.enable || hasRule ''iifname "tailscale0" accept'';
       lokiNetScoped = !host.networks.loki-net.enable || hasRule "ip6 saddr 2a0e:aa07:e220::/44 accept";
       podmanScoped = !(config.virtualisation.podman.enable or false) || hasRule ''iifname "podman*" accept'';
+      preservesDynamicTables = !config.networking.nftables.flushRuleset;
     }
   )
   outputs.nixosConfigurations

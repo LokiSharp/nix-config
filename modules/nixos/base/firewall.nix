@@ -5,19 +5,6 @@
 }:
 let
   configLib = mylib.withConfig config;
-  sysctl = config.boot.kernel.sysctl;
-  isEnabled =
-    name:
-    let
-      value = sysctl.${name} or 0;
-    in
-    value == 1 || value == "1" || value == true;
-  hostNeedsForward =
-    isEnabled "net.ipv4.ip_forward"
-    || isEnabled "net.ipv4.conf.all.forwarding"
-    || isEnabled "net.ipv6.conf.all.forwarding"
-    || isEnabled "net.ipv6.conf.default.forwarding"
-    || (config.virtualisation.podman.enable or false);
 in
 {
   networking.firewall.enable = lib.mkDefault false;
@@ -137,8 +124,42 @@ in
           iifname "tailscale0" oifname "zt-slk0" drop
           iifname "zt-slk0" oifname "tailscale0" drop
 
-          # Routing, Kubernetes, and Podman hosts need forwarded traffic.
-          ${if hostNeedsForward then "accept" else "counter drop"}
+          ct state invalid drop
+          ct state { established, related } accept
+
+          ${lib.optionalString configLib.this.features.zerotier.enable ''
+            # Forward traffic to and from the trusted ZeroTier network.
+            iifname "zt-slk0" accept
+            oifname "zt-slk0" accept
+          ''}
+
+          ${lib.optionalString configLib.this.networks.dn42.enable ''
+            # DN42 routes are carried only by explicitly configured peer tunnels.
+            iifname "dn42-*" accept
+            oifname "dn42-*" accept
+          ''}
+
+          ${lib.optionalString configLib.this.features.tailscale.enable ''
+            # Forward traffic to and from the trusted Tailscale network.
+            iifname "tailscale0" accept
+            oifname "tailscale0" accept
+          ''}
+
+          ${lib.optionalString configLib.this.networks.loki-net.enable ''
+            # Route only the allocated Loki-Net IPv6 aggregate on public links.
+            ip6 saddr 2a0e:aa07:e220::/44 accept
+            ip6 daddr 2a0e:aa07:e220::/44 accept
+          ''}
+
+          ${lib.optionalString (config.virtualisation.podman.enable or false) ''
+            # Containers may initiate outbound traffic; new inbound traffic must
+            # have been explicitly published and DNATed by Podman.
+            iifname "podman*" accept
+            oifname "podman*" ct status dnat accept
+          ''}
+
+          # Default-deny any forwarded traffic not allowed above.
+          counter drop
         }
       }    
     '';

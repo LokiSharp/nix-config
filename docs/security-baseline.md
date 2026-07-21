@@ -81,12 +81,15 @@ done
 
 - `networking.nftables.enable = true`
 - legacy `networking.firewall.enable = false`
-- nftables ruleset 中允许 SSH TCP 22
+- nftables ruleset 中允许主机元数据声明的 SSH TCP 端口
+- forward 链仅允许已建立连接，以及显式声明的 ZeroTier、DN42、Tailscale、Loki-Net 和 Podman 路径
+- 其他转发流量默认计数并丢弃
 - 公网节点只暴露 flake metadata 中声明的预期 TCP 端口
 
 相关 eval test：
 
 - `x86_64-linux/firewall-enabled`
+- `x86_64-linux/forward-firewall`
 - `x86_64-linux/public-ssh-port`
 
 公网暴露面检查：

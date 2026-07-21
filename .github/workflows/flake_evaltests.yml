@@ -24,7 +24,7 @@ jobs:
   checks:
     name: Check expressions
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -60,3 +60,19 @@ jobs:
           nix --accept-flake-config flake check \
             --override-input mysecrets path:./ci/mysecrets \
             --all-systems --no-build --show-trace
+
+      - name: Run formatting and static analysis checks
+        run: |
+          nix --accept-flake-config build \
+            --override-input mysecrets path:./ci/mysecrets \
+            .#checks.x86_64-linux.format \
+            .#checks.x86_64-linux.statix \
+            .#checks.x86_64-linux.deadnix \
+            --no-link --print-build-logs
+
+      - name: Build Test-NixOS canary
+        run: |
+          nix --accept-flake-config build \
+            --override-input mysecrets path:./ci/mysecrets \
+            .#nixosConfigurations.Test-NixOS.config.system.build.toplevel \
+            --no-link --print-build-logs

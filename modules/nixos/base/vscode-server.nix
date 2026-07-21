@@ -1,8 +1,8 @@
-{
-  config,
-  vscode-server,
-  pkgs,
-  ...
+{ config
+, myvars
+, vscode-server
+, pkgs
+, ...
 }:
 {
   imports = [
@@ -19,4 +19,9 @@
       "$HOME/.antigravity-server"
     ];
   };
+
+  # The deployment health account never uses an editor session. Avoid
+  # starting the global watcher on each non-interactive health-check login.
+  systemd.user.services.auto-fix-vscode-server.unitConfig.ConditionUser =
+    "!${myvars.healthcheckUsername}";
 }

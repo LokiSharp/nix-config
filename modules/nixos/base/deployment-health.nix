@@ -85,6 +85,13 @@ in
       openssh.authorizedKeys.keys = myvars.sshAuthorizedKeys;
     };
 
+    # The account only runs short-lived remote probes. Starting the generic
+    # per-user NixOS activation can delay or fail its first SSH login.
+    systemd.user.services.nixos-activation.unitConfig.ConditionUser = lib.mkForce [
+      "!@system"
+      "!${myvars.healthcheckUsername}"
+    ];
+
     environment.systemPackages = [ rootHelper ];
 
     security.sudo.extraRules = [

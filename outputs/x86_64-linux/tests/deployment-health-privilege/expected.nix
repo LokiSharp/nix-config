@@ -7,4 +7,6 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (_: {
   notNixTrusted = true;
   oneSudoCommand = true;
   helperOnly = true;
+  skipsUserActivation = true;
+  skipsVscodeWatcher = true;
 })

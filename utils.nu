@@ -417,7 +417,29 @@ def select-deployment-hosts [inventory: list<any>, requested: list<string>] {
 
 def ssh-command [host: record, command: string] {
     let destination = $"($host.healthUser)@($host.targetHost)"
-    ^ssh -p ($host.targetPort | into string) -o BatchMode=yes -o ConnectTimeout=12 -o ConnectionAttempts=3 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o ControlMaster=auto -o ControlPersist=60 -o ControlPath=/tmp/nix-config-health-%C $destination $command | complete
+    let control_path = $"/tmp/nix-config-health-($nu.pid)-%C"
+    let first = (
+        ^ssh -p ($host.targetPort | into string) -o BatchMode=yes -o ConnectTimeout=12 -o ConnectionAttempts=3 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o ControlMaster=auto -o ControlPersist=60 -o $"ControlPath=($control_path)" $destination $command
+        | complete
+    )
+
+    if $first.exit_code == 0 {
+        return $first
+    }
+
+    let ssh_error = ($first.stderr | str downcase)
+    let mux_failed = [
+        "mux_client_request_session"
+        "control socket connect"
+        "control master"
+    ] | any {|message| $ssh_error | str contains $message }
+
+    if not $mux_failed {
+        return $first
+    }
+
+    print -e $"[WARN] ($host.name): SSH multiplexing failed; retrying with a fresh connection"
+    ^ssh -p ($host.targetPort | into string) -o BatchMode=yes -o ConnectTimeout=12 -o ConnectionAttempts=3 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o ControlMaster=no -o ControlPath=none $destination $command | complete
 }
 
 def root-health-command [host: record, helper: string, action: string, since_minutes: int] {

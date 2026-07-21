@@ -180,8 +180,7 @@ in
       in
       {
         inherit name;
-        inherit (host) role kind deploymentTags;
-        sshPort = host.sshPort;
+        inherit (host) role kind deploymentTags sshPort;
         healthUser = myvars.healthcheckUsername;
         requiredUnits = lib.lists.sort builtins.lessThan config.deployment.healthChecks.requiredUnits;
         httpProbes = config.deployment.healthChecks.httpProbes;

@@ -27,9 +27,13 @@ jobs:
 
       - name: Run Nix Flake Eval Tests
         run: |
-          nix --quiet eval .#evalTestReportText --raw --show-trace
+          nix --accept-flake-config --quiet eval \
+            --override-input mysecrets path:./ci/mysecrets \
+            .#evalTestReportText --raw --show-trace
 
-          result="$(nix --quiet eval .#evalTests --show-trace)"
+          result="$(nix --accept-flake-config --quiet eval \
+            --override-input mysecrets path:./ci/mysecrets \
+            .#evalTests --show-trace)"
           if [ "$result" != "true" ]; then
             echo "Evaluation tests failed. Inspect details with:"
             echo "  nix eval .#evalTestResults --show-trace"
@@ -37,4 +41,7 @@ jobs:
           fi
 
       - name: Check all flake outputs
-        run: nix flake check --all-systems --no-build --show-trace
+        run: |
+          nix --accept-flake-config flake check \
+            --override-input mysecrets path:./ci/mysecrets \
+            --all-systems --no-build --show-trace

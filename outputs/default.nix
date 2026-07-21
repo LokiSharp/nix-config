@@ -1,7 +1,6 @@
-inputs@{
-  self,
-  nixpkgs,
-  ...
+inputs@{ self
+, nixpkgs
+, ...
 }:
 let
   inherit (inputs.nixpkgs) lib;
@@ -85,22 +84,38 @@ let
   formatTestReport =
     system: tests:
     lib.concatStringsSep "\n" (
-      map (
-        name:
-        let
-          result = tests.${name};
-        in
-        "[${result.status}] ${system}/${name}"
-      ) (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
+      map
+        (
+          name:
+          let
+            result = tests.${name};
+          in
+          "[${result.status}] ${system}/${name}"
+        )
+        (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
     );
-  evalTestFailures = lib.mapAttrs (
-    _system: tests: lib.filterAttrs (_name: result: result.status != "PASS") tests
-  ) (lib.mapAttrs (_system: it: it.evalTestReport or { }) allSystems);
+  evalTestFailures = lib.mapAttrs
+    (
+      _system: tests: lib.filterAttrs (_name: result: result.status != "PASS") tests
+    )
+    (lib.mapAttrs (_system: it: it.evalTestReport or { }) allSystems);
   formatTestFailures =
     system: tests:
     lib.concatStringsSep "\n" (
       map (name: "[FAIL] ${system}/${name}") (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
     );
+
+  # Start with the flake and deployment-health path as a strict quality
+  # baseline. Extend this list as the existing repository-wide lint findings
+  # are cleaned up.
+  qualityCheckPaths = [
+    "flake.nix"
+    "outputs/default.nix"
+    "modules/nixos/base/deployment-health.nix"
+    "outputs/x86_64-linux/tests/deployment-health-metadata/expr.nix"
+    "outputs/x86_64-linux/tests/deployment-health-metadata/expected.nix"
+  ];
+  qualityCheckSources = map (path: lib.escapeShellArg "${self}/${path}") qualityCheckPaths;
 in
 {
   # Add attribute sets into outputs, for debugging
@@ -125,15 +140,19 @@ in
   # Packages
   packages = forAllSystems (system: allSystems.${system}.packages or { });
 
+  formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
+
   publicNixosHosts =
     let
-      publicHostNames = lib.filter (
-        name:
-        let
-          host = mylib.hosts.${lib.toLower name};
-        in
-        host.public.IPv4 != ""
-      ) (builtins.attrNames nixosConfigurations);
+      publicHostNames = lib.filter
+        (
+          name:
+          let
+            host = mylib.hosts.${lib.toLower name};
+          in
+          host.public.IPv4 != ""
+        )
+        (builtins.attrNames nixosConfigurations);
       sortedUnique = values: lib.lists.sort builtins.lessThan (lib.lists.unique values);
     in
     lib.genAttrs publicHostNames (
@@ -218,26 +237,64 @@ in
     {
       default = pkgs.mkShell {
         packages = [
-          pkgs.just
           pkgs.colmena
+          pkgs.deadnix
+          pkgs.just
+          pkgs.nix-output-monitor
           pkgs.nixpkgs-fmt
+          pkgs.nushell
+          pkgs.statix
         ];
       };
     }
   );
 
-  checks = forAllSystems (system: {
-    # eval-tests per system wrapped in a dummy derivation
-    eval-tests =
-      let
-        res = allSystems.${system}.evalTests == { };
-      in
-      nixpkgs.legacyPackages.${system}.runCommand "eval-tests" { } ''
-        if [ "${builtins.toString res}" != "1" ]; then
-          echo "Evaluation tests failed!"
-          exit 1
-        fi
+  checks = forAllSystems (
+    system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      # eval-tests per system wrapped in a dummy derivation
+      eval-tests =
+        let
+          res = allSystems.${system}.evalTests == { };
+        in
+        pkgs.runCommand "eval-tests" { } ''
+          if [ "${builtins.toString res}" != "1" ]; then
+            echo "Evaluation tests failed!"
+            exit 1
+          fi
+          touch $out
+        '';
+
+      format = pkgs.runCommand "nix-format-check"
+        {
+          nativeBuildInputs = [ pkgs.nixpkgs-fmt ];
+        } ''
+        for path in ${lib.concatStringsSep " " qualityCheckSources}; do
+          nixpkgs-fmt --check "$path"
+        done
         touch $out
       '';
-  });
+
+      statix = pkgs.runCommand "statix-check"
+        {
+          nativeBuildInputs = [ pkgs.statix ];
+        } ''
+        for path in ${lib.concatStringsSep " " qualityCheckSources}; do
+          statix check "$path"
+        done
+        touch $out
+      '';
+
+      deadnix = pkgs.runCommand "deadnix-check"
+        {
+          nativeBuildInputs = [ pkgs.deadnix ];
+        } ''
+        deadnix --fail ${lib.concatStringsSep " " qualityCheckSources}
+        touch $out
+      '';
+    }
+  );
 }

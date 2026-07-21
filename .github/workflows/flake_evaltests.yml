@@ -1,6 +1,7 @@
 name: Nix Flake Eval Tests
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -12,21 +13,29 @@ on:
     paths-ignore:
       - "**.md"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   checks:
     name: Check expressions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Install nix
-        uses: cachix/install-nix-action@v31
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Nix store
-        uses: nix-community/cache-nix-action@v7
+        uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
         with:
           primary-key: nix-eval-v1-${{ runner.os }}-${{ hashFiles('flake.lock', 'ci/mysecrets/**') }}
           restore-prefixes-first-match: nix-eval-v1-${{ runner.os }}-

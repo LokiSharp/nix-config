@@ -113,4 +113,6 @@ in
       # smtp = {};
     };
   };
+
+  deployment.healthChecks.requiredUnits = [ "sftpgo" ];
 }

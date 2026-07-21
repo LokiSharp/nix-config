@@ -1,7 +1,6 @@
-{
-  config,
-  myvars,
-  ...
+{ config
+, myvars
+, ...
 }:
 {
   services.grafana = {
@@ -46,6 +45,11 @@
       datasources.path = ./datasources.yml;
       dashboards.path = ./dashboards.yml;
     };
+  };
+
+  deployment.healthChecks = {
+    requiredUnits = [ "grafana" ];
+    httpProbes.grafana = "http://127.0.0.1:3351/api/health";
   };
 
   environment.etc."grafana/dashboards".source = ./dashboards;

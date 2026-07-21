@@ -15,6 +15,8 @@ let
   '';
 in
 {
+  deployment.healthChecks.requiredUnits = [ "caddy" ];
+
   services.caddy = {
     enable = true;
     # Reload Caddy instead of restarting it when configuration file changes.

@@ -151,34 +151,6 @@ in
   # Machine-readable data for the Nushell deployment and health-check helpers.
   # SSH targets remain owned by Colmena and are merged into this data at runtime.
   deploymentHostMetadata =
-    let
-      candidateUnits = [
-        "apparmor"
-        "auditd"
-        "nftables"
-        "sshd"
-        "systemd-networkd"
-        "systemd-resolved"
-        "tailscaled"
-        "zerotierone"
-        "sing-box"
-        "bird"
-        "bind"
-        "caddy"
-        "gitea"
-        "grafana"
-        "postgresql"
-        "minio"
-        "victoriametrics"
-        "vmalert"
-        "alertmanager"
-        "sftpgo"
-        "podman-homepage"
-        "prometheus-node-exporter"
-        "prometheus-postgres-exporter"
-        "qemu-guest-agent"
-      ];
-    in
     lib.genAttrs (builtins.attrNames nixosConfigurations) (
       name:
       let
@@ -189,7 +161,8 @@ in
         inherit name;
         inherit (host) role kind deploymentTags;
         healthUser = myvars.healthcheckUsername;
-        requiredUnits = lib.filter (unit: builtins.hasAttr unit config.systemd.services) candidateUnits;
+        requiredUnits = lib.lists.sort builtins.lessThan config.deployment.healthChecks.requiredUnits;
+        httpProbes = config.deployment.healthChecks.httpProbes;
         features = {
           firewall = host.features.firewall.enable;
           tailscale = host.features.tailscale.enable;

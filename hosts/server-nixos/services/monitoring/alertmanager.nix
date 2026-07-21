@@ -42,6 +42,11 @@
     };
   };
 
+  deployment.healthChecks = {
+    requiredUnits = [ "alertmanager" ];
+    httpProbes.alertmanager = "http://127.0.0.1:9093/-/healthy";
+  };
+
   sops.templates."alertmanager-env" = {
     content = ''
       SMTP_HOST=${config.sops.placeholder.SMTP_HOST}

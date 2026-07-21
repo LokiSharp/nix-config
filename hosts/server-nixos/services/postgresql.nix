@@ -1,9 +1,8 @@
-{
-  config,
-  pkgs,
-  lib,
-  myvars,
-  ...
+{ config
+, pkgs
+, lib
+, myvars
+, ...
 }:
 let
   inherit (myvars) username;
@@ -111,6 +110,11 @@ in
     #   pkgs.writeText "backend-initScript" ''
     #   '';
   };
+
+  deployment.healthChecks.requiredUnits = [
+    "postgresql"
+    "prometheus-postgres-exporter"
+  ];
 
   services.prometheus.exporters.postgres = {
     enable = true;

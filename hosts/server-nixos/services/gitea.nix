@@ -1,8 +1,7 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
+{ config
+, lib
+, pkgs
+, ...
 }:
 {
   # https://github.com/NixOS/nixpkgs/blob/nixos-24.11/nixos/modules/services/misc/gitea.nix
@@ -67,6 +66,11 @@
       socket = null;
       passwordFile = config.sops.secrets."gitea-db-password".path;
     };
+  };
+
+  deployment.healthChecks = {
+    requiredUnits = [ "gitea" ];
+    httpProbes.gitea = "http://127.0.0.1:3301/api/healthz";
   };
 
   systemd.services.gitea.serviceConfig = {

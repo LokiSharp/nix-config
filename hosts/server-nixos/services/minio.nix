@@ -1,7 +1,6 @@
-{
-  config,
-  lib,
-  ...
+{ config
+, lib
+, ...
 }:
 let
   dataDir = [ "/data/apps/minio/data" ];
@@ -26,6 +25,11 @@ in
 
     # File containing the MINIO_ROOT_USER, default is “minioadmin”, and MINIO_ROOT_PASSWORD (length >= 8), default is “minioadmin”;
     rootCredentialsFile = config.sops.templates."minio-root-credentials".path;
+  };
+
+  deployment.healthChecks = {
+    requiredUnits = [ "minio" ];
+    httpProbes.minio = "http://127.0.0.1:9096/minio/health/live";
   };
 
   sops.templates."minio-root-credentials" = {

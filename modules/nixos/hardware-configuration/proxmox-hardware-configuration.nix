@@ -22,6 +22,7 @@
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   services.qemuGuest.enable = lib.mkDefault true;
+  deployment.healthChecks.requiredUnits = lib.optional config.services.qemuGuest.enable "qemu-guest-agent";
   services.spice-vdagentd.enable = lib.mkDefault true;
   environment.systemPackages = with pkgs; [ virglrenderer ];
 }

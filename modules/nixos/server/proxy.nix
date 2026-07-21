@@ -1,8 +1,7 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
+{ config
+, lib
+, pkgs
+, ...
 }:
 
 with lib;
@@ -73,6 +72,10 @@ in
     users.groups.sing-box = { };
 
     services.sing-box.enable = true;
+    deployment.healthChecks.requiredUnits = [
+      "caddy"
+      "sing-box"
+    ];
 
     # Inject Template into the service
     systemd.services.sing-box = {

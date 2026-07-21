@@ -1,10 +1,9 @@
-{
-  config,
-  lib,
-  mylib,
-  myvars,
-  pkgs,
-  ...
+{ config
+, lib
+, mylib
+, myvars
+, pkgs
+, ...
 }:
 
 let
@@ -56,27 +55,48 @@ let
   };
 in
 {
-  users.groups.${myvars.healthcheckUsername} = { };
-  users.users.${myvars.healthcheckUsername} = {
-    isNormalUser = true;
-    group = myvars.healthcheckUsername;
-    home = "/var/lib/${myvars.healthcheckUsername}";
-    createHome = true;
-    shell = pkgs.bashInteractive;
-    openssh.authorizedKeys.keys = myvars.sshAuthorizedKeys;
+  options.deployment.healthChecks = {
+    requiredUnits = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "Systemd units that must be active after deployment.";
+    };
+
+    httpProbes = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      example.gitea = "http://127.0.0.1:3000/api/healthz";
+      description = "HTTP health-check URLs keyed by their systemd unit name.";
+    };
   };
 
-  environment.systemPackages = [ rootHelper ];
+  config = {
+    deployment.healthChecks.requiredUnits =
+      lib.optional config.systemd.network.enable "systemd-networkd"
+      ++ lib.optional config.services.resolved.enable "systemd-resolved";
 
-  security.sudo.extraRules = [
-    {
-      users = [ myvars.healthcheckUsername ];
-      commands = [
-        {
-          command = "${rootHelper}/bin/deployment-health-root";
-          options = [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
+    users.groups.${myvars.healthcheckUsername} = { };
+    users.users.${myvars.healthcheckUsername} = {
+      isNormalUser = true;
+      group = myvars.healthcheckUsername;
+      home = "/var/lib/${myvars.healthcheckUsername}";
+      createHome = true;
+      shell = pkgs.bashInteractive;
+      openssh.authorizedKeys.keys = myvars.sshAuthorizedKeys;
+    };
+
+    environment.systemPackages = [ rootHelper ];
+
+    security.sudo.extraRules = [
+      {
+        users = [ myvars.healthcheckUsername ];
+        commands = [
+          {
+            command = "${rootHelper}/bin/deployment-health-root";
+            options = [ "NOPASSWD" ];
+          }
+        ];
+      }
+    ];
+  };
 }

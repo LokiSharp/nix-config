@@ -1,8 +1,7 @@
-{
-  mylib,
-  config,
-  lib,
-  ...
+{ mylib
+, config
+, lib
+, ...
 }:
 let
   configLib = mylib.withConfig config;
@@ -144,4 +143,6 @@ in
       }    
     '';
   };
+
+  deployment.healthChecks.requiredUnits = lib.optional config.networking.nftables.enable "nftables";
 }

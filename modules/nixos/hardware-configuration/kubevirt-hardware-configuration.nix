@@ -1,4 +1,4 @@
-{ modulesPath, ... }:
+{ config, lib, modulesPath, ... }:
 ##############################################################################
 #
 #  Template for KubeVirt's VM, mainly based on:
@@ -27,6 +27,7 @@
     boot.loader.timeout = 0;
 
     services.qemuGuest.enable = true;
+    deployment.healthChecks.requiredUnits = lib.optional config.services.qemuGuest.enable "qemu-guest-agent";
     services.openssh.enable = true;
     services.cloud-init.enable = true;
     systemd.services."serial-getty@ttyS0".enable = true;

@@ -15,4 +15,6 @@
     # use either enabledCollectors or disabledCollectors
     # disabledCollectors = [];
   };
+
+  deployment.healthChecks.requiredUnits = [ "prometheus-node-exporter" ];
 }

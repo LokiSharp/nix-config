@@ -1,9 +1,8 @@
-{
-  config,
-  lib,
-  myvars,
-  pkgs,
-  ...
+{ config
+, lib
+, myvars
+, pkgs
+, ...
 }:
 
 with lib;
@@ -58,6 +57,7 @@ in
         "audit_backlog_limit=1024"
       ];
       environment.systemPackages = [ pkgs.audit ];
+      deployment.healthChecks.requiredUnits = [ "auditd" ];
       systemd.services.audit-rules-local = {
         description = "Load local audit rules";
         wantedBy = [ "sysinit.target" ];

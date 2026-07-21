@@ -483,21 +483,10 @@ def check-ping [host: record, address: string, ipv6: bool, label: string] {
 }
 
 def check-http-probes [host: record, root_helper: string, since_minutes: int] {
-    let probes = [
-        { unit: "gitea", url: "http://127.0.0.1:3301/api/healthz" }
-        { unit: "grafana", url: "http://127.0.0.1:3351/api/health" }
-        { unit: "minio", url: "http://127.0.0.1:9096/minio/health/live" }
-        { unit: "victoriametrics", url: "http://127.0.0.1:9090/health" }
-        { unit: "alertmanager", url: "http://127.0.0.1:9093/-/healthy" }
-        { unit: "podman-homepage", url: "http://127.0.0.1:54401/" }
-    ]
+    let probes = ($host.httpProbes | transpose unit url)
     mut failures = 0
 
     for probe in $probes {
-        if not ($probe.unit in $host.requiredUnits) {
-            continue
-        }
-
         let result = (ssh-command $host $"curl --fail --silent --show-error --max-time 8 ($probe.url)")
         if $result.exit_code == 0 {
             print $"[PASS] ($host.name): ($probe.unit) HTTP probe"

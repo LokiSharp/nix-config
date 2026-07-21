@@ -1,9 +1,8 @@
-{
-  pkgs,
-  lib,
-  config,
-  myvars,
-  ...
+{ pkgs
+, lib
+, config
+, myvars
+, ...
 }@args:
 let
   inherit (import ../common.nix args) this;
@@ -208,4 +207,6 @@ in
       };
     };
   };
+
+  deployment.healthChecks.requiredUnits = [ "bind" ];
 }

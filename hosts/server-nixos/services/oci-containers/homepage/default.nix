@@ -1,7 +1,6 @@
-{
-  config,
-  pkgs,
-  ...
+{ config
+, pkgs
+, ...
 }:
 let
   user = "homepage";
@@ -40,5 +39,10 @@ in
       ];
       autoStart = true;
     };
+  };
+
+  deployment.healthChecks = {
+    requiredUnits = [ "podman-homepage" ];
+    httpProbes.podman-homepage = "http://127.0.0.1:54401/";
   };
 }

@@ -1,7 +1,6 @@
-{
-  lib,
-  myvars,
-  ...
+{ lib
+, myvars
+, ...
 }:
 {
   # Since victoriametrics use DynamicUser, the user & group do not exists before the service starts.
@@ -68,26 +67,36 @@
         }
       ]
       # --- Hosts --- #
-      ++ (lib.attrsets.foldlAttrs (
-        acc: hostname: addr:
-        acc
-        ++ [
-          {
-            job_name = "node-exporter-${hostname}";
-            scrape_interval = "30s";
-            metrics_path = "/metrics";
-            static_configs = [
+      ++ (lib.attrsets.foldlAttrs
+        (
+          acc: hostname: addr:
+            acc
+              ++ [
               {
-                # All my NixOS hosts.
-                targets = [ "${addr.ipv4}:9100" ];
-                labels.type = "node";
-                labels.host = hostname;
+                job_name = "node-exporter-${hostname}";
+                scrape_interval = "30s";
+                metrics_path = "/metrics";
+                static_configs = [
+                  {
+                    # All my NixOS hosts.
+                    targets = [ "${addr.ipv4}:9100" ];
+                    labels.type = "node";
+                    labels.host = hostname;
+                  }
+                ];
               }
-            ];
-          }
-        ]
-      ) [ ] myvars.networking.hostsAddr);
+            ]
+        ) [ ]
+        myvars.networking.hostsAddr);
     };
+  };
+
+  deployment.healthChecks = {
+    requiredUnits = [
+      "victoriametrics"
+      "vmalert"
+    ];
+    httpProbes.victoriametrics = "http://127.0.0.1:9090/health";
   };
 
   services.vmalert = {

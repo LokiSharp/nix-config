@@ -1,9 +1,8 @@
-{
-  pkgs,
-  lib,
-  mylib,
-  config,
-  ...
+{ pkgs
+, lib
+, mylib
+, config
+, ...
 }@args:
 let
   inherit (import ../common.nix args) this configLib;
@@ -76,6 +75,8 @@ in
       baseConfig ++ dn42Config ++ loki-netConfig ++ slk-netConfig
     );
   };
+
+  deployment.healthChecks.requiredUnits = [ "bird" ];
 
   boot.kernel.sysctl = {
     "net.ipv4.conf.default.rp_filter" = 0;

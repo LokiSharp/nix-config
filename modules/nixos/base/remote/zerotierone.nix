@@ -1,8 +1,7 @@
-{
-  mylib,
-  config,
-  lib,
-  ...
+{ mylib
+, config
+, lib
+, ...
 }:
 let
   configLib = mylib.withConfig config;
@@ -27,6 +26,8 @@ in
       };
     };
   };
+
+  deployment.healthChecks.requiredUnits = lib.optional isEnabled "zerotierone";
 
   systemd.services.zerotierone.preStart = lib.mkIf isEnabled ''
     mkdir -p /var/lib/zerotier-one

@@ -1,11 +1,15 @@
-{ lib
-, myvars
+{ config
+, mylib
 , ...
 }:
+let
+  configLib = mylib.withConfig config;
+in
 {
   # Enable the OpenSSH daemon.
   services.openssh = {
     enable = true;
+    ports = [ configLib.this.sshPort ];
     settings = {
       X11Forwarding = true;
       # root user is used for remote deployment, so we need to allow it

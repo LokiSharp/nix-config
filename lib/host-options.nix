@@ -1,7 +1,6 @@
-{
-  lib,
-  config,
-  ...
+{ lib
+, config
+, ...
 }@args:
 let
   enabledFeatures =
@@ -101,40 +100,52 @@ in
       default =
         lib.optional (config.role == null) "role is required"
         ++ lib.optional (config.kind == null) "kind is required"
-        ++ lib.optional (
-          config.networks.loki-net.role == "edge" && !config.networks.loki-net.enable
-        ) "networks.loki-net.role = edge requires networks.loki-net.enable"
-        ++ lib.optional (
-          config.networks.dn42.anycastDns && !config.networks.dn42.enable
-        ) "networks.dn42.anycastDns requires networks.dn42.enable"
-        ++ lib.optional (
-          config.networks.dn42.enable && config.networks.dn42.IPv4 == ""
-        ) "networks.dn42.enable requires networks.dn42.IPv4"
-        ++ lib.optional (
-          config.networks.dn42.enable && config.networks.dn42.IPv6 == ""
-        ) "networks.dn42.enable requires networks.dn42.IPv6"
-        ++ lib.optional (
-          config.networks.loki-net.enable && config.networks.loki-net.IPv6 == ""
-        ) "networks.loki-net.enable requires networks.loki-net.IPv6"
-        ++ lib.optional (
-          !config.features.zerotier.enable && config.features.zerotier.nodeId != null
-        ) "features.zerotier.nodeId requires features.zerotier.enable"
-        ++ lib.optional (
-          config.features.zerotier.nodeId != null
-          && builtins.match "^[0-9a-f]{10}$" config.features.zerotier.nodeId == null
-        ) "features.zerotier.nodeId must be a 10-character lowercase hexadecimal ID"
-        ++ lib.optional (builtins.any (
-          tag: tag == ""
-        ) config.deployment.extraTags) "deployment.extraTags must not contain empty tags"
-        ++ lib.optional (
-          lib.length config.deployment.extraTags != lib.length (lib.unique config.deployment.extraTags)
-        ) "deployment.extraTags must not contain duplicates";
+        ++ lib.optional
+          (
+            config.networks.loki-net.role == "edge" && !config.networks.loki-net.enable
+          ) "networks.loki-net.role = edge requires networks.loki-net.enable"
+        ++ lib.optional
+          (
+            config.networks.dn42.anycastDns && !config.networks.dn42.enable
+          ) "networks.dn42.anycastDns requires networks.dn42.enable"
+        ++ lib.optional
+          (
+            config.networks.dn42.enable && config.networks.dn42.IPv4 == ""
+          ) "networks.dn42.enable requires networks.dn42.IPv4"
+        ++ lib.optional
+          (
+            config.networks.dn42.enable && config.networks.dn42.IPv6 == ""
+          ) "networks.dn42.enable requires networks.dn42.IPv6"
+        ++ lib.optional
+          (
+            config.networks.loki-net.enable && config.networks.loki-net.IPv6 == ""
+          ) "networks.loki-net.enable requires networks.loki-net.IPv6"
+        ++ lib.optional
+          (
+            !config.features.zerotier.enable && config.features.zerotier.nodeId != null
+          ) "features.zerotier.nodeId requires features.zerotier.enable"
+        ++ lib.optional
+          (
+            config.features.zerotier.nodeId != null
+            && builtins.match "^[0-9a-f]{10}$" config.features.zerotier.nodeId == null
+          ) "features.zerotier.nodeId must be a 10-character lowercase hexadecimal ID"
+        ++ lib.optional
+          (builtins.any
+            (
+              tag: tag == ""
+            )
+            config.deployment.extraTags) "deployment.extraTags must not contain empty tags"
+        ++ lib.optional
+          (
+            lib.length config.deployment.extraTags != lib.length (lib.unique config.deployment.extraTags)
+          ) "deployment.extraTags must not contain duplicates";
       description = "Cross-field host metadata validation errors.";
     };
 
     sshPort = lib.mkOption {
-      type = lib.types.int;
+      type = lib.types.port;
       default = 22;
+      description = "SSH port used by OpenSSH, Colmena, and deployment health checks.";
     };
     system = lib.mkOption {
       type = lib.types.str;

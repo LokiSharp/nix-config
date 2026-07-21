@@ -1,28 +1,31 @@
-{
-  lib,
-  mylib,
-  outputs,
-  ...
+{ lib
+, mylib
+, outputs
+, ...
 }:
 let
   publicHostNames =
-    lib.filter (
-      name:
-      let
-        host = mylib.hosts.${lib.toLower name};
-      in
-      host.public.IPv4 != ""
-    ) (builtins.attrNames outputs.nixosConfigurations);
+    lib.filter
+      (
+        name:
+        let
+          host = mylib.hosts.${lib.toLower name};
+        in
+        host.public.IPv4 != ""
+      )
+      (builtins.attrNames outputs.nixosConfigurations);
 in
 lib.genAttrs publicHostNames (
   name:
   let
+    host = mylib.hosts.${lib.toLower name};
     config = outputs.nixosConfigurations.${name}.config;
     nftRuleset = config.networking.nftables.ruleset;
+    sshPort = builtins.toString host.sshPort;
   in
   {
-    opensshListensOnPort22 = builtins.elem 22 config.services.openssh.ports;
+    opensshListensOnConfiguredPort = config.services.openssh.ports == [ host.sshPort ];
     nftablesEnabled = config.networking.nftables.enable;
-    firewallAllowsSshPort22 = builtins.match ".*tcp dport 22 accept.*" nftRuleset != null;
+    firewallAllowsConfiguredSshPort = builtins.match ".*tcp dport ${sshPort} accept.*" nftRuleset != null;
   }
 )

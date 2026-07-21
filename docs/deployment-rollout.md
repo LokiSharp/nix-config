@@ -91,7 +91,7 @@ flake 输出 `deploymentHostMetadata`，包含健康检查所需的结构化数�
 nix eval .#deploymentHostMetadata --json
 ```
 
-SSH 的 `targetHost` 和部署用 `targetUser` 在运行时通过 `colmena eval` 获取；健康检查用户来自 `myvars.healthcheckUsername`。服务模块通过 `deployment.healthChecks.requiredUnits` 声明必检 systemd unit，通过 `deployment.healthChecks.httpProbes` 声明本地 HTTP 探针。这些声明会一起导出到 `deploymentHostMetadata`，因此新增服务时不需要再修改 Nushell 中的集中式服务或 URL 清单。
+SSH 的 `targetHost`、`targetPort` 和部署用 `targetUser` 在运行时通过 `colmena eval` 获取；端口来自主机元数据的 `sshPort`，健康检查用户来自 `myvars.healthcheckUsername`。服务模块通过 `deployment.healthChecks.requiredUnits` 声明必检 systemd unit，通过 `deployment.healthChecks.httpProbes` 声明本地 HTTP 探针。这些声明会一起导出到 `deploymentHostMetadata`，因此新增服务时不需要再修改 Nushell 中的集中式服务或 URL 清单。
 
 ## 直接使用 Nushell
 

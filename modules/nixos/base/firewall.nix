@@ -85,7 +85,7 @@ in
           ip protocol icmp icmp type echo-request accept
 
           # accept SSH connections (required for a server)
-          tcp dport 22 accept
+          tcp dport ${builtins.toString configLib.this.sshPort} accept
 
           ${
             if

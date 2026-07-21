@@ -1,17 +1,17 @@
 # colmena - Remote Deployment via SSH
-{
-  lib,
-  inputs,
-  nixos-modules,
-  home-modules ? [ ],
-  myvars,
-  system,
-  tags,
-  targetHost ? null,
-  ssh-user,
-  genSpecialArgs,
-  specialArgs ? (genSpecialArgs system),
-  ...
+{ lib
+, inputs
+, mylib
+, nixos-modules
+, home-modules ? [ ]
+, myvars
+, system
+, tags
+, targetHost ? null
+, ssh-user
+, genSpecialArgs
+, specialArgs ? (genSpecialArgs system)
+, ...
 }:
 let
   inherit (inputs) home-manager;
@@ -22,6 +22,7 @@ in
     inherit tags;
     targetUser = ssh-user;
     targetHost = if targetHost == null then name else targetHost; # hostName or IP address
+    targetPort = mylib.hosts.${lib.toLower name}.sshPort;
   };
 
   imports =

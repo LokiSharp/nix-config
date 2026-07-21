@@ -373,7 +373,7 @@ def deployment-inventory [] {
         exit 1
     }
 
-    let colmena_expression = '{ nodes, lib, ... }: lib.mapAttrs (_: node: { targetHost = node.config.deployment.targetHost; targetUser = node.config.deployment.targetUser; }) nodes'
+    let colmena_expression = '{ nodes, lib, ... }: lib.mapAttrs (_: node: { targetHost = node.config.deployment.targetHost; targetPort = node.config.deployment.targetPort; targetUser = node.config.deployment.targetUser; }) nodes'
     # Health checks are read-only and should also work while deployment helpers
     # themselves are being edited in a dirty worktree.
     let targets_result = (colmena eval --impure -E $colmena_expression --show-trace | complete)
@@ -392,6 +392,7 @@ def deployment-inventory [] {
         let target = ($targets | get $item.name)
         $item.metadata | merge {
             targetHost: $target.targetHost
+            targetPort: $target.targetPort
             targetUser: $target.targetUser
         }
     }
@@ -416,7 +417,7 @@ def select-deployment-hosts [inventory: list<any>, requested: list<string>] {
 
 def ssh-command [host: record, command: string] {
     let destination = $"($host.healthUser)@($host.targetHost)"
-    ^ssh -o BatchMode=yes -o ConnectTimeout=12 -o ConnectionAttempts=3 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o ControlMaster=auto -o ControlPersist=60 -o ControlPath=/tmp/nix-config-health-%C $destination $command | complete
+    ^ssh -p ($host.targetPort | into string) -o BatchMode=yes -o ConnectTimeout=12 -o ConnectionAttempts=3 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o ControlMaster=auto -o ControlPersist=60 -o ControlPath=/tmp/nix-config-health-%C $destination $command | complete
 }
 
 def root-health-command [host: record, helper: string, action: string, since_minutes: int] {

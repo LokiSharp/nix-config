@@ -163,7 +163,9 @@ in
       in
       {
         ipv4 = host.public.IPv4;
-        expectedOpenTcpPorts = sortedUnique ([ 22 ] ++ config.networking.firewall.allowedTCPPorts);
+        expectedOpenTcpPorts = sortedUnique (
+          config.services.openssh.ports ++ config.networking.firewall.allowedTCPPorts
+        );
       }
     );
 
@@ -179,6 +181,7 @@ in
       {
         inherit name;
         inherit (host) role kind deploymentTags;
+        sshPort = host.sshPort;
         healthUser = myvars.healthcheckUsername;
         requiredUnits = lib.lists.sort builtins.lessThan config.deployment.healthChecks.requiredUnits;
         httpProbes = config.deployment.healthChecks.httpProbes;

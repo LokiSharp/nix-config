@@ -17,6 +17,8 @@ let
   hasTarget = target: lib.any (route: route.target == target) routes;
 in
 {
+  defaultIPv4Absent = !hasTarget "0.0.0.0/0";
+  defaultIPv6Absent = !hasTarget "::/0";
   serverMemberPresent =
     builtins.hasAttr "4f5655656b" members
     && members."4f5655656b".ipAssignments == [

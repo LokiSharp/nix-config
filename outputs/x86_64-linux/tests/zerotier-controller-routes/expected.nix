@@ -1,5 +1,7 @@
 { ... }:
 {
+  defaultIPv4Absent = true;
+  defaultIPv6Absent = true;
   serverMemberPresent = true;
   serverSlkPrefixPresent = true;
   serverDisabledDn42Absent = true;

@@ -25,16 +25,6 @@ let
   ztRoutes = [
     { target = "198.18.0.0/24"; }
     { target = "fdbc:f9dc:67ad::/64"; }
-
-    # Default routing to EDGE
-    {
-      target = "0.0.0.0/0";
-      via = "198.18.0.1";
-    }
-    {
-      target = "::/0";
-      via = "fdbc:f9dc:67ad::1";
-    }
   ]
   ++ (lib.flatten (
     lib.mapAttrsToList (

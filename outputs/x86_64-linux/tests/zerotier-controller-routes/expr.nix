@@ -17,6 +17,15 @@ let
   hasTarget = target: lib.any (route: route.target == target) routes;
 in
 {
+  serverMemberPresent =
+    builtins.hasAttr "4f5655656b" members
+    && members."4f5655656b".ipAssignments == [
+      "198.18.0.12"
+      "fdbc:f9dc:67ad::12"
+    ];
+  serverSlkPrefixPresent = hasRoute "fdbc:f9dc:67ad:12::/64" "fdbc:f9dc:67ad::12";
+  serverDisabledDn42Absent = !hasTarget "fd6a:11d4:cacb:12::1/128";
+  serverDisabledLokiNetAbsent = !hasTarget "2a0e:aa07:e220:12::1/128";
   vmMemberPresent =
     builtins.hasAttr "71ce8defb9" members
     && members."71ce8defb9".ipAssignments == [

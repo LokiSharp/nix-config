@@ -1,5 +1,9 @@
 { ... }:
 {
+  serverMemberPresent = true;
+  serverSlkPrefixPresent = true;
+  serverDisabledDn42Absent = true;
+  serverDisabledLokiNetAbsent = true;
   vmMemberPresent = true;
   vmStaleMemberAbsent = true;
   vmSlkPrefixPresent = true;

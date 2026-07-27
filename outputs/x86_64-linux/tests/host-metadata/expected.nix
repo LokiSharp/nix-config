@@ -1,6 +1,5 @@
 { ... }:
 {
-  allHostsValid = true;
   deploymentTagsUnique = true;
   legacyDeploymentTagsAbsent = true;
 

@@ -58,7 +58,6 @@ let
   ];
 in
 {
-  allHostsValid = lib.all (host: host.validationErrors == [ ]) hosts;
   deploymentTagsUnique = lib.all (
     host: lib.length host.deploymentTags == lib.length (lib.unique host.deploymentTags)
   ) hosts;

@@ -1,5 +1,6 @@
 { ... }:
 {
+  benchmarkIPv4RoutesAbsent = true;
   defaultIPv4Absent = true;
   defaultIPv6Absent = true;
   serverMemberPresent = true;

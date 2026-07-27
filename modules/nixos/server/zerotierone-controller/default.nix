@@ -33,7 +33,6 @@ let
         i = builtins.toString v.index;
         routes = [
           "198.18.${i}.0/24"
-          "198.19.${i}.0/24"
           "fdbc:f9dc:67ad:${i}::/64"
         ]
         ++ (lib.optionals (v.networks.dn42.enable && v.networks.dn42.IPv4 != "") [ "${v.networks.dn42.IPv4}/32" ])

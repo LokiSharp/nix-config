@@ -17,6 +17,7 @@ let
   hasTarget = target: lib.any (route: route.target == target) routes;
 in
 {
+  benchmarkIPv4RoutesAbsent = lib.all (route: !lib.hasPrefix "198.19." route.target) routes;
   defaultIPv4Absent = !hasTarget "0.0.0.0/0";
   defaultIPv6Absent = !hasTarget "::/0";
   serverMemberPresent =

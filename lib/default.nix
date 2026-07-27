@@ -35,6 +35,7 @@ let
 
     constants = call ../vars/constants.nix;
 
+    globalHostValidationErrors = call ./fn/global-host-validation-errors.nix;
     hosts = call ./fn/hosts.nix;
     otherHosts = builtins.removeAttrs hosts [ config.networking.hostName ];
     this = hosts."${lib.toLower config.networking.hostName}";

@@ -415,13 +415,29 @@ def select-deployment-hosts [inventory: list<any>, requested: list<string>] {
     $inventory | where {|host| $host.name in $requested }
 }
 
-def ssh-command [host: record, command: string] {
+def ssh-command-with [host: record, command: string, run_ssh: closure] {
     let destination = $"($host.healthUser)@($host.targetHost)"
     let control_path = $"/tmp/nix-config-health-($nu.pid)-%C"
-    let first = (
-        ^ssh -p ($host.targetPort | into string) -o BatchMode=yes -o ConnectTimeout=12 -o ConnectionAttempts=3 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o ControlMaster=auto -o ControlPersist=60 -o $"ControlPath=($control_path)" $destination $command
-        | complete
+    let common_arguments = [
+        -p
+        ($host.targetPort | into string)
+        -o
+        BatchMode=yes
+        -o
+        ConnectTimeout=12
+        -o
+        ConnectionAttempts=3
+        -o
+        ServerAliveInterval=5
+        -o
+        ServerAliveCountMax=2
+    ]
+    let first_arguments = (
+        $common_arguments
+        | append [-o ControlMaster=auto -o ControlPersist=60 -o $"ControlPath=($control_path)"]
+        | append [$destination $command]
     )
+    let first = (do $run_ssh $first_arguments)
 
     if $first.exit_code == 0 {
         return $first
@@ -439,7 +455,18 @@ def ssh-command [host: record, command: string] {
     }
 
     print -e $"[WARN] ($host.name): SSH multiplexing failed; retrying with a fresh connection"
-    ^ssh -p ($host.targetPort | into string) -o BatchMode=yes -o ConnectTimeout=12 -o ConnectionAttempts=3 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o ControlMaster=no -o ControlPath=none $destination $command | complete
+    let retry_arguments = (
+        $common_arguments
+        | append [-o ControlMaster=no -o ControlPath=none]
+        | append [$destination $command]
+    )
+    do $run_ssh $retry_arguments
+}
+
+def ssh-command [host: record, command: string] {
+    ssh-command-with $host $command {|arguments|
+        ^ssh ...$arguments | complete
+    }
 }
 
 def root-health-command [host: record, helper: string, action: string, since_minutes: int] {

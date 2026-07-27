@@ -83,14 +83,6 @@ in
     lokiNetIPv6 = nonEmptyUnique (map (host: host.networks.loki-net.IPv6) lokiNetHosts);
   };
 
-  vultrMetadata = {
-    inherit (vultr) role kind;
-    firewall = vultr.features.firewall.enable;
-    zerotierNodeId = vultr.features.zerotier.nodeId;
-    dn42 = vultr.networks.dn42.enable;
-    lokiNetRole = vultr.networks.loki-net.role;
-  };
-
   namespacedDeploymentTags = {
     role = vultr.hasDeploymentTag "role:server";
     kind = vultr.hasDeploymentTag "kind:vps";

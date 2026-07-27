@@ -20,15 +20,6 @@
     lokiNetIPv6 = true;
   };
 
-  vultrMetadata = {
-    role = "server";
-    kind = "vps";
-    firewall = true;
-    zerotierNodeId = "9e786cf795";
-    dn42 = true;
-    lokiNetRole = "edge";
-  };
-
   namespacedDeploymentTags = {
     role = true;
     kind = true;

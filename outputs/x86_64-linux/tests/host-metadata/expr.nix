@@ -6,16 +6,6 @@
 let
   hosts = lib.attrValues mylib.hosts;
   vultr = mylib.hosts.vultr-jp;
-  indexedHosts = lib.filter (
-    host:
-    host.networks.dn42.enable || host.networks.loki-net.enable || host.features.zerotier.nodeId != null
-  ) hosts;
-  dn42Hosts = lib.filter (host: host.networks.dn42.enable) hosts;
-  lokiNetHosts = lib.filter (host: host.networks.loki-net.enable) hosts;
-  zerotierHosts = lib.filter (host: host.features.zerotier.nodeId != null) hosts;
-
-  isUnique = values: lib.length values == lib.length (lib.unique values);
-  nonEmptyUnique = values: isUnique (lib.filter (value: value != "") values);
   evalHost =
     module:
     (lib.evalModules {
@@ -44,6 +34,55 @@ let
     kind = "vm";
     networks.slk-net.IPv4 = "198.18.0.14";
   };
+  mkGlobalHost =
+    {
+      index,
+      nodeId,
+      dn42IPv4,
+      dn42IPv6,
+      lokiNetIPv4,
+      lokiNetIPv6,
+    }:
+    {
+      inherit index;
+      features.zerotier = { inherit nodeId; };
+      networks = {
+        dn42 = {
+          enable = dn42IPv4 != "" || dn42IPv6 != "";
+          IPv4 = dn42IPv4;
+          IPv6 = dn42IPv6;
+        };
+        loki-net = {
+          enable = lokiNetIPv4 != "" || lokiNetIPv6 != "";
+          IPv4 = lokiNetIPv4;
+          IPv6 = lokiNetIPv6;
+        };
+      };
+    };
+  mkGlobalFixtureHost =
+    index: nodeId: dn42IPv4: dn42IPv6: lokiNetIPv4: lokiNetIPv6:
+    mkGlobalHost {
+      inherit
+        index
+        nodeId
+        dn42IPv4
+        dn42IPv6
+        lokiNetIPv4
+        lokiNetIPv6
+        ;
+    };
+  validGlobalErrors = mylib.globalHostValidationErrors [
+    (mkGlobalFixtureHost 1 "0000000001" "172.20.0.1" "fd00::1" "10.0.0.1" "fd01::1")
+    (mkGlobalFixtureHost 2 "0000000002" "172.20.0.2" "fd00::2" "10.0.0.2" "fd01::2")
+  ];
+  duplicateIndexErrors = mylib.globalHostValidationErrors [
+    (mkGlobalFixtureHost 1 "0000000001" "" "" "" "")
+    (mkGlobalFixtureHost 1 "0000000002" "" "" "" "")
+  ];
+  duplicateAddressErrors = mylib.globalHostValidationErrors [
+    (mkGlobalFixtureHost 1 "0000000001" "172.20.0.1" "fd00::1" "10.0.0.1" "fd01::1")
+    (mkGlobalFixtureHost 2 "0000000001" "172.20.0.1" "fd00::1" "10.0.0.1" "fd01::1")
+  ];
   legacyTags = [
     "server"
     "client"
@@ -72,15 +111,20 @@ in
       builtins.elem "networks.slk-net.IPv4 must match the host index" mismatchedSlkHost.validationErrors;
   };
 
-  globalUniqueness = {
-    indexes = isUnique (map (host: host.index) indexedHosts);
-    zerotierNodeIds = isUnique (map (host: host.features.zerotier.nodeId) zerotierHosts);
-    slkNetIPv4 = isUnique (map (host: host.networks.slk-net.IPv4) indexedHosts);
-    slkNetIPv6 = isUnique (map (host: host.networks.slk-net.IPv6) indexedHosts);
-    dn42IPv4 = nonEmptyUnique (map (host: host.networks.dn42.IPv4) dn42Hosts);
-    dn42IPv6 = nonEmptyUnique (map (host: host.networks.dn42.IPv6) dn42Hosts);
-    lokiNetIPv4 = nonEmptyUnique (map (host: host.networks.loki-net.IPv4) lokiNetHosts);
-    lokiNetIPv6 = nonEmptyUnique (map (host: host.networks.loki-net.IPv6) lokiNetHosts);
+  globalValidation = {
+    validMetadataAccepted = validGlobalErrors == [ ];
+    duplicateIndexRejected =
+      builtins.elem "managed network indexes must be unique" duplicateIndexErrors;
+    duplicateZerotierNodeIdRejected =
+      builtins.elem "ZeroTier node IDs must be unique" duplicateAddressErrors;
+    duplicateDn42IPv4Rejected =
+      builtins.elem "DN42 IPv4 addresses must be unique" duplicateAddressErrors;
+    duplicateDn42IPv6Rejected =
+      builtins.elem "DN42 IPv6 addresses must be unique" duplicateAddressErrors;
+    duplicateLokiNetIPv4Rejected =
+      builtins.elem "Loki-Net IPv4 addresses must be unique" duplicateAddressErrors;
+    duplicateLokiNetIPv6Rejected =
+      builtins.elem "Loki-Net IPv6 addresses must be unique" duplicateAddressErrors;
   };
 
   namespacedDeploymentTags = {

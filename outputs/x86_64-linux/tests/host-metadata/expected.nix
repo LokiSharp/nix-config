@@ -9,15 +9,14 @@
     mismatchedAddressRejected = true;
   };
 
-  globalUniqueness = {
-    indexes = true;
-    zerotierNodeIds = true;
-    slkNetIPv4 = true;
-    slkNetIPv6 = true;
-    dn42IPv4 = true;
-    dn42IPv6 = true;
-    lokiNetIPv4 = true;
-    lokiNetIPv6 = true;
+  globalValidation = {
+    validMetadataAccepted = true;
+    duplicateIndexRejected = true;
+    duplicateZerotierNodeIdRejected = true;
+    duplicateDn42IPv4Rejected = true;
+    duplicateDn42IPv6Rejected = true;
+    duplicateLokiNetIPv4Rejected = true;
+    duplicateLokiNetIPv6Rejected = true;
   };
 
   namespacedDeploymentTags = {

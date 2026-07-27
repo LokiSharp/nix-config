@@ -1,6 +1,6 @@
 { ... }:
 {
-  index = 100;
+  index = 7;
   role = "server";
   kind = "vps";
 
@@ -20,12 +20,12 @@
     dn42 = {
       enable = true;
       anycastDns = true;
-      IPv4 = "172.20.190.100";
-      IPv6 = "fd6a:11d4:cacb::100";
+      IPv4 = "172.20.190.7";
+      IPv6 = "fd6a:11d4:cacb::7";
     };
     loki-net = {
       enable = true;
-      IPv6 = "2a0e:aa07:e220:100::1";
+      IPv6 = "2a0e:aa07:e220:7::1";
     };
   };
 }

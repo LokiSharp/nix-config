@@ -58,24 +58,69 @@ let
       ''
     else
       hostPaths;
+
+  evaluatedHosts = lib.mapAttrs (
+    name: path:
+    let
+      host =
+        (lib.evalModules {
+          modules = [
+            ../host-options.nix
+            path
+          ];
+          specialArgs.name = name;
+        }).config;
+    in
+    if host.validationErrors == [ ] then
+      host
+    else
+      builtins.throw ''
+        Invalid host metadata for ${name}:
+        ${lib.concatMapStringsSep "\n" (error: "- ${error}") host.validationErrors}
+      ''
+  ) safeHostPaths;
+
+  hosts = lib.attrValues evaluatedHosts;
+  indexedHosts = lib.filter (
+    host:
+    host.features.zerotier.nodeId != null
+    || host.networks.dn42.enable
+    || host.networks.loki-net.enable
+  ) hosts;
+  zerotierHosts = lib.filter (host: host.features.zerotier.nodeId != null) hosts;
+  dn42Hosts = lib.filter (host: host.networks.dn42.enable) hosts;
+  lokiNetHosts = lib.filter (host: host.networks.loki-net.enable) hosts;
+
+  isUnique = values: lib.length values == lib.length (lib.unique values);
+  nonEmptyUnique = values: isUnique (lib.filter (value: value != "") values);
+  globalValidationErrors =
+    lib.optional (!isUnique (map (host: host.index) indexedHosts)) "managed network indexes must be unique"
+    ++ lib.optional
+      (!isUnique (map (host: host.features.zerotier.nodeId) zerotierHosts))
+      "ZeroTier node IDs must be unique"
+    ++ lib.optional
+      (!isUnique (map (host: host.networks.slk-net.IPv4) indexedHosts))
+      "SLK-Net IPv4 addresses must be unique"
+    ++ lib.optional
+      (!isUnique (map (host: host.networks.slk-net.IPv6) indexedHosts))
+      "SLK-Net IPv6 addresses must be unique"
+    ++ lib.optional
+      (!nonEmptyUnique (map (host: host.networks.dn42.IPv4) dn42Hosts))
+      "DN42 IPv4 addresses must be unique"
+    ++ lib.optional
+      (!nonEmptyUnique (map (host: host.networks.dn42.IPv6) dn42Hosts))
+      "DN42 IPv6 addresses must be unique"
+    ++ lib.optional
+      (!nonEmptyUnique (map (host: host.networks.loki-net.IPv4) lokiNetHosts))
+      "Loki-Net IPv4 addresses must be unique"
+    ++ lib.optional
+      (!nonEmptyUnique (map (host: host.networks.loki-net.IPv6) lokiNetHosts))
+      "Loki-Net IPv6 addresses must be unique";
 in
-lib.mapAttrs (
-  name: path:
-  let
-    host =
-      (lib.evalModules {
-        modules = [
-          ../host-options.nix
-          path
-        ];
-        specialArgs.name = name;
-      }).config;
-  in
-  if host.validationErrors == [ ] then
-    host
-  else
-    builtins.throw ''
-      Invalid host metadata for ${name}:
-      ${lib.concatMapStringsSep "\n" (error: "- ${error}") host.validationErrors}
-    ''
-) safeHostPaths
+if globalValidationErrors == [ ] then
+  evaluatedHosts
+else
+  builtins.throw ''
+    Invalid global host metadata:
+    ${lib.concatMapStringsSep "\n" (error: "- ${error}") globalValidationErrors}
+  ''

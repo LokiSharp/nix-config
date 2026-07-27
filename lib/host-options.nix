@@ -1,8 +1,16 @@
 { lib
 , config
+, options
 , ...
 }@args:
 let
+  hasIndex = options.index.isDefined;
+  requiresIndex =
+    config.features.zerotier.nodeId != null
+    || config.networks.dn42.enable
+    || config.networks.loki-net.enable;
+  indexString = if hasIndex then builtins.toString config.index else "";
+
   enabledFeatures =
     lib.optional config.features.firewall.enable "firewall"
     ++ lib.optional config.features.tailscale.enable "tailscale"
@@ -100,6 +108,30 @@ in
       default =
         lib.optional (config.role == null) "role is required"
         ++ lib.optional (config.kind == null) "kind is required"
+        ++ lib.optional
+          (
+            requiresIndex && !hasIndex
+          ) "index is required for managed network members"
+        ++ lib.optional
+          (
+            hasIndex && (config.index < 1 || config.index > 254)
+          ) "index must be between 1 and 254"
+        ++ lib.optional
+          (
+            hasIndex && config.networks.slk-net.IPv4 != "198.18.0.${indexString}"
+          ) "networks.slk-net.IPv4 must match the host index"
+        ++ lib.optional
+          (
+            hasIndex && config.networks.slk-net.IPv4Prefix != "198.18.${indexString}"
+          ) "networks.slk-net.IPv4Prefix must match the host index"
+        ++ lib.optional
+          (
+            hasIndex && config.networks.slk-net.IPv6 != "fdbc:f9dc:67ad::${indexString}"
+          ) "networks.slk-net.IPv6 must match the host index"
+        ++ lib.optional
+          (
+            hasIndex && config.networks.slk-net.IPv6Prefix != "fdbc:f9dc:67ad:${indexString}"
+          ) "networks.slk-net.IPv6Prefix must match the host index"
         ++ lib.optional
           (
             config.networks.loki-net.role == "edge" && !config.networks.loki-net.enable

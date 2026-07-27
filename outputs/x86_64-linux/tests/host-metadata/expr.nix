@@ -16,6 +16,34 @@ let
 
   isUnique = values: lib.length values == lib.length (lib.unique values);
   nonEmptyUnique = values: isUnique (lib.filter (value: value != "") values);
+  evalHost =
+    module:
+    (lib.evalModules {
+      modules = [
+        (mylib.relativeToRoot "lib/host-options.nix")
+        module
+      ];
+      specialArgs.name = "validation-fixture";
+    }).config;
+  missingIndexHost = evalHost {
+    role = "client";
+    kind = "vm";
+    features.zerotier = {
+      enable = true;
+      nodeId = "0123456789";
+    };
+  };
+  outOfRangeHost = evalHost {
+    index = 255;
+    role = "client";
+    kind = "vm";
+  };
+  mismatchedSlkHost = evalHost {
+    index = 13;
+    role = "client";
+    kind = "vm";
+    networks.slk-net.IPv4 = "198.18.0.14";
+  };
   legacyTags = [
     "server"
     "client"
@@ -37,6 +65,24 @@ in
   legacyDeploymentTagsAbsent = lib.all (
     host: lib.intersectLists legacyTags host.deploymentTags == [ ]
   ) hosts;
+
+  indexValidation = {
+    allInRange = lib.all (host: host.index >= 1 && host.index <= 254) indexedHosts;
+    allSlkAddressesDerived = lib.all (
+      host:
+      let
+        index = builtins.toString host.index;
+      in
+      host.networks.slk-net.IPv4 == "198.18.0.${index}"
+      && host.networks.slk-net.IPv4Prefix == "198.18.${index}"
+      && host.networks.slk-net.IPv6 == "fdbc:f9dc:67ad::${index}"
+      && host.networks.slk-net.IPv6Prefix == "fdbc:f9dc:67ad:${index}"
+    ) indexedHosts;
+    missingIndexRejected = builtins.elem "index is required for managed network members" missingIndexHost.validationErrors;
+    outOfRangeRejected = builtins.elem "index must be between 1 and 254" outOfRangeHost.validationErrors;
+    mismatchedAddressRejected =
+      builtins.elem "networks.slk-net.IPv4 must match the host index" mismatchedSlkHost.validationErrors;
+  };
 
   globalUniqueness = {
     indexes = isUnique (map (host: host.index) indexedHosts);

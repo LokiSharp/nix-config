@@ -4,6 +4,14 @@
   deploymentTagsUnique = true;
   legacyDeploymentTagsAbsent = true;
 
+  indexValidation = {
+    allInRange = true;
+    allSlkAddressesDerived = true;
+    missingIndexRejected = true;
+    outOfRangeRejected = true;
+    mismatchedAddressRejected = true;
+  };
+
   globalUniqueness = {
     indexes = true;
     zerotierNodeIds = true;

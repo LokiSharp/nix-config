@@ -46,10 +46,10 @@ let
           "198.19.${i}.0/24"
           "fdbc:f9dc:67ad:${i}::/64"
         ]
-        ++ (lib.optionals (v.networks.dn42.IPv4 != "") [ "${v.networks.dn42.IPv4}/32" ])
-        ++ (lib.optionals (v.networks.dn42.IPv6 != "") [ "${v.networks.dn42.IPv6}/128" ])
-        ++ (lib.optionals (v.networks.loki-net.IPv4 != "") [ "${v.networks.loki-net.IPv4}/32" ])
-        ++ (lib.optionals (v.networks.loki-net.IPv6 != "") [ "${v.networks.loki-net.IPv6}/128" ]);
+        ++ (lib.optionals (v.networks.dn42.enable && v.networks.dn42.IPv4 != "") [ "${v.networks.dn42.IPv4}/32" ])
+        ++ (lib.optionals (v.networks.dn42.enable && v.networks.dn42.IPv6 != "") [ "${v.networks.dn42.IPv6}/128" ])
+        ++ (lib.optionals (v.networks.loki-net.enable && v.networks.loki-net.IPv4 != "") [ "${v.networks.loki-net.IPv4}/32" ])
+        ++ (lib.optionals (v.networks.loki-net.enable && v.networks.loki-net.IPv6 != "") [ "${v.networks.loki-net.IPv6}/128" ]);
       in
       builtins.map (r: {
         target = r;

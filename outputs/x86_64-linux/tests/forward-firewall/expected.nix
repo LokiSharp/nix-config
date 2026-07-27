@@ -3,8 +3,8 @@
 lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (_: {
   dropsInvalidTraffic = true;
   allowsEstablishedTraffic = true;
-  defaultDeny = true;
-  noUnconditionalForwardAccept = true;
+  terminalDefaultDrop = true;
+  noUnconditionalAccept = true;
   zerotierScoped = true;
   dn42Scoped = true;
   tailscaleScoped = true;

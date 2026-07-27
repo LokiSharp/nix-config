@@ -1,8 +1,10 @@
 { lib, outputs, ... }:
 
 let
-  routes =
-    outputs.nixosConfigurations."OVH-CA-EAST-BHS".config.services.zerotierone.controller.networks."000001".routes;
+  network =
+    outputs.nixosConfigurations."OVH-CA-EAST-BHS".config.services.zerotierone.controller.networks."000001";
+  routes = network.routes;
+  members = network.members;
   hasRoute =
     target: via:
     lib.any
@@ -15,6 +17,13 @@ let
   hasTarget = target: lib.any (route: route.target == target) routes;
 in
 {
+  vmMemberPresent =
+    builtins.hasAttr "71ce8defb9" members
+    && members."71ce8defb9".ipAssignments == [
+      "198.18.0.11"
+      "fdbc:f9dc:67ad::11"
+    ];
+  vmStaleMemberAbsent = !builtins.hasAttr "a2444b031c" members;
   vmSlkPrefixPresent = hasRoute "fdbc:f9dc:67ad:11::/64" "fdbc:f9dc:67ad::11";
   vmDisabledDn42Absent = !hasTarget "fd6a:11d4:cacb:11::1/128";
   vmDisabledLokiNetAbsent = !hasTarget "2a0e:aa07:e220:11::1/128";

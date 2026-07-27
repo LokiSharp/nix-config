@@ -1,5 +1,7 @@
 { ... }:
 {
+  vmMemberPresent = true;
+  vmStaleMemberAbsent = true;
   vmSlkPrefixPresent = true;
   vmDisabledDn42Absent = true;
   vmDisabledLokiNetAbsent = true;

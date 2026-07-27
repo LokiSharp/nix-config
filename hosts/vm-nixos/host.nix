@@ -10,7 +10,7 @@
     tailscale.enable = true;
     zerotier = {
       enable = true;
-      nodeId = "a2444b031c";
+      nodeId = "71ce8defb9";
     };
   };
 }

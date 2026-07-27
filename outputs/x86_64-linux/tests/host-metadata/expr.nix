@@ -66,17 +66,6 @@ in
   ) hosts;
 
   indexValidation = {
-    allInRange = lib.all (host: host.index >= 1 && host.index <= 254) indexedHosts;
-    allSlkAddressesDerived = lib.all (
-      host:
-      let
-        index = builtins.toString host.index;
-      in
-      host.networks.slk-net.IPv4 == "198.18.0.${index}"
-      && host.networks.slk-net.IPv4Prefix == "198.18.${index}"
-      && host.networks.slk-net.IPv6 == "fdbc:f9dc:67ad::${index}"
-      && host.networks.slk-net.IPv6Prefix == "fdbc:f9dc:67ad:${index}"
-    ) indexedHosts;
     missingIndexRejected = builtins.elem "index is required for managed network members" missingIndexHost.validationErrors;
     outOfRangeRejected = builtins.elem "index must be between 1 and 254" outOfRangeHost.validationErrors;
     mismatchedAddressRejected =

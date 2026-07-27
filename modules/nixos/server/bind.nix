@@ -142,7 +142,7 @@ in
           ; slk.dn42.
           $TTL  300 ; default ttl for all RRs
           @ IN  SOA ns-anycast.slk.dn42. dn42.slk.moe. (
-                      2025122901   ; Serial Number
+                      2026072701   ; Serial Number
                           3600     ; Refresh
                           180      ; Retry
                           86400    ; Expire
@@ -158,10 +158,30 @@ in
           vultr-jp                IN  AAAA  fd6a:11d4:cacb::2
           v4.vultr-jp             IN  A     172.20.190.2
           v6.vultr-jp             IN  AAAA  fd6a:11d4:cacb::2
-          base-test-cn-sh         IN  A     172.20.190.10
-          base-test-cn-sh         IN  AAAA  fd6a:11d4:cacb::10
-          v4.base-test-cn-sh      IN  A     172.20.190.10
-          v6.base-test-cn-sh      IN  AAAA  fd6a:11d4:cacb::10
+          racknerd-us-ny          IN  A     172.20.190.3
+          racknerd-us-ny          IN  AAAA  fd6a:11d4:cacb::3
+          v4.racknerd-us-ny       IN  A     172.20.190.3
+          v6.racknerd-us-ny       IN  AAAA  fd6a:11d4:cacb::3
+          racknerd-us-sj          IN  A     172.20.190.4
+          racknerd-us-sj          IN  AAAA  fd6a:11d4:cacb::4
+          v4.racknerd-us-sj       IN  A     172.20.190.4
+          v6.racknerd-us-sj       IN  AAAA  fd6a:11d4:cacb::4
+          lycheen-us-slc          IN  A     172.20.190.5
+          lycheen-us-slc          IN  AAAA  fd6a:11d4:cacb::5
+          v4.lycheen-us-slc       IN  A     172.20.190.5
+          v6.lycheen-us-slc       IN  AAAA  fd6a:11d4:cacb::5
+          moedove-tpe             IN  A     172.20.190.6
+          moedove-tpe             IN  AAAA  fd6a:11d4:cacb::6
+          v4.moedove-tpe          IN  A     172.20.190.6
+          v6.moedove-tpe          IN  AAAA  fd6a:11d4:cacb::6
+          ovh-ca-east-bhs         IN  A     172.20.190.7
+          ovh-ca-east-bhs         IN  AAAA  fd6a:11d4:cacb::7
+          v4.ovh-ca-east-bhs      IN  A     172.20.190.7
+          v6.ovh-ca-east-bhs      IN  AAAA  fd6a:11d4:cacb::7
+          test-nixos              IN  A     172.20.190.10
+          test-nixos              IN  AAAA  fd6a:11d4:cacb::10
+          v4.test-nixos           IN  A     172.20.190.10
+          v6.test-nixos           IN  AAAA  fd6a:11d4:cacb::10
         '';
         master = true;
       };
@@ -171,7 +191,7 @@ in
           ; 0/26.190.20.172.in-addr.arpa.
           $TTL  300 ; default ttl for all RRs
           @ IN  SOA ns-anycast.slk.dn42. dn42.slk.moe. (
-                      2025122901   ; Serial Number
+                      2026072701   ; Serial Number
                           3600     ; Refresh
                           180      ; Retry
                           86400    ; Expire
@@ -181,7 +201,12 @@ in
           53                      IN  PTR   ns-anycast.slk.dn42.
 
           2                       IN  PTR   vultr-jp.slk.dn42.
-          10                      IN  PTR   base-test-cn-sh.slk.dn42.
+          3                       IN  PTR   racknerd-us-ny.slk.dn42.
+          4                       IN  PTR   racknerd-us-sj.slk.dn42.
+          5                       IN  PTR   lycheen-us-slc.slk.dn42.
+          6                       IN  PTR   moedove-tpe.slk.dn42.
+          7                       IN  PTR   ovh-ca-east-bhs.slk.dn42.
+          10                      IN  PTR   test-nixos.slk.dn42.
         '';
         master = true;
       };
@@ -191,7 +216,7 @@ in
           ; b.c.a.c.4.d.1.1.a.6.d.f.ip6.arpa.
           $TTL  300 ; default ttl for all RRs
           @ IN  SOA ns-anycast.slk.dn42. dn42.slk.moe. (
-                      2025122901   ; Serial Number
+                      2026072701   ; Serial Number
                           3600     ; Refresh
                           180      ; Retry
                           86400    ; Expire
@@ -201,7 +226,12 @@ in
           3.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR ns-anycast.slk.dn42.
 
           2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR vultr-jp.slk.dn42.
-          0.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR base-test-cn-sh.slk.dn42.
+          3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR racknerd-us-ny.slk.dn42.
+          4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR racknerd-us-sj.slk.dn42.
+          5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR lycheen-us-slc.slk.dn42.
+          6.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR moedove-tpe.slk.dn42.
+          7.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR ovh-ca-east-bhs.slk.dn42.
+          0.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   IN PTR test-nixos.slk.dn42.
         '';
         master = true;
       };

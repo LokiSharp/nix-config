@@ -298,5 +298,14 @@ in
         touch $out
       '';
     }
+    // lib.optionalAttrs (system == "x86_64-linux") {
+      deployment-ssh-resilience = pkgs.runCommand "deployment-ssh-resilience"
+        {
+          nativeBuildInputs = [ pkgs.nushell ];
+        } ''
+        nu ${self}/tests/deployment-ssh-resilience.nu
+        touch $out
+      '';
+    }
   );
 }

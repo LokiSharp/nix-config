@@ -298,6 +298,17 @@ in
       '';
     }
     // lib.optionalAttrs (system == "x86_64-linux") {
+      deployment-rollout = pkgs.runCommand "deployment-rollout"
+        {
+          nativeBuildInputs = [ pkgs.nushell ];
+        } ''
+        if ! nu ${self}/tests/deployment-rollout.nu 2>rollout-test.log; then
+          cat rollout-test.log >&2
+          exit 1
+        fi
+        touch $out
+      '';
+
       deployment-ssh-resilience = pkgs.runCommand "deployment-ssh-resilience"
         {
           nativeBuildInputs = [ pkgs.nushell ];

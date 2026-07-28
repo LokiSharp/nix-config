@@ -105,17 +105,8 @@ let
       map (name: "[FAIL] ${system}/${name}") (lib.lists.sort builtins.lessThan (builtins.attrNames tests))
     );
 
-  # Start with the flake and deployment-health path as a strict quality
-  # baseline. Extend this list as the existing repository-wide lint findings
-  # are cleaned up.
-  qualityCheckPaths = [
-    "flake.nix"
-    "outputs/default.nix"
-    "modules/nixos/base/deployment-health.nix"
-    "outputs/x86_64-linux/tests/deployment-health-metadata/expr.nix"
-    "outputs/x86_64-linux/tests/deployment-health-metadata/expected.nix"
-  ];
-  qualityCheckSources = map (path: lib.escapeShellArg "${self}/${path}") qualityCheckPaths;
+  # Keep formatting and static analysis aligned with the complete flake source.
+  qualityCheckSources = [ (lib.escapeShellArg "${self}") ];
 in
 {
   # Add attribute sets into outputs, for debugging

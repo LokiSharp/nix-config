@@ -68,6 +68,14 @@ let
         }
       )
       // {
+        # Require every NixOS system output to explicitly opt in before
+        # allowing an unfiltered apply.
+        allowApplyAll = lib.all
+          (
+            it: it.colmenaMeta.allowApplyAll or false
+          )
+          nixosSystemValues;
+
         # per-node nixpkgs & specialArgs
         nodeNixpkgs = lib.attrsets.mergeAttrsList (
           map (it: it.colmenaMeta.nodeNixpkgs or { }) nixosSystemValues

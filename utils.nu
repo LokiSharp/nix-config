@@ -762,16 +762,52 @@ def run-deployment-health [inventory: list<any>, selected: list<any>, since: str
 
 def apply-colmena-hosts [hosts: list<any>, parallel: int] {
     if ($hosts | is-empty) {
-        return
+        return 0
     }
 
     let selector = ($hosts | get name | str join ",")
     print $"[INFO] deploying with Colmena: ($selector)"
     ^colmena apply --on $selector --parallel ($parallel | into string) --verbose --show-trace
-    if $env.LAST_EXIT_CODE != 0 {
+    let exit_code = $env.LAST_EXIT_CODE
+    if $exit_code != 0 {
         print -e $"[FAIL] Colmena deployment failed: ($selector)"
-        exit $env.LAST_EXIT_CODE
     }
+    $exit_code
+}
+
+def deployment-rollout-with [
+    inventory: list<any>
+    parallel: int
+    since: string
+    apply_hosts: closure
+    run_health: closure
+] {
+    let canary = (select-deployment-hosts $inventory ["Test-NixOS"])
+    let remaining = ($inventory | where name != "Test-NixOS")
+
+    let canary_exit_code = (do $apply_hosts $canary $parallel)
+    if $canary_exit_code != 0 {
+        return $canary_exit_code
+    }
+
+    let canary_failures = (do $run_health $inventory $canary $since)
+    if $canary_failures != 0 {
+        print -e "[FAIL] Test-NixOS canary failed; remaining hosts were not deployed"
+        return 1
+    }
+
+    let remaining_exit_code = (do $apply_hosts $remaining $parallel)
+    if $remaining_exit_code != 0 {
+        return $remaining_exit_code
+    }
+
+    let failures = (do $run_health $inventory $inventory $since)
+    if $failures != 0 {
+        return 1
+    }
+
+    print "[PASS] canary-first deployment rollout completed"
+    0
 }
 
 def ensure-deployment-worktree [] {
@@ -819,7 +855,10 @@ export def deployment-test [
 
     let inventory = (deployment-inventory)
     let selected = (select-deployment-hosts $inventory ["Test-NixOS"])
-    apply-colmena-hosts $selected $parallel
+    let apply_exit_code = (apply-colmena-hosts $selected $parallel)
+    if $apply_exit_code != 0 {
+        exit $apply_exit_code
+    }
     let failures = (run-deployment-health $inventory $selected $since)
     if $failures != 0 {
         print -e "[FAIL] Test-NixOS canary failed; rollout stopped"
@@ -838,23 +877,14 @@ export def deployment-rollout [
     }
 
     let inventory = (deployment-inventory)
-    let canary = (select-deployment-hosts $inventory ["Test-NixOS"])
-    let remaining = ($inventory | where name != "Test-NixOS")
-
-    apply-colmena-hosts $canary $parallel
-    let canary_failures = (run-deployment-health $inventory $canary $since)
-    if $canary_failures != 0 {
-        print -e "[FAIL] Test-NixOS canary failed; remaining hosts were not deployed"
-        exit 1
+    let exit_code = (deployment-rollout-with $inventory $parallel $since {|hosts, limit|
+        apply-colmena-hosts $hosts $limit
+    } {|all_hosts, selected, health_since|
+        run-deployment-health $all_hosts $selected $health_since
+    })
+    if $exit_code != 0 {
+        exit $exit_code
     }
-
-    apply-colmena-hosts $remaining $parallel
-    let failures = (run-deployment-health $inventory $inventory $since)
-    if $failures != 0 {
-        exit 1
-    }
-
-    print "[PASS] canary-first deployment rollout completed"
 }
 
 # ====================== Misc =============================

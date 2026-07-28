@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+message_file="${1:?commit message file is required}"
+subject="$(sed -n '1p' "$message_file")"
+
+conventional_pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9][a-z0-9._/-]*\))?!?: .+'
+generated_pattern='^(Merge |Revert "|(fixup|squash|amend)! )'
+
+if [[ "$subject" =~ $conventional_pattern ]] || [[ "$subject" =~ $generated_pattern ]]; then
+  exit 0
+fi
+
+cat >&2 <<'EOF'
+[FAIL] commit subject does not follow Conventional Commits
+
+Expected:
+  <type>[optional scope][!]: <description>
+
+Allowed types:
+  feat fix docs style refactor perf test build ci chore revert
+
+Examples:
+  feat(networking): validate host address allocations
+  fix(secrets): restore permission templates
+  refactor(nix)!: change system argument contract
+EOF
+exit 1

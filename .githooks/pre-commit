@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "[INFO] checking staged changes for whitespace errors and conflict markers"
+git diff --cached --check
+
 hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$hook_dir/check-nix-quality"

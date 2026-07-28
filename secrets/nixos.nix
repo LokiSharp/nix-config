@@ -25,13 +25,23 @@ let
   };
   # Reserved permission templates for future secrets.
   # deadnix: skip
-  high_security = {
+  root_readable = {
     mode = "0400";
     owner = "root";
   };
   # deadnix: skip
   user_readable = {
     mode = "0400";
+    owner = myvars.username;
+  };
+  # deadnix: skip
+  root_executable = {
+    mode = "0500";
+    owner = "root";
+  };
+  # deadnix: skip
+  user_executable = {
+    mode = "0500";
     owner = myvars.username;
   };
 in

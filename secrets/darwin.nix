@@ -28,13 +28,23 @@
       };
       # Reserved permission templates for future secrets.
       # deadnix: skip
-      high_security = {
+      root_readable = {
         mode = "0400";
         owner = "root";
       };
       # deadnix: skip
       user_readable = {
         mode = "0400";
+        owner = myvars.username;
+      };
+      # deadnix: skip
+      root_executable = {
+        mode = "0500";
+        owner = "root";
+      };
+      # deadnix: skip
+      user_executable = {
+        mode = "0500";
         owner = myvars.username;
       };
     in
@@ -58,7 +68,7 @@
     };
   };
 
-  # both the original file and the symlink should be readable and executable by the user
+  # Both the original file and the symlink should be readable by the user.
   #
   # activationScripts are executed every time you run `nixos-rebuild` / `darwin-rebuild` or boot your system
   system.activationScripts.postActivation.text = ''

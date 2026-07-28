@@ -824,9 +824,21 @@ def ensure-deployment-worktree [] {
 
 def run-deployment-preflight [] {
     print "[INFO] running flake checks before deployment"
-    ^nix flake check --all-systems --no-build --show-trace
+    ^nix --accept-flake-config flake check --all-systems --no-build --show-trace
     if $env.LAST_EXIT_CODE != 0 {
         print -e "[FAIL] flake checks failed; deployment stopped"
+        exit $env.LAST_EXIT_CODE
+    }
+
+    let executable_checks = [
+        ".#checks.x86_64-linux.eval-tests"
+        ".#checks.x86_64-linux.deployment-rollout"
+        ".#checks.x86_64-linux.deployment-ssh-resilience"
+    ]
+    print "[INFO] running executable deployment checks"
+    ^nix --accept-flake-config build ...$executable_checks --no-link --print-build-logs
+    if $env.LAST_EXIT_CODE != 0 {
+        print -e "[FAIL] executable deployment checks failed; deployment stopped"
         exit $env.LAST_EXIT_CODE
     }
 }

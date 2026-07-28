@@ -61,13 +61,14 @@ jobs:
             --override-input mysecrets path:./ci/mysecrets \
             --all-systems --no-build --show-trace
 
-      - name: Run formatting and static analysis checks
+      - name: Run repository checks
         run: |
           nix --accept-flake-config build \
             --override-input mysecrets path:./ci/mysecrets \
             .#checks.x86_64-linux.format \
             .#checks.x86_64-linux.statix \
             .#checks.x86_64-linux.deadnix \
+            .#checks.x86_64-linux.deployment-rollout \
             .#checks.x86_64-linux.deployment-ssh-resilience \
             --no-link --print-build-logs
 

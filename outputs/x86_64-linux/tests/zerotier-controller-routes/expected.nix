@@ -1,4 +1,4 @@
-{ ... }:
+_:
 {
   defaultIPv4Absent = true;
   defaultIPv6Absent = true;

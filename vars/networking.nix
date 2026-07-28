@@ -72,7 +72,7 @@ rec {
             host
             hostsAddr.${host}.ipv4
           ];
-          publicKey = value.publicKey;
+          inherit (value) publicKey;
         })
         { };
   };

@@ -1,4 +1,4 @@
-{ ... }:
+_:
 {
   enforceProfiles = [
     "alertmanager"

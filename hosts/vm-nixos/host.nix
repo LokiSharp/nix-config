@@ -1,4 +1,4 @@
-{ ... }:
+_:
 {
   index = 11;
   role = "client";

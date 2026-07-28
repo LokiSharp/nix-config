@@ -9,7 +9,7 @@ lib.mapAttrs
     name: system:
     let
       host = mylib.hosts.${lib.toLower name};
-      config = system.config;
+      inherit (system) config;
       ruleset = config.networking.nftables.tables.filter.content;
       hasRule = rule: lib.hasInfix rule ruleset;
       takeUntilChainEnd =

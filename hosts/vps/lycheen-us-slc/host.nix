@@ -1,4 +1,4 @@
-{ ... }:
+_:
 {
   index = 5;
   role = "server";

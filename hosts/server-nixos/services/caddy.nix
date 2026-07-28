@@ -33,91 +33,93 @@ in
       auto_https   disable_certs
     '';
 
-    # Dashboard
-    virtualHosts."homepage.slk.moe".extraConfig = ''
-      ${hostCommonConfig}
-      reverse_proxy http://localhost:54401
-    '';
+    virtualHosts = {
+      # Dashboard
+      "homepage.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        reverse_proxy http://localhost:54401
+      '';
 
-    # https://caddyserver.com/docs/caddyfile/directives/file_server
-    virtualHosts."file.slk.moe".extraConfig = ''
-      root * ${caddyDataDir}/fileserver/
-      ${hostCommonConfig}
-      file_server browse {
-        hide .git
-        precompressed zstd br gzip
-      }
-    '';
-    virtualHosts."minio.slk.moe".extraConfig = ''
-      ${hostCommonConfig}
-      encode zstd gzip
-      reverse_proxy http://localhost:9096 {
-        header_up Host {http.request.host}
-        header_up X-Real-IP {http.request.remote.host}
-        header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
-        header_up X-Forwarded-Proto {scheme}
-        transport http {
-            dial_timeout 300s
-            read_timeout 300s
-            write_timeout 300s
+      # https://caddyserver.com/docs/caddyfile/directives/file_server
+      "file.slk.moe".extraConfig = ''
+        root * ${caddyDataDir}/fileserver/
+        ${hostCommonConfig}
+        file_server browse {
+          hide .git
+          precompressed zstd br gzip
         }
-      }
-    '';
-    virtualHosts."minio-ui.slk.moe".extraConfig = ''
-      ${hostCommonConfig}
-      encode zstd gzip
-      reverse_proxy http://localhost:9097 {
-        header_up Host {http.request.host}
-        header_up X-Real-IP {http.request.remote.host}
-        header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
-        header_up X-Forwarded-Proto {scheme}
-        header_up Upgrade {http.request.header.Upgrade}
-        header_up Connection {http.request.header.Connection}
-        transport http {
-            dial_timeout 300s
-            read_timeout 300s
-            write_timeout 300s
+      '';
+      "minio.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        encode zstd gzip
+        reverse_proxy http://localhost:9096 {
+          header_up Host {http.request.host}
+          header_up X-Real-IP {http.request.remote.host}
+          header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
+          header_up X-Forwarded-Proto {scheme}
+          transport http {
+              dial_timeout 300s
+              read_timeout 300s
+              write_timeout 300s
+          }
         }
-      }
-    '';
+      '';
+      "minio-ui.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        encode zstd gzip
+        reverse_proxy http://localhost:9097 {
+          header_up Host {http.request.host}
+          header_up X-Real-IP {http.request.remote.host}
+          header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
+          header_up X-Forwarded-Proto {scheme}
+          header_up Upgrade {http.request.header.Upgrade}
+          header_up Connection {http.request.header.Connection}
+          transport http {
+              dial_timeout 300s
+              read_timeout 300s
+              write_timeout 300s
+          }
+        }
+      '';
 
-    virtualHosts."git.slk.moe".extraConfig = ''
-      ${hostCommonConfig}
-      encode zstd gzip
-      reverse_proxy http://localhost:3301
-    '';
-    virtualHosts."sftpgo.slk.moe".extraConfig = ''
-      ${hostCommonConfig}
-      encode zstd gzip
-      reverse_proxy http://localhost:3302
-    '';
-    virtualHosts."webdav.slk.moe".extraConfig = ''
-      ${hostCommonConfig}
-      encode zstd gzip
-      reverse_proxy http://localhost:3303
-    '';
+      "git.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        encode zstd gzip
+        reverse_proxy http://localhost:3301
+      '';
+      "sftpgo.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        encode zstd gzip
+        reverse_proxy http://localhost:3302
+      '';
+      "webdav.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        encode zstd gzip
+        reverse_proxy http://localhost:3303
+      '';
 
-    # Monitoring
-    virtualHosts."grafana.slk.moe".extraConfig = ''
-      ${hostCommonConfig}
-      encode zstd gzip
-      reverse_proxy http://localhost:3351
-    '';
-    virtualHosts."prometheus.slk.moe".extraConfig = ''
-      ${hostCommonConfig}
-      encode zstd gzip
-      reverse_proxy http://localhost:9090
-    '';
-    # Do not redirect to https for api path
-    virtualHosts."http://prometheus.slk.moe/api/v1/write".extraConfig = ''
-      encode zstd gzip
-      reverse_proxy http://localhost:9090
-    '';
-    virtualHosts."alertmanager.slk.moe".extraConfig = ''
-      ${hostCommonConfig}
-      encode zstd gzip
-      reverse_proxy http://localhost:9093
-    '';
+      # Monitoring
+      "grafana.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        encode zstd gzip
+        reverse_proxy http://localhost:3351
+      '';
+      "prometheus.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        encode zstd gzip
+        reverse_proxy http://localhost:9090
+      '';
+      # Do not redirect to https for api path
+      "http://prometheus.slk.moe/api/v1/write".extraConfig = ''
+        encode zstd gzip
+        reverse_proxy http://localhost:9090
+      '';
+      "alertmanager.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        encode zstd gzip
+        reverse_proxy http://localhost:9093
+      '';
+    };
   };
   networking.firewall.allowedTCPPorts = [
     80

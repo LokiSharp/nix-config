@@ -26,32 +26,38 @@ in
   config = mkIf (cfg.enable && cfg."stage-1".enable) (mkMerge [
     (mkIf cfg."stage-1".auditd.enable {
       # Security Auditing
-      security.auditd.enable = true;
-      security.auditd.settings = {
-        # Bound local audit log usage while retaining enough history for
-        # incident review. max_log_file is measured in MiB.
-        max_log_file = 64;
-        num_logs = 10;
-        max_log_file_action = "ROTATE";
+      security = {
+        auditd = {
+          enable = true;
+          settings = {
+            # Bound local audit log usage while retaining enough history for
+            # incident review. max_log_file is measured in MiB.
+            max_log_file = 64;
+            num_logs = 10;
+            max_log_file_action = "ROTATE";
 
-        # Warn before the persistent log filesystem becomes critically full.
-        # Keep the host available at the final threshold, but stop auditd from
-        # consuming the remaining space.
-        space_left = "10%";
-        space_left_action = "SYSLOG";
-        admin_space_left = "5%";
-        admin_space_left_action = "SUSPEND";
-        disk_full_action = "SUSPEND";
-        disk_error_action = "SYSLOG";
+            # Warn before the persistent log filesystem becomes critically full.
+            # Keep the host available at the final threshold, but stop auditd from
+            # consuming the remaining space.
+            space_left = "10%";
+            space_left_action = "SYSLOG";
+            admin_space_left = "5%";
+            admin_space_left_action = "SUSPEND";
+            disk_full_action = "SUSPEND";
+            disk_error_action = "SYSLOG";
+          };
+          # The filter plugin is disabled by default. Its generated argument line
+          # exceeds auditd's parser limit when it contains Nix store paths.
+          plugins.filter.args = mkForce null;
+        };
+        audit = {
+          rules = auditRules;
+          # Keep audit enabled from early boot, but avoid the NixOS audit rules
+          # loader when no rules are configured. It reloads control parameters like
+          # -b at switch time, which can fail once audit is already active.
+          enable = mkForce false;
+        };
       };
-      security.audit.rules = auditRules;
-      # The filter plugin is disabled by default. Its generated argument line
-      # exceeds auditd's parser limit when it contains Nix store paths.
-      security.auditd.plugins.filter.args = mkForce null;
-      # Keep audit enabled from early boot, but avoid the NixOS audit rules
-      # loader when no rules are configured. It reloads control parameters like
-      # -b at switch time, which can fail once audit is already active.
-      security.audit.enable = mkForce false;
       boot.kernelParams = [
         "audit=1"
         "audit_backlog_limit=1024"

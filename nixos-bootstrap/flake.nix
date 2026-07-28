@@ -16,7 +16,7 @@
     , ...
     }@inputs:
     let
-      lib = nixpkgs.lib;
+      inherit (nixpkgs) lib;
     in
     rec {
       nixosConfigurations.bootstrap = lib.nixosSystem {

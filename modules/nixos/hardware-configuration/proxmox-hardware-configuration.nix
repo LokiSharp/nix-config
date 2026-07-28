@@ -7,16 +7,24 @@
     ];
 
   # Use the EFI boot loader.
-  boot.loader.efi.canTouchEfiVariables = true;
-  # depending on how you configured your disk mounts, change this to /boot or /boot/efi.
-  boot.loader.efi.efiSysMountPoint = "/boot";
-  boot.loader.systemd-boot.enable = true;
+  boot = {
+    loader = {
+      efi = {
+        canTouchEfiVariables = true;
+        # depending on how you configured your disk mounts, change this to /boot or /boot/efi.
+        efiSysMountPoint = "/boot";
+      };
+      systemd-boot.enable = true;
+    };
 
-  boot.growPartition = true;
-  boot.initrd.availableKernelModules = [ "uhci_hcd" "ehci_pci" "ahci" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" ];
-  boot.extraModulePackages = [ ];
+    growPartition = true;
+    initrd = {
+      availableKernelModules = [ "uhci_hcd" "ehci_pci" "ahci" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod" ];
+      kernelModules = [ ];
+    };
+    kernelModules = [ "kvm-intel" ];
+    extraModulePackages = [ ];
+  };
 
   networking.useDHCP = lib.mkDefault true;
 

@@ -34,68 +34,74 @@ in
 
   disko.devices.disk.main.device = lib.mkForce "/dev/sda";
 
-  systemd.network.enable = true;
-  systemd.network.links."10-wan-alias" = {
-    matchConfig.OriginalName = "ens18";
-    linkConfig.AlternativeName = "wan";
-  };
-  systemd.network.networks."20-wan" = {
-    matchConfig.Name = "ens18";
-    address = [
-      "23.175.25.121/24"
-      "2a13:a5c3:3130::121/128"
-    ];
-    routes = [
-      { Gateway = "23.175.25.1"; }
-      {
-        Gateway = "2a13:a5c3:3130::1";
-        GatewayOnLink = true;
-      }
-    ];
-    linkConfig.RequiredForOnline = "routable";
-  };
-  systemd.network.links."10-chief-alias" = {
-    matchConfig.OriginalName = "ens19";
-    linkConfig.AlternativeName = "chief_bgp";
-  };
-  systemd.network.networks."20-wan-chief" = {
-    matchConfig.Name = "chief_bgp";
-    address = [
-      "113.21.83.178/30"
-      "2405:7e00:1:7408:113:21:83:176/126"
-    ];
-    networkConfig = {
-      DHCP = "no";
-      IPv6AcceptRA = false;
-      LinkLocalAddressing = "no";
-      LLMNR = false;
-      MulticastDNS = false;
+  systemd.network = {
+    enable = true;
+    links = {
+      "10-wan-alias" = {
+        matchConfig.OriginalName = "ens18";
+        linkConfig.AlternativeName = "wan";
+      };
+      "10-chief-alias" = {
+        matchConfig.OriginalName = "ens19";
+        linkConfig.AlternativeName = "chief_bgp";
+      };
+      "10-tpix-alias" = {
+        matchConfig.OriginalName = "ens20";
+        linkConfig.AlternativeName = "tpix_bgp";
+      };
     };
-    linkConfig = {
-      Multicast = false;
-      AllMulticast = false;
-    };
-  };
-  systemd.network.links."10-tpix-alias" = {
-    matchConfig.OriginalName = "ens20";
-    linkConfig.AlternativeName = "tpix_bgp";
-  };
-  systemd.network.networks."20-wan-tpix" = {
-    matchConfig.Name = "tpix_bgp";
-    address = [
-      "203.163.223.106/23"
-      "2406:D400:1:133:203:163:223:106/111"
-    ];
-    networkConfig = {
-      DHCP = "no";
-      IPv6AcceptRA = false;
-      LinkLocalAddressing = "no";
-      LLMNR = false;
-      MulticastDNS = false;
-    };
-    linkConfig = {
-      Multicast = false;
-      AllMulticast = false;
+    networks = {
+      "20-wan" = {
+        matchConfig.Name = "ens18";
+        address = [
+          "23.175.25.121/24"
+          "2a13:a5c3:3130::121/128"
+        ];
+        routes = [
+          { Gateway = "23.175.25.1"; }
+          {
+            Gateway = "2a13:a5c3:3130::1";
+            GatewayOnLink = true;
+          }
+        ];
+        linkConfig.RequiredForOnline = "routable";
+      };
+      "20-wan-chief" = {
+        matchConfig.Name = "chief_bgp";
+        address = [
+          "113.21.83.178/30"
+          "2405:7e00:1:7408:113:21:83:176/126"
+        ];
+        networkConfig = {
+          DHCP = "no";
+          IPv6AcceptRA = false;
+          LinkLocalAddressing = "no";
+          LLMNR = false;
+          MulticastDNS = false;
+        };
+        linkConfig = {
+          Multicast = false;
+          AllMulticast = false;
+        };
+      };
+      "20-wan-tpix" = {
+        matchConfig.Name = "tpix_bgp";
+        address = [
+          "203.163.223.106/23"
+          "2406:D400:1:133:203:163:223:106/111"
+        ];
+        networkConfig = {
+          DHCP = "no";
+          IPv6AcceptRA = false;
+          LinkLocalAddressing = "no";
+          LLMNR = false;
+          MulticastDNS = false;
+        };
+        linkConfig = {
+          Multicast = false;
+          AllMulticast = false;
+        };
+      };
     };
   };
 

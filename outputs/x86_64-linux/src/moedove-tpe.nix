@@ -29,9 +29,13 @@ let
       ])
       ++ [
         {
-          modules.secrets.server.dn42.enable = true;
-          modules.secrets.server.loki-net.enable = true;
-          modules.secrets.impermanence.enable = true;
+          modules.secrets = {
+            server = {
+              dn42.enable = true;
+              loki-net.enable = true;
+            };
+            impermanence.enable = true;
+          };
         }
       ];
     home-modules = map mylib.relativeToRoot [

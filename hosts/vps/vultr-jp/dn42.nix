@@ -15,9 +15,6 @@
         peerIPv6LinkLocal = "fe80::3088:190";
       };
     };
-  };
-
-  services.dn42 = {
     kioubit = {
       remoteASN = 4242423914;
       tunnel = {
@@ -32,9 +29,6 @@
         peerIPv6LinkLocal = "fe80::ade0";
       };
     };
-  };
-
-  services.dn42 = {
     chimon = {
       remoteASN = 4242423868;
       tunnel = {

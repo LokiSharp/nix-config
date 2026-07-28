@@ -45,9 +45,11 @@
           static_configs = [
             {
               targets = [ "${myvars.networking.hostsAddr.Server-NixOS.ipv4}:9187" ];
-              labels.type = "app";
-              labels.app = "postgresql";
-              labels.host = "Server-NixOS";
+              labels = {
+                type = "app";
+                app = "postgresql";
+                host = "Server-NixOS";
+              };
             }
           ];
         }
@@ -59,9 +61,11 @@
           static_configs = [
             {
               targets = [ "${myvars.networking.hostsAddr.Server-NixOS.ipv4}:10000" ];
-              labels.type = "app";
-              labels.app = "sftpgo";
-              labels.host = "Server-NixOS";
+              labels = {
+                type = "app";
+                app = "sftpgo";
+                host = "Server-NixOS";
+              };
             }
           ];
         }

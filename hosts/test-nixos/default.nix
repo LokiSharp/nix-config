@@ -27,20 +27,22 @@ in
     "tailscale"
   ];
 
-  systemd.network.enable = true;
-  systemd.network.links."10-wan-alias" = {
-    matchConfig.OriginalName = "ens18";
-    linkConfig.AlternativeName = "wan";
-  };
-  systemd.network.networks."20-wan" = {
-    matchConfig.Name = "en*";
-    address = [
-      "192.168.0.13/24"
-    ];
-    routes = [
-      { Gateway = "192.168.0.1"; }
-    ];
-    linkConfig.RequiredForOnline = "routable";
+  systemd.network = {
+    enable = true;
+    links."10-wan-alias" = {
+      matchConfig.OriginalName = "ens18";
+      linkConfig.AlternativeName = "wan";
+    };
+    networks."20-wan" = {
+      matchConfig.Name = "en*";
+      address = [
+        "192.168.0.13/24"
+      ];
+      routes = [
+        { Gateway = "192.168.0.1"; }
+      ];
+      linkConfig.RequiredForOnline = "routable";
+    };
   };
 
   networking = {

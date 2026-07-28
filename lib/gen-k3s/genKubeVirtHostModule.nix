@@ -8,42 +8,44 @@ let
 in
 {
   # supported file systems, so we can mount any removable disks with these filesystems
-  boot.supportedFilesystems = [
-    "ext4"
-    "btrfs"
-    "xfs"
-    #"zfs"
-    "ntfs"
-    "fat"
-    "vfat"
-    "exfat"
-    "nfs" # required by longhorn
-  ];
+  boot = {
+    supportedFilesystems = [
+      "ext4"
+      "btrfs"
+      "xfs"
+      #"zfs"
+      "ntfs"
+      "fat"
+      "vfat"
+      "exfat"
+      "nfs" # required by longhorn
+    ];
 
-  boot.kernelModules = [ "kvm-intel" "vfio-pci" ];
-  boot.extraModprobeConfig = "options kvm_intel nested=1";
+    kernelModules = [ "kvm-intel" "vfio-pci" ];
+    extraModprobeConfig = "options kvm_intel nested=1";
 
-  boot.kernel.sysctl = {
-    # --- filesystem --- #
-    # increase the limits to avoid running out of inotify watches
-    "fs.inotify.max_user_watches" = 524288;
-    "fs.inotify.max_user_instances" = 1024;
+    kernel.sysctl = {
+      # --- filesystem --- #
+      # increase the limits to avoid running out of inotify watches
+      "fs.inotify.max_user_watches" = 524288;
+      "fs.inotify.max_user_instances" = 1024;
 
-    # --- network --- #
-    "net.bridge.bridge-nf-call-iptables" = 1;
-    "net.core.somaxconn" = 32768;
-    "net.ipv4.ip_forward" = 1;
-    "net.ipv4.conf.all.forwarding" = 1;
-    "net.ipv4.neigh.default.gc_thresh1" = 4096;
-    "net.ipv4.neigh.default.gc_thresh2" = 6144;
-    "net.ipv4.neigh.default.gc_thresh3" = 8192;
-    "net.ipv4.neigh.default.gc_interval" = 60;
-    "net.ipv4.neigh.default.gc_stale_time" = 120;
+      # --- network --- #
+      "net.bridge.bridge-nf-call-iptables" = 1;
+      "net.core.somaxconn" = 32768;
+      "net.ipv4.ip_forward" = 1;
+      "net.ipv4.conf.all.forwarding" = 1;
+      "net.ipv4.neigh.default.gc_thresh1" = 4096;
+      "net.ipv4.neigh.default.gc_thresh2" = 6144;
+      "net.ipv4.neigh.default.gc_thresh3" = 8192;
+      "net.ipv4.neigh.default.gc_interval" = 60;
+      "net.ipv4.neigh.default.gc_stale_time" = 120;
 
-    "net.ipv6.conf.all.disable_ipv6" = 1; # disable ipv6
+      "net.ipv6.conf.all.disable_ipv6" = 1; # disable ipv6
 
-    # --- memory --- #
-    "vm.swappiness" = 0; # don't swap unless absolutely necessary
+      # --- memory --- #
+      "vm.swappiness" = 0; # don't swap unless absolutely necessary
+    };
   };
 
   environment.systemPackages = with pkgs; [

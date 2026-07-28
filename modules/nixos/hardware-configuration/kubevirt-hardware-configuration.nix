@@ -21,15 +21,21 @@
       autoResize = true;
     };
 
-    boot.growPartition = true;
-    boot.kernelParams = [ "console=ttyS0" ];
-    boot.loader.grub.device = "nodev";
-    boot.loader.timeout = 0;
+    boot = {
+      growPartition = true;
+      kernelParams = [ "console=ttyS0" ];
+      loader = {
+        grub.device = "nodev";
+        timeout = 0;
+      };
+    };
 
-    services.qemuGuest.enable = true;
+    services = {
+      qemuGuest.enable = true;
+      openssh.enable = true;
+      cloud-init.enable = true;
+    };
     deployment.healthChecks.requiredUnits = lib.optional config.services.qemuGuest.enable "qemu-guest-agent";
-    services.openssh.enable = true;
-    services.cloud-init.enable = true;
     systemd.services."serial-getty@ttyS0".enable = true;
   };
 }

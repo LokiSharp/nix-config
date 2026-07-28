@@ -17,6 +17,6 @@ in
   programs.zsh = {
     enable = true;
     dotDir = config.home.homeDirectory;
-    envExtra = envExtra;
+    inherit envExtra;
   };
 }

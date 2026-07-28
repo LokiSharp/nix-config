@@ -40,14 +40,16 @@ in
   options.modules.secrets = {
     desktop.enable = mkEnableOption "NixOS Secrets for Desktops";
 
-    server.network.enable = mkEnableOption "NixOS Secrets for Network Servers";
-    server.application.enable = mkEnableOption "NixOS Secrets for Application Servers";
-    server.operation.enable = mkEnableOption "NixOS Secrets for Operation Servers(Backup, Monitoring, etc)";
-    server.webserver.enable = mkEnableOption "NixOS Secrets for Web Servers(contains tls cert keys)";
-    server.storage.enable = mkEnableOption "NixOS Secrets for HDD Data's LUKS Encryption";
-    server.dn42.enable = mkEnableOption "NixOS Secrets for DN42";
-    server.loki-net.enable = mkEnableOption "NixOS Secrets for Loki-Net";
-    server.proxy.enable = mkEnableOption "NixOS Secrets for Proxy";
+    server = {
+      network.enable = mkEnableOption "NixOS Secrets for Network Servers";
+      application.enable = mkEnableOption "NixOS Secrets for Application Servers";
+      operation.enable = mkEnableOption "NixOS Secrets for Operation Servers(Backup, Monitoring, etc)";
+      webserver.enable = mkEnableOption "NixOS Secrets for Web Servers(contains tls cert keys)";
+      storage.enable = mkEnableOption "NixOS Secrets for HDD Data's LUKS Encryption";
+      dn42.enable = mkEnableOption "NixOS Secrets for DN42";
+      loki-net.enable = mkEnableOption "NixOS Secrets for Loki-Net";
+      proxy.enable = mkEnableOption "NixOS Secrets for Proxy";
+    };
 
     impermanence.enable = mkEnableOption "whether use impermanence and ephemeral root file system";
   };
@@ -212,43 +214,47 @@ in
     })
 
     (mkIf cfg.server.loki-net.enable {
-      sops.secrets = {
-        "bird-bgp-password" = {
-          sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
-          key = "password";
+      sops = {
+        secrets = {
+          "bird-bgp-password" = {
+            sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
+            key = "password";
+          };
+          "chief-rs-password" = {
+            sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
+            key = "chief-rs-password";
+          };
+          "tpix-rs-password" = {
+            sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
+            key = "tpix-rs-password";
+          };
         };
-        "chief-rs-password" = {
-          sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
-          key = "chief-rs-password";
+        templates = {
+          "bird-bgp-password.conf" = {
+            content = ''
+              authentication md5;
+              password "${config.sops.placeholder."bird-bgp-password"}";
+            '';
+            mode = "0400";
+            owner = "bird";
+          };
+          "chief-rs-password.conf" = {
+            content = ''
+              authentication md5;
+              password "${config.sops.placeholder."chief-rs-password"}";
+            '';
+            mode = "0400";
+            owner = "bird";
+          };
+          "tpix-rs-password.conf" = {
+            content = ''
+              authentication md5;
+              password "${config.sops.placeholder."tpix-rs-password"}";
+            '';
+            mode = "0400";
+            owner = "bird";
+          };
         };
-        "tpix-rs-password" = {
-          sopsFile = "${mysecrets}/server/bird-bgp-password.yaml";
-          key = "tpix-rs-password";
-        };
-      };
-      sops.templates."bird-bgp-password.conf" = {
-        content = ''
-          authentication md5;
-          password "${config.sops.placeholder."bird-bgp-password"}";
-        '';
-        mode = "0400";
-        owner = "bird";
-      };
-      sops.templates."chief-rs-password.conf" = {
-        content = ''
-          authentication md5;
-          password "${config.sops.placeholder."chief-rs-password"}";
-        '';
-        mode = "0400";
-        owner = "bird";
-      };
-      sops.templates."tpix-rs-password.conf" = {
-        content = ''
-          authentication md5;
-          password "${config.sops.placeholder."tpix-rs-password"}";
-        '';
-        mode = "0400";
-        owner = "bird";
       };
     })
 

@@ -33,14 +33,16 @@ in
     "tailscale"
   ];
 
-  systemd.network.enable = true;
-  systemd.network.links."10-wan-alias" = {
-    matchConfig.OriginalName = "ens3";
-    linkConfig.AlternativeName = "wan";
-  };
-  systemd.network.networks."20-wan" = {
-    matchConfig.Name = "en*";
-    networkConfig.DHCP = "yes";
+  systemd.network = {
+    enable = true;
+    links."10-wan-alias" = {
+      matchConfig.OriginalName = "ens3";
+      linkConfig.AlternativeName = "wan";
+    };
+    networks."20-wan" = {
+      matchConfig.Name = "en*";
+      networkConfig.DHCP = "yes";
+    };
   };
   networking = {
     inherit hostName;

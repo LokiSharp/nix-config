@@ -16,7 +16,7 @@
 , ...
 }:
 let
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
   package = pkgs.k3s;
 in
 {

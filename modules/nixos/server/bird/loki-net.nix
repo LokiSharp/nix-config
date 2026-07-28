@@ -209,19 +209,19 @@ in
           name = n;
           family = "v4";
           neighbor = v.addressing.peerIPv4;
-          remoteASN = v.remoteASN;
+          inherit (v) remoteASN;
           passwordConf = v.peerBgpPasswordConf;
-          multihop = v.multihop;
-          exportPrependCount = v.exportPrependCount;
+          inherit (v) multihop;
+          inherit (v) exportPrependCount;
         })}
         ${lib.optionalString (v.addressing.peerIPv6 != null) (mkEBgpPeer {
           name = n;
           family = "v6";
           neighbor = v.addressing.peerIPv6;
-          remoteASN = v.remoteASN;
+          inherit (v) remoteASN;
           passwordConf = v.peerBgpPasswordConf;
-          multihop = v.multihop;
-          exportPrependCount = v.exportPrependCount;
+          inherit (v) multihop;
+          inherit (v) exportPrependCount;
         })}
       '')
       peers

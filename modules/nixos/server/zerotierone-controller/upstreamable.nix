@@ -134,10 +134,11 @@ let
           ];
         };
         v4AssignMode.zt = lib.mkEnableOption "auto assign IPv4 address by ZeroTier";
-        v6AssignMode."6plane" =
-          lib.mkEnableOption "auto assign IPv6 address with 6plane method by ZeroTier";
-        v6AssignMode.rfc4193 = lib.mkEnableOption "auto assign IPv6 address with RFC4193 method by ZeroTier";
-        v6AssignMode.zt = lib.mkEnableOption "auto assign IPv6 address with ZeroTier's own method";
+        v6AssignMode = {
+          "6plane" = lib.mkEnableOption "auto assign IPv6 address with 6plane method by ZeroTier";
+          rfc4193 = lib.mkEnableOption "auto assign IPv6 address with RFC4193 method by ZeroTier";
+          zt = lib.mkEnableOption "auto assign IPv6 address with ZeroTier's own method";
+        };
         multicastLimit = lib.mkOption {
           type = lib.types.int;
           default = 0;

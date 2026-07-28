@@ -1,4 +1,4 @@
-{ ... }:
+_:
 {
   deploymentTagsUnique = true;
   legacyDeploymentTagsAbsent = true;

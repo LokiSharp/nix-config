@@ -32,25 +32,27 @@ in
 
   disko.devices.disk.main.device = lib.mkForce "/dev/sda";
 
-  systemd.network.enable = true;
-  systemd.network.links."10-wan-alias" = {
-    matchConfig.OriginalName = "ens3";
-    linkConfig.AlternativeName = "wan";
-  };
-  systemd.network.networks."20-wan" = {
-    matchConfig.Name = "en*";
-    address = [
-      "216.238.52.228/24"
-      "2602:f92a:100:e300::a/64"
-    ];
-    routes = [
-      { Gateway = "216.238.52.1"; }
-      {
-        Gateway = "2602:f92a:100::1";
-        GatewayOnLink = true;
-      }
-    ];
-    linkConfig.RequiredForOnline = "routable";
+  systemd.network = {
+    enable = true;
+    links."10-wan-alias" = {
+      matchConfig.OriginalName = "ens3";
+      linkConfig.AlternativeName = "wan";
+    };
+    networks."20-wan" = {
+      matchConfig.Name = "en*";
+      address = [
+        "216.238.52.228/24"
+        "2602:f92a:100:e300::a/64"
+      ];
+      routes = [
+        { Gateway = "216.238.52.1"; }
+        {
+          Gateway = "2602:f92a:100::1";
+          GatewayOnLink = true;
+        }
+      ];
+      linkConfig.RequiredForOnline = "routable";
+    };
   };
   networking = {
     inherit hostName;

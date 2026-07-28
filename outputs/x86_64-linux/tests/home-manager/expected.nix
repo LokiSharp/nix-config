@@ -3,7 +3,7 @@
 ,
 }:
 let
-  username = myvars.username;
+  inherit (myvars) username;
   hosts = [
     "VM-NixOS"
   ];

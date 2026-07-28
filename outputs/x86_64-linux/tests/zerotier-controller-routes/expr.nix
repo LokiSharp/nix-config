@@ -3,8 +3,8 @@
 let
   network =
     outputs.nixosConfigurations."OVH-CA-EAST-BHS".config.services.zerotierone.controller.networks."000001";
-  routes = network.routes;
-  members = network.members;
+  inherit (network) routes;
+  inherit (network) members;
   hasRoute =
     target: via:
     lib.any

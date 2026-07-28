@@ -1,3 +1,7 @@
+let
+  rawdisk1 = "/dev/sda"; # CHANGE
+  rawdisk2 = "/dev/sdb"; # CHANGE
+in
 {
   # required by impermanence
   fileSystems."/persistent".neededForBoot = true;
@@ -18,7 +22,7 @@
 
       disk = {
         one = {
-          device = "/dev/sda";
+          device = rawdisk1;
           type = "disk";
           content = {
             type = "gpt";
@@ -49,7 +53,7 @@
         };
 
         two = {
-          device = "/dev/sdb";
+          device = rawdisk2;
           type = "disk";
           content = {
             type = "gpt";

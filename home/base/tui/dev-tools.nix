@@ -1,8 +1,7 @@
-{
-  pkgs,
-  pkgs-unstable,
-  vscode-server,
-  ...
+{ pkgs
+, pkgs-unstable
+, vscode-server
+, ...
 }:
 {
   home.packages = with pkgs; [

@@ -1,14 +1,14 @@
-{
-  lib,
-  mylib,
-  myvars,
-  pkgs,
-  disko,
-  ...
+{ lib
+, mylib
+, myvars
+, pkgs
+, disko
+, ...
 }:
 let
   hostName = "MacbookAir";
-in {
+in
+{
   networking.hostName = hostName;
   networking.computerName = hostName;
   system.defaults.smb.NetBIOSName = hostName;

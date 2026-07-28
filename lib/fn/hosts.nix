@@ -1,8 +1,7 @@
-{
-  globalHostValidationErrors,
-  lib,
-  hostsBase,
-  ...
+{ globalHostValidationErrors
+, lib
+, hostsBase
+, ...
 }:
 let
   # 递归扫描目录获取所有 host.nix 文件
@@ -34,10 +33,12 @@ let
 
   # 创建主机名到路径的映射
   hostPaths = builtins.listToAttrs (
-    map (path: {
-      name = getHostName path;
-      value = path;
-    }) hostFiles
+    map
+      (path: {
+        name = getHostName path;
+        value = path;
+      })
+      hostFiles
   );
 
   # 如果 hostPaths 为空，提供更有用的错误信息
@@ -60,26 +61,28 @@ let
     else
       hostPaths;
 
-  evaluatedHosts = lib.mapAttrs (
-    name: path:
-    let
-      host =
-        (lib.evalModules {
-          modules = [
-            ../host-options.nix
-            path
-          ];
-          specialArgs.name = name;
-        }).config;
-    in
-    if host.validationErrors == [ ] then
-      host
-    else
-      builtins.throw ''
-        Invalid host metadata for ${name}:
-        ${lib.concatMapStringsSep "\n" (error: "- ${error}") host.validationErrors}
-      ''
-  ) safeHostPaths;
+  evaluatedHosts = lib.mapAttrs
+    (
+      name: path:
+        let
+          host =
+            (lib.evalModules {
+              modules = [
+                ../host-options.nix
+                path
+              ];
+              specialArgs.name = name;
+            }).config;
+        in
+        if host.validationErrors == [ ] then
+          host
+        else
+          builtins.throw ''
+            Invalid host metadata for ${name}:
+            ${lib.concatMapStringsSep "\n" (error: "- ${error}") host.validationErrors}
+          ''
+    )
+    safeHostPaths;
 
   globalValidationErrors = globalHostValidationErrors (lib.attrValues evaluatedHosts);
 in

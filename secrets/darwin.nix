@@ -1,10 +1,9 @@
-{
-  config,
-  pkgs,
-  sops-nix,
-  mysecrets,
-  myvars,
-  ...
+{ config
+, pkgs
+, sops-nix
+, mysecrets
+, myvars
+, ...
 }:
 {
   imports = [

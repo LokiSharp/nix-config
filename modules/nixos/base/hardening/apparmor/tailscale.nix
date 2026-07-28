@@ -1,8 +1,7 @@
-{
-  config,
-  mylib,
-  pkgs,
-  ...
+{ config
+, mylib
+, pkgs
+, ...
 }:
 let
   tailscalePkg = config.services.tailscale.package;

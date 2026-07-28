@@ -2,12 +2,14 @@
 
 hosts:
 let
-  indexedHosts = lib.filter (
-    host:
-    host.features.zerotier.nodeId != null
-    || host.networks.dn42.enable
-    || host.networks.loki-net.enable
-  ) hosts;
+  indexedHosts = lib.filter
+    (
+      host:
+      host.features.zerotier.nodeId != null
+      || host.networks.dn42.enable
+      || host.networks.loki-net.enable
+    )
+    hosts;
   zerotierHosts = lib.filter (host: host.features.zerotier.nodeId != null) hosts;
   dn42Hosts = lib.filter (host: host.networks.dn42.enable) hosts;
   lokiNetHosts = lib.filter (host: host.networks.loki-net.enable) hosts;

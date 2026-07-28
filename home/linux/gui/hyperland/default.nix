@@ -1,8 +1,7 @@
-{
-  pkgs,
-  config,
-  lib,
-  ...
+{ pkgs
+, config
+, lib
+, ...
 }@args:
 with lib;
 let
@@ -20,15 +19,16 @@ in
         with lib.types;
         let
           valueType =
-            nullOr (oneOf [
-              bool
-              int
-              float
-              str
-              path
-              (attrsOf valueType)
-              (listOf valueType)
-            ])
+            nullOr
+              (oneOf [
+                bool
+                int
+                float
+                str
+                path
+                (attrsOf valueType)
+                (listOf valueType)
+              ])
             // {
               description = "Hyprland configuration value";
             };

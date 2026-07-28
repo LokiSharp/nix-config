@@ -1,6 +1,5 @@
-{
-  pkgs,
-  ...
+{ pkgs
+, ...
 }:
 {
   xdg.configFile."foot/foot.ini".text = ''

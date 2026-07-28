@@ -1,7 +1,6 @@
-{
-  config,
-  myvars,
-  ...
+{ config
+, myvars
+, ...
 }:
 let
   homeDir = config.users.users."${myvars.username}".home;

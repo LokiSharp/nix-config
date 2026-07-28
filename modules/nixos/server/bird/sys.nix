@@ -1,8 +1,7 @@
-{
-  lib,
-  config,
-  myvars,
-  ...
+{ lib
+, config
+, myvars
+, ...
 }@args:
 let
   inherit (import ../common.nix args) this configLib;

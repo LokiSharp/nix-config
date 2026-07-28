@@ -1,10 +1,9 @@
-{
-  lib,
-  mylib,
-  myvars,
-  pkgs,
-  disko,
-  ...
+{ lib
+, mylib
+, myvars
+, pkgs
+, disko
+, ...
 }:
 let
   hostName = "VM-NixOS";

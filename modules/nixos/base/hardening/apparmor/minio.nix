@@ -1,9 +1,8 @@
-{
-  config,
-  lib,
-  mylib,
-  pkgs,
-  ...
+{ config
+, lib
+, mylib
+, pkgs
+, ...
 }:
 {
   config = mylib.apparmor.mkPolicy {

@@ -1,10 +1,9 @@
-{
-  pkgs,
-  lib,
-  mylib,
-  config,
-  mysecrets,
-  ...
+{ pkgs
+, lib
+, mylib
+, config
+, mysecrets
+, ...
 }@args:
 let
   inherit (import ./common.nix args) this;

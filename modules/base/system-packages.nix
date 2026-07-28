@@ -1,6 +1,5 @@
-{
-  pkgs,
-  ...
+{ pkgs
+, ...
 }@args:
 {
   environment.systemPackages = with pkgs; [

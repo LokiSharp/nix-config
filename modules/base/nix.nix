@@ -1,9 +1,8 @@
-{
-  pkgs,
-  myvars,
-  nixpkgs,
-  lib,
-  ...
+{ pkgs
+, myvars
+, nixpkgs
+, lib
+, ...
 }@args:
 {
   # auto upgrade nix to the unstable version

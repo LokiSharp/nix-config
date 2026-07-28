@@ -1,7 +1,6 @@
-{
-  lib,
-  mylib,
-  ...
+{ lib
+, mylib
+, ...
 }:
 let
   hosts = lib.attrValues mylib.hosts;
@@ -35,13 +34,13 @@ let
     networks.slk-net.IPv4 = "198.18.0.14";
   };
   mkGlobalHost =
-    {
-      index,
-      nodeId,
-      dn42IPv4,
-      dn42IPv6,
-      lokiNetIPv4,
-      lokiNetIPv6,
+    { index
+    , nodeId
+    , dn42IPv4
+    , dn42IPv6
+    , lokiNetIPv4
+    , lokiNetIPv6
+    ,
     }:
     {
       inherit index;
@@ -97,12 +96,16 @@ let
   ];
 in
 {
-  deploymentTagsUnique = lib.all (
-    host: lib.length host.deploymentTags == lib.length (lib.unique host.deploymentTags)
-  ) hosts;
-  legacyDeploymentTagsAbsent = lib.all (
-    host: lib.intersectLists legacyTags host.deploymentTags == [ ]
-  ) hosts;
+  deploymentTagsUnique = lib.all
+    (
+      host: lib.length host.deploymentTags == lib.length (lib.unique host.deploymentTags)
+    )
+    hosts;
+  legacyDeploymentTagsAbsent = lib.all
+    (
+      host: lib.intersectLists legacyTags host.deploymentTags == [ ]
+    )
+    hosts;
 
   indexValidation = {
     missingIndexRejected = builtins.elem "index is required for managed network members" missingIndexHost.validationErrors;

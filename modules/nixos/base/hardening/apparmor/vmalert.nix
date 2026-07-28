@@ -1,8 +1,7 @@
-{
-  config,
-  mylib,
-  pkgs,
-  ...
+{ config
+, mylib
+, pkgs
+, ...
 }:
 let
   vmalertInstances = config.services.vmalert.instances or { };

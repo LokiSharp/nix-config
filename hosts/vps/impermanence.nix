@@ -1,9 +1,8 @@
-{
-  lib,
-  myvars,
-  impermanence,
-  pkgs,
-  ...
+{ lib
+, myvars
+, impermanence
+, pkgs
+, ...
 }:
 {
   imports = [

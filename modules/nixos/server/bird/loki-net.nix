@@ -1,8 +1,7 @@
-{
-  lib,
-  config,
-  myvars,
-  ...
+{ lib
+, config
+, myvars
+, ...
 }@args:
 let
   inherit (import ../common.nix args) this configLib;
@@ -13,38 +12,42 @@ let
 
   # Generate static routes for eBGP peers
   ebgp_routes = lib.concatStrings (
-    lib.mapAttrsToList (n: v: ''
-      ${lib.optionalString (v.addressing.peerIPv6Gateway != null) ''
-        route ${v.addressing.peerIPv6}/128 via ${v.addressing.peerIPv6Gateway};
-      ''}
-    '') peers
+    lib.mapAttrsToList
+      (n: v: ''
+        ${lib.optionalString (v.addressing.peerIPv6Gateway != null) ''
+          route ${v.addressing.peerIPv6}/128 via ${v.addressing.peerIPv6Gateway};
+        ''}
+      '')
+      peers
   );
 
   # Generate static routes for iBGP peers
   ibgp_routes = lib.concatStrings (
-    lib.mapAttrsToList (
-      n: v:
-      let
-        isRemoteLoki = v.networks.loki-net.enable;
-        isRemoteEdge = v.networks.loki-net.role == "edge";
-      in
-      if n == lib.toLower config.networking.hostName then
-        ""
-      else if isRemoteLoki && isRemoteEdge && !isEdge then
-        (lib.optionalString (v.networks.loki-net.IPv6NextHop != "") ''
-          route ${v.networks.loki-net.IPv6NextHop}/128 via ${v.networks.slk-net.IPv6};
-        '')
-      else
-        ""
-    ) configLib.otherHosts
+    lib.mapAttrsToList
+      (
+        n: v:
+          let
+            isRemoteLoki = v.networks.loki-net.enable;
+            isRemoteEdge = v.networks.loki-net.role == "edge";
+          in
+          if n == lib.toLower config.networking.hostName then
+            ""
+          else if isRemoteLoki && isRemoteEdge && !isEdge then
+            (lib.optionalString (v.networks.loki-net.IPv6NextHop != "") ''
+              route ${v.networks.loki-net.IPv6NextHop}/128 via ${v.networks.slk-net.IPv6};
+            '')
+          else
+            ""
+      )
+      configLib.otherHosts
   );
 
   # Helper to generate iBGP peer protocol
   mkIBgpPeer =
-    {
-      name,
-      neighbor,
-      isRRClient ? false,
+    { name
+    , neighbor
+    , isRRClient ? false
+    ,
     }:
     ''
       protocol bgp ibgp_loki_net_${configLib.tools.replaceHyphens name}_v6 from loki_net_ibgp {
@@ -55,21 +58,23 @@ let
 
   # Helper to generate eBGP peer protocol
   mkEBgpPeer =
-    {
-      name,
-      family,
-      neighbor,
-      remoteASN,
-      passwordConf ? "",
-      multihop ? null,
-      exportPrependCount ? 0,
+    { name
+    , family
+    , neighbor
+    , remoteASN
+    , passwordConf ? ""
+    , multihop ? null
+    , exportPrependCount ? 0
+    ,
     }:
     let
       gatewayMode = if multihop == null then "" else "gateway recursive;";
       exportPrepend = lib.concatStrings (
-        lib.genList (_: ''
-          bgp_path.prepend(${toString LOKI_NET_AS});
-        '') exportPrependCount
+        lib.genList
+          (_: ''
+            bgp_path.prepend(${toString LOKI_NET_AS});
+          '')
+          exportPrependCount
       );
       exportFilterV6 = ''
         filter {
@@ -198,53 +203,59 @@ in
   '';
 
   ebgp_peers = lib.concatStrings (
-    lib.mapAttrsToList (n: v: ''
-      ${lib.optionalString (v.addressing.peerIPv4 != null) (mkEBgpPeer {
-        name = n;
-        family = "v4";
-        neighbor = v.addressing.peerIPv4;
-        remoteASN = v.remoteASN;
-        passwordConf = v.peerBgpPasswordConf;
-        multihop = v.multihop;
-        exportPrependCount = v.exportPrependCount;
-      })}
-      ${lib.optionalString (v.addressing.peerIPv6 != null) (mkEBgpPeer {
-        name = n;
-        family = "v6";
-        neighbor = v.addressing.peerIPv6;
-        remoteASN = v.remoteASN;
-        passwordConf = v.peerBgpPasswordConf;
-        multihop = v.multihop;
-        exportPrependCount = v.exportPrependCount;
-      })}
-    '') peers
+    lib.mapAttrsToList
+      (n: v: ''
+        ${lib.optionalString (v.addressing.peerIPv4 != null) (mkEBgpPeer {
+          name = n;
+          family = "v4";
+          neighbor = v.addressing.peerIPv4;
+          remoteASN = v.remoteASN;
+          passwordConf = v.peerBgpPasswordConf;
+          multihop = v.multihop;
+          exportPrependCount = v.exportPrependCount;
+        })}
+        ${lib.optionalString (v.addressing.peerIPv6 != null) (mkEBgpPeer {
+          name = n;
+          family = "v6";
+          neighbor = v.addressing.peerIPv6;
+          remoteASN = v.remoteASN;
+          passwordConf = v.peerBgpPasswordConf;
+          multihop = v.multihop;
+          exportPrependCount = v.exportPrependCount;
+        })}
+      '')
+      peers
   );
 
   ibgp_peers = lib.concatStrings (
-    lib.mapAttrsToList (
-      n: v:
-      let
-        isRemoteLoki = v.networks.loki-net.enable;
-        isRemoteEdge = v.networks.loki-net.role == "edge";
-      in
-      if n == lib.toLower config.networking.hostName then
-        ""
-      else if isEdge then
-        if isRemoteLoki then
-          mkIBgpPeer {
-            name = n;
-            neighbor = v.networks.slk-net.IPv6;
-            isRRClient = !isRemoteEdge;
-          }
-        else
-          ""
-      else if isRemoteLoki && isRemoteEdge then
-        mkIBgpPeer {
-          name = n;
-          neighbor = v.networks.slk-net.IPv6;
-        }
-      else
-        ""
-    ) configLib.otherHosts
+    lib.mapAttrsToList
+      (
+        n: v:
+          let
+            isRemoteLoki = v.networks.loki-net.enable;
+            isRemoteEdge = v.networks.loki-net.role == "edge";
+          in
+          if n == lib.toLower config.networking.hostName then
+            ""
+          else if isEdge then
+            if isRemoteLoki then
+              mkIBgpPeer
+                {
+                  name = n;
+                  neighbor = v.networks.slk-net.IPv6;
+                  isRRClient = !isRemoteEdge;
+                }
+            else
+              ""
+          else if isRemoteLoki && isRemoteEdge then
+            mkIBgpPeer
+              {
+                name = n;
+                neighbor = v.networks.slk-net.IPv6;
+              }
+          else
+            ""
+      )
+      configLib.otherHosts
   );
 }

@@ -1,6 +1,5 @@
-{
-  myvars,
-  ...
+{ myvars
+, ...
 }:
 {
   programs.ssh = myvars.networking.ssh;

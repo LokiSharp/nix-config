@@ -1,9 +1,8 @@
-{
-  config,
-  lib,
-  mylib,
-  pkgs,
-  ...
+{ config
+, lib
+, mylib
+, pkgs
+, ...
 }:
 let
   controllerEnabled = config.services.zerotierone ? controller && config.services.zerotierone.controller.enable;

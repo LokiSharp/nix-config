@@ -21,9 +21,11 @@ lib.mapAttrs
       forwardSections = lib.splitString "chain forward {" ruleset;
       forwardLines =
         if lib.length forwardSections == 2 then
-          lib.filter (
-            line: line != "" && !lib.hasPrefix "#" line
-          ) (map lib.trim (takeUntilChainEnd (lib.splitString "\n" (lib.last forwardSections))))
+          lib.filter
+            (
+              line: line != "" && !lib.hasPrefix "#" line
+            )
+            (map lib.trim (takeUntilChainEnd (lib.splitString "\n" (lib.last forwardSections))))
         else
           [ ];
     in

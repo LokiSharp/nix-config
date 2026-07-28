@@ -1,10 +1,9 @@
-{
-  config,
-  lib,
-  myvars,
-  pkgs,
-  modulesPath,
-  ...
+{ config
+, lib
+, myvars
+, pkgs
+, modulesPath
+, ...
 }:
 
 {

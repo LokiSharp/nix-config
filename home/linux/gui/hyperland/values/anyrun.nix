@@ -1,7 +1,6 @@
-{
-  pkgs,
-  anyrun,
-  ...
+{ pkgs
+, anyrun
+, ...
 }:
 {
   programs.anyrun = {

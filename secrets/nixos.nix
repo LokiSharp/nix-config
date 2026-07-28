@@ -1,11 +1,10 @@
-{
-  lib,
-  config,
-  pkgs,
-  sops-nix,
-  mysecrets,
-  myvars,
-  ...
+{ lib
+, config
+, pkgs
+, sops-nix
+, mysecrets
+, myvars
+, ...
 }:
 with lib;
 let

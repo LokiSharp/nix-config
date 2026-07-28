@@ -1,7 +1,6 @@
-{
-  lib,
-  nixpkgs,
-  ...
+{ lib
+, nixpkgs
+, ...
 }:
 {
   # to install chrome, you need to enable unfree packages

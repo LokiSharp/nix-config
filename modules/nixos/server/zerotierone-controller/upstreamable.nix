@@ -1,9 +1,8 @@
-{
-  mylib,
-  pkgs,
-  lib,
-  config,
-  ...
+{ mylib
+, pkgs
+, lib
+, config
+, ...
 }:
 let
   cfg = config.services.zerotierone.controller;
@@ -94,9 +93,11 @@ let
         ${ztcurl} --retry 30 --retry-delay 1 --retry-connrefused -XPOST "$NETWORK_URL" -d ${lib.escapeShellArg jsonPayload}
       ''
       + (lib.concatStrings (
-        lib.mapAttrsToList (n: v: ''
-          ${ztcurl} -XPOST "${zturl}/controller/network/''${ZTADDR}${name}/member/${n}" -d ${lib.escapeShellArg (builtins.toJSON v)}
-        '') config.members
+        lib.mapAttrsToList
+          (n: v: ''
+            ${ztcurl} -XPOST "${zturl}/controller/network/''${ZTADDR}${name}/member/${n}" -d ${lib.escapeShellArg (builtins.toJSON v)}
+          '')
+          config.members
       ));
     in
     {

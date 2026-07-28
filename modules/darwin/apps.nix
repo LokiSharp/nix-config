@@ -1,9 +1,8 @@
-{
-  config,
-  lib,
-  pkgs,
-  pkgs-unstable,
-  ...
+{ config
+, lib
+, pkgs
+, pkgs-unstable
+, ...
 }:
 ##########################################################################
 #
@@ -39,10 +38,12 @@ let
     # HTTPS_PROXY = "http://127.0.0.1:7890";
   };
 
-  homebrew_env_script = lib.attrsets.foldlAttrs (
-    acc: name: value:
-    acc + "\nexport ${name}=${value}"
-  ) "" (homebrew_mirror_env // local_proxy_env);
+  homebrew_env_script = lib.attrsets.foldlAttrs
+    (
+      acc: name: value:
+        acc + "\nexport ${name}=${value}"
+    ) ""
+    (homebrew_mirror_env // local_proxy_env);
 in
 {
   # Install packages from nix's official package repository.

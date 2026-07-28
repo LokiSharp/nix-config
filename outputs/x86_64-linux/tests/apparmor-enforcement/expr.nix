@@ -19,13 +19,17 @@ lib.genAttrs hostNames (
     enforceProfiles = config.modules.base.hardening."stage-2".enforceProfiles;
   in
   {
-    enforceProfilesExist = lib.all (
-      profile: builtins.hasAttr profile config.security.apparmor.policies
-    ) enforceProfiles;
+    enforceProfilesExist = lib.all
+      (
+        profile: builtins.hasAttr profile config.security.apparmor.policies
+      )
+      enforceProfiles;
 
-    enforceProfilesAreEnforced = lib.all (
-      profile: config.security.apparmor.policies.${profile}.state == "enforce"
-    ) enforceProfiles;
+    enforceProfilesAreEnforced = lib.all
+      (
+        profile: config.security.apparmor.policies.${profile}.state == "enforce"
+      )
+      enforceProfiles;
 
     apparmorPrecedesBpf = (!stage2Enabled) || apparmorBeforeBpf config.security.lsm;
   }

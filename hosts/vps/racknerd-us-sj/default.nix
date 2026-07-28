@@ -1,7 +1,4 @@
-{ lib
-, mylib
-, myvars
-, pkgs
+{ mylib
 , disko
 , ...
 }:

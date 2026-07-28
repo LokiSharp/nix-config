@@ -23,7 +23,7 @@ rec {
   };
 
   hostsInterface = lib.attrsets.mapAttrs
-    (key: val: {
+    (_key: val: {
       interfaces."${val.iface}" = {
         useDHCP = false;
         ipv4.addresses = [

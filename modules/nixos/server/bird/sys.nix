@@ -1,11 +1,8 @@
 { lib
-, config
-, myvars
 , ...
 }@args:
 let
-  inherit (import ../common.nix args) this configLib;
-  DN42_AS = myvars.constants.DN42_AS;
+  inherit (import ../common.nix args) this;
 in
 {
   common = ''

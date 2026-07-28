@@ -1,8 +1,4 @@
-{ pkgs
-, lib
-, mylib
-, config
-, mysecrets
+{ lib
 , ...
 }@args:
 let

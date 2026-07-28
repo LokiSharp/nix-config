@@ -2,9 +2,8 @@
 , config
 , myvars
 , ...
-}@args:
+}:
 let
-  inherit (import ../common.nix args) this;
   DN42_AS = myvars.constants.DN42_AS;
 in
 {

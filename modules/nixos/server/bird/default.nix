@@ -1,11 +1,6 @@
-{ pkgs
-, lib
-, mylib
-, config
-, ...
-}@args:
+args:
 let
-  inherit (import ../common.nix args) this configLib;
+  inherit (import ../common.nix args) this;
   sys = import ./sys.nix args;
   dn42 = import ./dn42.nix args;
   loki-net = import ./loki-net.nix args;

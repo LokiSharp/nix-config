@@ -13,7 +13,6 @@ let
     nixpkgs
     home-manager
     nixos-generators
-    vscode-server
     ;
 in
 nixpkgs.lib.nixosSystem {

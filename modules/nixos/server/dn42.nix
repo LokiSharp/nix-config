@@ -1,8 +1,6 @@
 { pkgs
 , lib
-, mylib
 , config
-, mysecrets
 , ...
 }@args:
 let

@@ -3,7 +3,6 @@
 , pkgs
 , sops-nix
 , mysecrets
-, myvars
 , ...
 }:
 with lib;
@@ -22,14 +21,6 @@ let
   noaccess = {
     mode = "0000";
     owner = "root";
-  };
-  high_security = {
-    mode = "0500";
-    owner = "root";
-  };
-  user_readable = {
-    mode = "0500";
-    owner = myvars.username;
   };
 in
 {

@@ -1,14 +1,9 @@
-{ config
-, lib
-, pkgs
+{ lib
 , ...
 }:
 
 with lib;
 
-let
-  cfg = config.modules.base.hardening;
-in
 {
   options.modules.base.hardening = {
     enable = mkEnableOption "NixOS Security Hardening";

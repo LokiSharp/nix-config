@@ -45,7 +45,7 @@ in
           wayland.windowManager.hyprland.settings = cfg.settings;
         }
       ]
-      ++ (import ./values args)
+      ++ (import ./values (args // { inherit pkgs; }))
     )
   );
 }

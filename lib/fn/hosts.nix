@@ -26,7 +26,6 @@ let
   getHostName =
     path:
     let
-      parentDir = dirOf path;
       hostName = baseNameOf (dirOf path);
     in
     hostName;

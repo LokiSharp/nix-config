@@ -1,6 +1,5 @@
 { mylib
 , lib
-, inputs
 , config
 , ...
 }:

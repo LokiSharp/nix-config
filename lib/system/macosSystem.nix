@@ -18,7 +18,7 @@ nix-darwin.lib.darwinSystem {
     ++ [
       { nixpkgs.hostPlatform = system; }
       (
-        { lib, ... }:
+        _:
         {
           nixpkgs.pkgs = import nixpkgs-darwin {
             inherit system;

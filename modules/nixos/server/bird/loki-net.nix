@@ -13,7 +13,7 @@ let
   # Generate static routes for eBGP peers
   ebgp_routes = lib.concatStrings (
     lib.mapAttrsToList
-      (n: v: ''
+      (_n: v: ''
         ${lib.optionalString (v.addressing.peerIPv6Gateway != null) ''
           route ${v.addressing.peerIPv6}/128 via ${v.addressing.peerIPv6Gateway};
         ''}

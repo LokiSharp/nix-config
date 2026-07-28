@@ -1,10 +1,4 @@
-{ lib
-, mylib
-, myvars
-, pkgs
-, disko
-, ...
-}:
+_:
 let
   hostName = "MacbookAir";
 in

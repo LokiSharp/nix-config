@@ -1,7 +1,5 @@
-{ config
-, lib
+{ lib
 , myvars
-, pkgs
 , modulesPath
 , ...
 }:

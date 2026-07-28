@@ -1,4 +1,4 @@
-{ myvars, ... }: {
+{ ... }: {
 
   imports = [
     ../base/core

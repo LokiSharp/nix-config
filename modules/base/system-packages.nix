@@ -1,6 +1,6 @@
 { pkgs
 , ...
-}@args:
+}:
 {
   environment.systemPackages = with pkgs; [
     fastfetch.minimal

@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 let
   script = pkgs.writeShellScriptBin "update-roa" ''
     mkdir -p /etc/bird/

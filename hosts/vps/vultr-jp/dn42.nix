@@ -1,4 +1,4 @@
-{ config, inputs, ... }:
+_:
 {
   services.dn42 = {
     sunnet = {

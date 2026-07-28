@@ -1,7 +1,3 @@
-let
-  rawdisk1 = "/dev/sda"; # CHANGE
-  rawdisk2 = "/dev/sdb"; # CHANGE
-in
 {
   # required by impermanence
   fileSystems."/persistent".neededForBoot = true;

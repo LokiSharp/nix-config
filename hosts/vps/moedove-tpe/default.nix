@@ -1,7 +1,5 @@
 { lib
 , mylib
-, myvars
-, pkgs
 , disko
 , ...
 }:

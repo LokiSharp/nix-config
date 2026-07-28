@@ -1,7 +1,5 @@
-{ config
-, myvars
+{ myvars
 , vscode-server
-, pkgs
 , ...
 }:
 {

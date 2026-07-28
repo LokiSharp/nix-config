@@ -1,15 +1,11 @@
-{
-  # NOTE: the args not used in this file CAN NOT be removed!
-  # because haumea pass argument lazily,
-  # and these arguments are used in the functions like `mylib.nixosSystem`, `mylib.colmenaSystem`, etc.
-  inputs
+{ inputs
 , lib
 , mylib
 , myvars
 , system
 , genSpecialArgs
 , ...
-}@args:
+}:
 let
   hostName = "Lycheen-US-SLC";
   hostNameLower = lib.toLower hostName;
@@ -38,7 +34,16 @@ let
     ];
   };
 
-  systemArgs = modules // args;
+  systemArgs = modules // {
+    inherit
+      inputs
+      lib
+      mylib
+      myvars
+      system
+      genSpecialArgs
+      ;
+  };
 in
 {
   nixosConfigurations.${hostName} = mylib.nixosSystem systemArgs;

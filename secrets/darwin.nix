@@ -26,6 +26,17 @@
         mode = "0000";
         owner = "root";
       };
+      # Reserved permission templates for future secrets.
+      # deadnix: skip
+      high_security = {
+        mode = "0400";
+        owner = "root";
+      };
+      # deadnix: skip
+      user_readable = {
+        mode = "0400";
+        owner = myvars.username;
+      };
     in
     {
       # ---------------------------------------------

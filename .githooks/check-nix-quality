@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+echo "[INFO] checking Nix formatting and static analysis"
+nix develop -c bash -c '
+  set -euo pipefail
+  nixpkgs-fmt --check .
+  statix check .
+  deadnix --fail .
+'
+echo "[PASS] Nix formatting and static analysis"

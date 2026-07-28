@@ -18,6 +18,14 @@ utils_nu := absolute_path("utils.nu")
 default:
     @just --list
 
+# Enable the version-controlled pre-commit and pre-push hooks for this clone
+[group('git')]
+install-hooks:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  git config --local core.hooksPath .githooks
+  echo "[PASS] Git hooks enabled from .githooks"
+
 # Run eval tests
 [group('nix')]
 test:

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$repo_root"
+
+"$hook_dir/check-nix-quality"
+
+echo "[INFO] running repository evaluation tests"
+just test
+
+echo "[INFO] evaluating all flake outputs"
+nix --accept-flake-config flake check --all-systems --no-build --show-trace
+
+echo "[PASS] pre-push checks"

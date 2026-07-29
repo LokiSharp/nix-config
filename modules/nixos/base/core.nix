@@ -22,10 +22,23 @@
 
   # Limit journald log size
   services.journald.extraConfig = ''
-    SystemMaxUse=1G
-    RuntimeMaxUse=256M
-    MaxRetentionSec=1month
+    SystemMaxUse=256M
+    SystemKeepFree=1G
+    SystemMaxFileSize=32M
+    RuntimeMaxUse=64M
+    RuntimeMaxFileSize=16M
+    MaxRetentionSec=2week
   '';
+
+  # Keep crash diagnostics without allowing large dumps to exhaust small roots.
+  systemd.coredump.settings.Coredump = {
+    Storage = "external";
+    Compress = true;
+    ProcessSizeMax = "1G";
+    ExternalSizeMax = "128M";
+    MaxUse = "256M";
+    KeepFree = "1G";
+  };
 
   # Assign a higher OOM survival priority to SSH
   systemd.services.sshd.serviceConfig.OOMScoreAdjust = -1000;

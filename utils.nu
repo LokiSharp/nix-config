@@ -1,5 +1,13 @@
 # ================= NixOS related =========================
 
+def systemd-unit-name [unit: string]: nothing -> string {
+    if $unit =~ '\.(service|timer|socket|path|mount|target)$' {
+        $unit
+    } else {
+        $"($unit).service"
+    }
+}
+
 export def nixos-switch [
     name: string
     mode: string
@@ -647,7 +655,7 @@ def check-deployment-host [
     }
 
     if not ($host.requiredUnits | is-empty) {
-        let units = ($host.requiredUnits | each {|unit| $"($unit).service" } | str join " ")
+        let units = ($host.requiredUnits | each {|unit| systemd-unit-name $unit } | str join " ")
         let active_units = (ssh-command $host $"systemctl is-active ($units)")
         if $active_units.exit_code == 0 {
             print $"[PASS] ($host.name): (($host.requiredUnits | length)) required systemd units active"

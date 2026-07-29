@@ -44,12 +44,16 @@ let
       fi
 
       if [ "''${1:-}" = "record-success" ]; then
-        date +%s > ${stateDirectory}/last-success
+        success_tmp="$(mktemp ${stateDirectory}/.last-success.XXXXXX)"
+        trap 'rm -f "$success_tmp"' EXIT
+        date +%s > "$success_tmp"
+        mv "$success_tmp" ${stateDirectory}/last-success
+        trap - EXIT
       fi
 
       last_success=0
       if [ -r ${stateDirectory}/last-success ]; then
-        read -r last_success < ${stateDirectory}/last-success
+        read -r last_success < ${stateDirectory}/last-success || last_success=0
       fi
       if ! [[ "$last_success" =~ ^[0-9]+$ ]]; then
         last_success=0

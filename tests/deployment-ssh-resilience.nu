@@ -1,20 +1,20 @@
 source ../utils.nu
 
-def assert [condition: bool, message: string] {
+def assert [condition: bool, message: string]: nothing -> nothing {
     if not $condition {
         error make {msg: $message}
     }
 }
 
-def has-argument [arguments: list<string>, expected: string] {
+def has-argument [arguments: list<string>, expected: string]: nothing -> bool {
     $arguments | any {|argument| $argument == $expected }
 }
 
-def is-initial-attempt [arguments: list<string>] {
+def is-initial-attempt [arguments: list<string>]: nothing -> bool {
     has-argument $arguments "ControlMaster=auto"
 }
 
-def is-fallback-attempt [arguments: list<string>] {
+def is-fallback-attempt [arguments: list<string>]: nothing -> bool {
     (has-argument $arguments "ControlMaster=no") and (has-argument $arguments "ControlPath=none")
 }
 

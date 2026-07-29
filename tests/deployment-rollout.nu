@@ -1,16 +1,21 @@
 source ../utils.nu
 
-def assert [condition: bool, message: string] {
+def assert [condition: bool, message: string]: nothing -> nothing {
     if not $condition {
         error make {msg: $message}
     }
 }
 
-def host-names [hosts: list<any>] {
+def host-names [hosts: list<record<name: string>>]: nothing -> list<string> {
     $hosts | get name
 }
 
-def record-event [log: path, kind: string, hosts: list<any>, detail: any] {
+def record-event [
+    log: path
+    kind: string
+    hosts: list<record<name: string>>
+    detail: oneof<int, string>
+]: nothing -> nothing {
     let event = {
         kind: $kind
         hosts: (host-names $hosts)
@@ -19,11 +24,13 @@ def record-event [log: path, kind: string, hosts: list<any>, detail: any] {
     $"($event | to json --raw)\n" | save --append $log
 }
 
-def read-events [log: path] {
+def read-events [
+    log: path
+]: nothing -> list<record<kind: string, hosts: list<string>, detail: oneof<int, string>>> {
     open $log | lines | each {|line| $line | from json }
 }
 
-def new-log [] {
+def new-log []: nothing -> string {
     let log = (mktemp)
     "" | save --force $log
     $log

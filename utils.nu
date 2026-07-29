@@ -3,7 +3,7 @@
 export def nixos-switch [
     name: string
     mode: string
-] {
+]: nothing -> string {
     if "debug" == $mode {
         # show details via nix-output-monitor
         nom build $".#nixosConfigurations.($name).config.system.build.toplevel" --show-trace --verbose
@@ -15,7 +15,7 @@ export def nixos-switch [
 
 export def nixos-smoke [
     --since: string = "-5 minutes"
-] {
+]: nothing -> nothing {
     mut failures = 0
 
     let pass = {|message|
@@ -227,7 +227,7 @@ export def nixos-smoke [
 export def public-exposure [
     --full
     --min-rate: int = 3000
-] {
+]: nothing -> nothing {
     if (which nmap | is-empty) {
         print -e "[FAIL] nmap not found"
         exit 1
@@ -342,7 +342,7 @@ export def public-exposure [
 export def deployment-health-root [
     action: string
     --since-minutes: int = 15
-] {
+]: nothing -> string {
     if (id -u | into int) != 0 {
         print -e "deployment-health-root must run as root"
         exit 1
@@ -365,7 +365,7 @@ export def deployment-health-root [
     }
 }
 
-def deployment-inventory [] {
+def deployment-inventory []: nothing -> list<record<name: string>> {
     let metadata_result = (nix eval .#deploymentHostMetadata --json --show-trace | complete)
     if $metadata_result.exit_code != 0 {
         print -e "[FAIL] failed to evaluate .#deploymentHostMetadata"
@@ -399,7 +399,10 @@ def deployment-inventory [] {
     | sort-by name
 }
 
-def select-deployment-hosts [inventory: list<any>, requested: list<string>] {
+def select-deployment-hosts [
+    inventory: list<record<name: string>>
+    requested: list<string>
+]: nothing -> list<record<name: string>> {
     if ($requested | is-empty) {
         return $inventory
     }
@@ -415,7 +418,11 @@ def select-deployment-hosts [inventory: list<any>, requested: list<string>] {
     $inventory | where {|host| $host.name in $requested }
 }
 
-def ssh-command-with [host: record, command: string, run_ssh: closure] {
+def ssh-command-with [
+    host: record
+    command: string
+    run_ssh: closure
+]: nothing -> record<stdout: string, stderr: string, exit_code: int> {
     let destination = $"($host.healthUser)@($host.targetHost)"
     let control_path = $"/tmp/nix-config-health-($nu.pid)-%C"
     let common_arguments = [
@@ -463,17 +470,25 @@ def ssh-command-with [host: record, command: string, run_ssh: closure] {
     do $run_ssh $retry_arguments
 }
 
-def ssh-command [host: record, command: string] {
+def ssh-command [
+    host: record
+    command: string
+]: nothing -> record<stdout: string, stderr: string, exit_code: int> {
     ssh-command-with $host $command {|arguments|
         ^ssh ...$arguments | complete
     }
 }
 
-def root-health-command [host: record, helper: string, action: string, since_minutes: int] {
+def root-health-command [
+    host: record
+    helper: string
+    action: string
+    since_minutes: int
+]: nothing -> record<stdout: string, stderr: string, exit_code: int> {
     ssh-command $host $"sudo -n ($helper) ($action) ($since_minutes)"
 }
 
-def since-to-minutes [since: string] {
+def since-to-minutes [since: string]: nothing -> int {
     if $since !~ '^-[0-9]+ (minute|minutes|hour|hours)$' {
         print -e $"[FAIL] unsupported --since value: ($since)"
         print -e "[INFO] use values such as '-15 minutes' or '-1 hour'"
@@ -489,7 +504,7 @@ def since-to-minutes [since: string] {
     }
 }
 
-def ping-loss [output: string] {
+def ping-loss [output: string]: nothing -> oneof<float, nothing> {
     let rows = (
         $output
         | lines
@@ -503,7 +518,12 @@ def ping-loss [output: string] {
     }
 }
 
-def check-ping [host: record, address: string, ipv6: bool, label: string] {
+def check-ping [
+    host: record
+    address: string
+    ipv6: bool
+    label: string
+]: nothing -> int {
     let family = if $ipv6 { "-6" } else { "-4" }
     let first = (ssh-command $host $"ping ($family) -c 5 -W 3 ($address)")
     let first_loss = (ping-loss $first.stdout)
@@ -515,11 +535,16 @@ def check-ping [host: record, address: string, ipv6: bool, label: string] {
     print $"[INFO] ($host.name): retrying ($label) after a lossy/failed probe"
     let retry = (ssh-command $host $"ping ($family) -c 10 -i 0.2 -W 3 ($address)")
     let retry_loss = (ping-loss $retry.stdout)
-    if ($retry.exit_code == 0) and ($retry_loss != null) and ($retry_loss <= 10.0) {
-        if $retry_loss == 0.0 {
+    let retry_loss_value = if $retry_loss == null {
+        -1.0
+    } else {
+        $retry_loss | into float
+    }
+    if ($retry.exit_code == 0) and ($retry_loss != null) and ($retry_loss_value <= 10.0) {
+        if $retry_loss_value == 0.0 {
             print $"[PASS] ($host.name): ($label) retry passed without loss"
         } else {
-            print $"[WARN] ($host.name): ($label) reachable with ($retry_loss)% loss"
+            print $"[WARN] ($host.name): ($label) reachable with ($retry_loss_value)% loss"
         }
         0
     } else {
@@ -532,7 +557,11 @@ def check-ping [host: record, address: string, ipv6: bool, label: string] {
     }
 }
 
-def check-http-probes [host: record, root_helper: string, since_minutes: int] {
+def check-http-probes [
+    host: record
+    root_helper: string
+    since_minutes: int
+]: nothing -> int {
     let probes = ($host.httpProbes | transpose unit url)
     mut failures = 0
 
@@ -561,7 +590,11 @@ def check-http-probes [host: record, root_helper: string, since_minutes: int] {
     $failures
 }
 
-def check-deployment-host [host: record, reference: record, since_minutes: int] {
+def check-deployment-host [
+    host: record
+    reference: record
+    since_minutes: int
+]: nothing -> int {
     mut failures = 0
     print $"\n[INFO] checking ($host.name) via ($host.healthUser)@($host.targetHost)"
 
@@ -738,7 +771,11 @@ def check-deployment-host [host: record, reference: record, since_minutes: int] 
     $failures
 }
 
-def run-deployment-health [inventory: list<any>, selected: list<any>, since: string] {
+def run-deployment-health [
+    inventory: list<record<name: string>>
+    selected: list<record<name: string>>
+    since: string
+]: nothing -> int {
     let references = ($inventory | where name == "Test-NixOS")
     if ($references | is-empty) {
         print -e "[FAIL] Test-NixOS is missing from the deployment inventory"
@@ -760,7 +797,10 @@ def run-deployment-health [inventory: list<any>, selected: list<any>, since: str
     $failures
 }
 
-def apply-colmena-hosts [hosts: list<any>, parallel: int] {
+def apply-colmena-hosts [
+    hosts: list<record<name: string>>
+    parallel: int
+]: nothing -> int {
     if ($hosts | is-empty) {
         return 0
     }
@@ -776,12 +816,12 @@ def apply-colmena-hosts [hosts: list<any>, parallel: int] {
 }
 
 def deployment-rollout-with [
-    inventory: list<any>
+    inventory: list<record<name: string>>
     parallel: int
     since: string
     apply_hosts: closure
     run_health: closure
-] {
+]: nothing -> int {
     let canary = (select-deployment-hosts $inventory ["Test-NixOS"])
     let remaining = ($inventory | where name != "Test-NixOS")
 
@@ -810,7 +850,7 @@ def deployment-rollout-with [
     0
 }
 
-def ensure-deployment-worktree [] {
+def ensure-deployment-worktree []: nothing -> nothing {
     let git_status = (git status --porcelain | complete)
     if ($git_status.exit_code != 0) or (($git_status.stdout | str trim) != "") {
         print -e "[FAIL] deployment requires a clean Git worktree"
@@ -822,7 +862,7 @@ def ensure-deployment-worktree [] {
     }
 }
 
-def run-deployment-preflight [] {
+def run-deployment-preflight []: nothing -> nothing {
     print "[INFO] running flake checks before deployment"
     ^nix --accept-flake-config flake check --all-systems --no-build --show-trace
     if $env.LAST_EXIT_CODE != 0 {
@@ -846,7 +886,7 @@ def run-deployment-preflight [] {
 export def deployment-health [
     --since: string = "-15 minutes"
     ...hosts: string
-] {
+]: nothing -> nothing {
     let inventory = (deployment-inventory)
     let selected = (select-deployment-hosts $inventory $hosts)
     let failures = (run-deployment-health $inventory $selected $since)
@@ -859,7 +899,7 @@ export def deployment-test [
     --parallel: int = 2
     --skip-check
     --since: string = "-15 minutes"
-] {
+]: nothing -> nothing {
     ensure-deployment-worktree
     if not $skip_check {
         run-deployment-preflight
@@ -882,7 +922,7 @@ export def deployment-rollout [
     --parallel: int = 2
     --skip-check
     --since: string = "-15 minutes"
-] {
+]: nothing -> nothing {
     ensure-deployment-worktree
     if not $skip_check {
         run-deployment-preflight
@@ -903,7 +943,7 @@ export def deployment-rollout [
 
 export def make-editable [
     path: string
-] {
+]: nothing -> string {
     let tmpdir = (mktemp -d)
     rsync -avz --copy-links $"($path)/" $tmpdir
     rsync -avz --copy-links --chmod=D2755,F744 $"($tmpdir)/" $path
@@ -914,7 +954,7 @@ export def make-editable [
 export def darwin-build [
     name: string
     mode: string
-] {
+]: nothing -> string {
     let target = $".#darwinConfigurations.($name).system"
     if "debug" == $mode {
         nom build $target --extra-experimental-features "nix-command flakes"  --show-trace --verbose
@@ -926,7 +966,7 @@ export def darwin-build [
 export def darwin-switch [
     name: string
     mode: string
-] {
+]: nothing -> string {
     if "debug" == $mode {
         sudo ./result/sw/bin/darwin-rebuild switch --flake $".#($name)" --show-trace --verbose
     } else {
@@ -934,7 +974,7 @@ export def darwin-switch [
     }
 }
 
-export def darwin-rollback [] {
+export def darwin-rollback []: nothing -> string {
     sudo ./result/sw/bin/darwin-rebuild --rollback
 }
 
@@ -942,7 +982,7 @@ export def darwin-rollback [] {
 export def upload-vm [
     name: string
     mode: string
-] {
+]: nothing -> string {
     let target = $".#($name)"
     if "debug" == $mode {
         nom build $target --show-trace --verbose
@@ -958,7 +998,7 @@ export def upload-vm [
 export def upload-iso [
     name: string
     mode: string
-] {
+]: nothing -> string {
     let target = $".#($name)"
     if "debug" == $mode {
         nom build $target --show-trace --verbose

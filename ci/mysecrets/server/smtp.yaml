@@ -1,1 +1,6 @@
-# CI evaluation placeholder; contains no secret data.
+# CI build fixture; contains no secret data.
+SMTP_HOST: ci-placeholder
+SMTP_PORT: ci-placeholder
+SMTP_SENDER_EMAIL: ci-placeholder
+SMTP_AUTH_USERNAME: ci-placeholder
+SMTP_AUTH_PASSWORD: ci-placeholder

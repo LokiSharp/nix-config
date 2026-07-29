@@ -1,1 +1,5 @@
-# CI evaluation placeholder; contains no secret data.
+# CI build fixture; contains no secret data.
+PROXY_PRIVATE_KEY: ci-placeholder
+PROXY_UUID: ci-placeholder
+PROXY_SERVER_NAME: ci-placeholder
+PROXY_SHORT_ID: ci-placeholder

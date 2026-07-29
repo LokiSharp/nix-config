@@ -1,1 +1,2 @@
-# CI evaluation placeholder; contains no secret data.
+# CI build fixture; contains no secret data.
+data: ci-placeholder

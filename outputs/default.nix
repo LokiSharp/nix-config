@@ -107,6 +107,24 @@ let
       _system: tests: lib.filterAttrs (_name: result: result.status != "PASS") tests
     )
     (lib.mapAttrs (_system: it: it.evalTestReport or { }) allSystems);
+  configuredSecrets =
+    (lib.mapAttrs' (name: value: lib.nameValuePair "nixos/${name}" value) nixosConfigurations)
+    // (lib.mapAttrs' (name: value: lib.nameValuePair "darwin/${name}" value) darwinConfigurations);
+  secretDeclarations = lib.concatMap
+    (
+      host:
+      lib.mapAttrsToList
+        (
+          name: secret:
+            {
+              inherit host name;
+              file = toString secret.sopsFile;
+              key = secret.key or name;
+            }
+        )
+        configuredSecrets.${host}.config.sops.secrets
+    )
+    (builtins.attrNames configuredSecrets);
   formatTestFailures =
     system: tests:
     lib.concatStringsSep "\n" (
@@ -298,6 +316,48 @@ in
       '';
     }
     // lib.optionalAttrs (system == "x86_64-linux") {
+      secrets-schema =
+        let
+          declarations = pkgs.writeText "secret-declarations.json" (builtins.toJSON secretDeclarations);
+        in
+        pkgs.runCommand "secrets-schema"
+          {
+            nativeBuildInputs = [
+              pkgs.jq
+              pkgs.yq-go
+            ];
+          } ''
+          while IFS=$'\t' read -r host name file key; do
+            if ! SECRET_KEY="$key" yq --exit-status 'has(strenv(SECRET_KEY))' "$file" >/dev/null; then
+              echo "$host: secret '$name' expects missing key '$key' in $file" >&2
+              exit 1
+            fi
+          done < <(jq --raw-output '.[] | [.host, .name, .file, .key] | @tsv' ${declarations})
+          touch $out
+        '';
+
+      secrets-manifests =
+        pkgs.linkFarm "secrets-manifests" (
+          lib.concatMap
+            (
+              name:
+              let
+                build = nixosConfigurations.${name}.config.system.build;
+              in
+              [
+                {
+                  name = "${name}-system";
+                  path = build."sops-nix-manifest";
+                }
+                {
+                  name = "${name}-users";
+                  path = build."sops-nix-users-manifest";
+                }
+              ]
+            )
+            (builtins.attrNames nixosConfigurations)
+        );
+
       deployment-rollout = pkgs.runCommand "deployment-rollout"
         {
           nativeBuildInputs = [ pkgs.nushell ];

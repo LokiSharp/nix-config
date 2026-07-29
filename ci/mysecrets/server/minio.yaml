@@ -1,1 +1,3 @@
-# CI evaluation placeholder; contains no secret data.
+# CI build fixture; contains no secret data.
+MINIO_ROOT_USER: ci-placeholder
+MINIO_ROOT_PASSWORD: ci-placeholder

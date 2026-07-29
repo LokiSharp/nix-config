@@ -1,5 +1,4 @@
-_:
-{
+_: {
   index = 6;
   role = "server";
   kind = "vps";
@@ -25,7 +24,6 @@ _:
     };
     loki-net = {
       enable = true;
-      role = "edge";
     };
   };
 }

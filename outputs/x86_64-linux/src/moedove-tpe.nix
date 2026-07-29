@@ -28,7 +28,6 @@ let
           modules.secrets = {
             server = {
               dn42.enable = true;
-              loki-net.enable = true;
             };
             impermanence.enable = true;
           };

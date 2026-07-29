@@ -1,0 +1,48 @@
+groups:
+  - name: BtrfsSnapshots
+    rules:
+      - alert: BtrfsSnapshotRunStale
+        expr: time() - btrbk_last_success_timestamp_seconds > 2 * 3600
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Btrfs snapshot run is stale (instance {{ $labels.instance }})
+          description:
+            "The last successful btrbk run was more than two hours ago.\n  VALUE = {{ $value }}\n
+            LABELS = {{ $labels }}"
+
+      - alert: BtrfsSnapshotDirectoryUnavailable
+        expr: btrbk_snapshot_directory_available == 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Btrfs snapshot directory unavailable (instance {{ $labels.instance }})
+          description:
+            "The {{ $labels.source }} snapshot directory is not mounted.\n  VALUE = {{ $value }}\n
+            LABELS = {{ $labels }}"
+
+      - alert: BtrfsSnapshotsMissing
+        expr: btrbk_snapshot_count == 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Btrfs snapshots missing (instance {{ $labels.instance }})
+          description:
+            "No {{ $labels.source }} snapshots were found.\n  VALUE = {{ $value }}\n  LABELS = {{
+            $labels }}"
+
+      - alert: BtrfsSnapshotMetricsMissing
+        expr:
+          'up{job=~"node-exporter-.+"} == 1 unless on(instance)
+          btrbk_last_success_timestamp_seconds'
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: Btrfs snapshot metrics missing (instance {{ $labels.instance }})
+          description:
+            "The node is reachable but does not expose btrbk snapshot metrics.\n  VALUE = {{ $value
+            }}\n  LABELS = {{ $labels }}"

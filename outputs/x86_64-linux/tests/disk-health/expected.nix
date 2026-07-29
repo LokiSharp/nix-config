@@ -11,5 +11,6 @@
     nodeExporterTargetsComplete = true;
     smartctlTargetsComplete = true;
     smartctlAlertRulesEnabled = true;
+    snapshotAlertRulesEnabled = true;
   };
 }

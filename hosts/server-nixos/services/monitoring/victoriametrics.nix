@@ -4,15 +4,12 @@
 , ...
 }:
 let
-  diskHealthHosts = lib.filterAttrs
-    (_hostname: host: host.features.diskHealth.enable)
-    mylib.hosts;
+  diskHealthHosts = lib.filterAttrs (_hostname: host: host.features.diskHealth.enable) mylib.hosts;
   localNodeExporterHostNames = map lib.toLower (builtins.attrNames myvars.networking.hostsAddr);
   remoteNodeExporterHosts = lib.filterAttrs
     (
       hostname: host:
-        host.features.zerotier.nodeId != null
-        && !(builtins.elem hostname localNodeExporterHostNames)
+        host.features.zerotier.nodeId != null && !(builtins.elem hostname localNodeExporterHostNames)
     )
     mylib.hosts;
 in
@@ -130,8 +127,7 @@ in
                 ];
               }
             ]
-        )
-        [ ]
+        ) [ ]
         remoteNodeExporterHosts)
       # --- Physical disks --- #
       ++ (lib.attrsets.foldlAttrs
@@ -154,8 +150,7 @@ in
                 ];
               }
             ]
-        )
-        [ ]
+        ) [ ]
         diskHealthHosts);
     };
   };
@@ -182,6 +177,7 @@ in
         "datasource.showURL" = false;
         rule = [
           ./alert_rules/node-exporter.yml
+          ./alert_rules/btrfs-snapshots.yml
           ./alert_rules/smartctl-exporter.yml
           ./alert_rules/kubestate-exporter.yml
           ./alert_rules/etcd_embedded-exporter.yml

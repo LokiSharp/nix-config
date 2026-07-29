@@ -87,7 +87,10 @@ in
       # --- Hosts --- #
       ++ (lib.attrsets.foldlAttrs
         (
-          acc: hostname: addr:
+          acc: hostname: _addr:
+            let
+              host = mylib.hosts.${lib.toLower hostname};
+            in
             acc
               ++ [
               {
@@ -96,8 +99,9 @@ in
                 metrics_path = "/metrics";
                 static_configs = [
                   {
-                    # All my NixOS hosts.
-                    targets = [ "${addr.ipv4}:9100" ];
+                    # Use the trusted overlay consistently; the default-deny
+                    # firewall does not expose exporters on the home LAN.
+                    targets = [ "${host.networks.slk-net.IPv4}:9100" ];
                     labels.type = "node";
                     labels.host = hostname;
                   }

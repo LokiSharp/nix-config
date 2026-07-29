@@ -61,7 +61,9 @@ in
     nodeExporterTargetsComplete =
       lib.sort builtins.lessThan (targetsFrom (scrapeConfigsFor "node-exporter-.*"))
       == lib.sort builtins.lessThan (
-        (map (address: "${address.ipv4}:9100") (lib.attrValues myvars.networking.hostsAddr))
+        (map
+          (name: "${mylib.hosts.${lib.toLower name}.networks.slk-net.IPv4}:9100")
+          (builtins.attrNames myvars.networking.hostsAddr))
         ++ (map
           (host: "${host.networks.slk-net.IPv4}:9100")
           (lib.attrValues remoteNodeExporterHosts))

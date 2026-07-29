@@ -74,9 +74,11 @@ jobs:
             .#checks.x86_64-linux.deployment-ssh-resilience \
             --no-link --print-build-logs
 
-      - name: Build Test-NixOS canary
+      - name: Build representative NixOS systems
         run: |
           nix --accept-flake-config build \
             --override-input mysecrets path:./ci/mysecrets \
-            .#nixosConfigurations.Test-NixOS.config.system.build.toplevel \
+            .#nixosConfigurations.Server-NixOS.config.system.build.toplevel \
+            .#nixosConfigurations.Vultr-JP.config.system.build.toplevel \
+            .#nixosConfigurations.VM-NixOS.config.system.build.toplevel \
             --no-link --print-build-logs

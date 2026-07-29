@@ -6,6 +6,7 @@ _:
   deployment.extraTags = [ "homelab-network" ];
 
   features = {
+    diskHealth.enable = true;
     firewall.enable = true;
     tailscale.enable = true;
     zerotier = {

@@ -131,6 +131,7 @@ in
   };
 
   namespacedDeploymentTags = {
+    feature = mylib.hosts.server-nixos.hasDeploymentTag "feature:disk-health";
     role = vultr.hasDeploymentTag "role:server";
     kind = vultr.hasDeploymentTag "kind:vps";
     network = vultr.hasDeploymentTag "net:loki-net";

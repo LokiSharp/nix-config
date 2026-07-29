@@ -12,7 +12,8 @@ let
   indexString = if hasIndex then builtins.toString config.index else "";
 
   enabledFeatures =
-    lib.optional config.features.firewall.enable "firewall"
+    lib.optional config.features.diskHealth.enable "disk-health"
+    ++ lib.optional config.features.firewall.enable "firewall"
     ++ lib.optional config.features.tailscale.enable "tailscale"
     ++ lib.optional config.features.zerotier.enable "zerotier";
 
@@ -64,6 +65,7 @@ in
     };
 
     features = {
+      diskHealth.enable = lib.mkEnableOption "physical disk health monitoring";
       firewall.enable = lib.mkEnableOption "the nftables firewall";
       tailscale.enable = lib.mkEnableOption "Tailscale";
       zerotier = {

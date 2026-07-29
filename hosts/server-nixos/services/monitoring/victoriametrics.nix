@@ -1,7 +1,21 @@
 { lib
+, mylib
 , myvars
 , ...
 }:
+let
+  diskHealthHosts = lib.filterAttrs
+    (_hostname: host: host.features.diskHealth.enable)
+    mylib.hosts;
+  localNodeExporterHostNames = map lib.toLower (builtins.attrNames myvars.networking.hostsAddr);
+  remoteNodeExporterHosts = lib.filterAttrs
+    (
+      hostname: host:
+        host.features.zerotier.nodeId != null
+        && !(builtins.elem hostname localNodeExporterHostNames)
+    )
+    mylib.hosts;
+in
 {
   # Since victoriametrics use DynamicUser, the user & group do not exists before the service starts.
   # this group is used as a supplementary Unix group for the service to access our data dir(/data/apps/xxx)
@@ -91,7 +105,54 @@
               }
             ]
         ) [ ]
-        myvars.networking.hostsAddr);
+        myvars.networking.hostsAddr)
+      ++ (lib.attrsets.foldlAttrs
+        (
+          acc: hostname: host:
+            acc
+              ++ [
+              {
+                job_name = "node-exporter-${hostname}";
+                scrape_interval = "30s";
+                metrics_path = "/metrics";
+                static_configs = [
+                  {
+                    targets = [ "${host.networks.slk-net.IPv4}:9100" ];
+                    labels = {
+                      type = "node";
+                      host = hostname;
+                    };
+                  }
+                ];
+              }
+            ]
+        )
+        [ ]
+        remoteNodeExporterHosts)
+      # --- Physical disks --- #
+      ++ (lib.attrsets.foldlAttrs
+        (
+          acc: hostname: host:
+            acc
+              ++ [
+              {
+                job_name = "smartctl-exporter-${hostname}";
+                scrape_interval = "30s";
+                metrics_path = "/metrics";
+                static_configs = [
+                  {
+                    targets = [ "${host.networks.slk-net.IPv4}:9633" ];
+                    labels = {
+                      type = "disk";
+                      host = hostname;
+                    };
+                  }
+                ];
+              }
+            ]
+        )
+        [ ]
+        diskHealthHosts);
     };
   };
 
@@ -117,6 +178,7 @@
         "datasource.showURL" = false;
         rule = [
           ./alert_rules/node-exporter.yml
+          ./alert_rules/smartctl-exporter.yml
           ./alert_rules/kubestate-exporter.yml
           ./alert_rules/etcd_embedded-exporter.yml
           ./alert_rules/istio_embedded-exporter.yml

@@ -202,6 +202,7 @@ in
         requiredUnits = lib.lists.sort builtins.lessThan config.deployment.healthChecks.requiredUnits;
         httpProbes = config.deployment.healthChecks.httpProbes;
         features = {
+          diskHealth = host.features.diskHealth.enable;
           firewall = host.features.firewall.enable;
           tailscale = host.features.tailscale.enable;
           zerotier = host.features.zerotier.enable;
@@ -357,6 +358,14 @@ in
             )
             (builtins.attrNames nixosConfigurations)
         );
+
+      monitoring-rules = pkgs.runCommand "monitoring-rules"
+        {
+          nativeBuildInputs = [ pkgs.prometheus.cli ];
+        } ''
+        promtool check rules ${self}/hosts/server-nixos/services/monitoring/alert_rules/*.yml
+        touch $out
+      '';
 
       deployment-rollout = pkgs.runCommand "deployment-rollout"
         {

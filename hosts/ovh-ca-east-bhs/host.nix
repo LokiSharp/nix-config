@@ -5,6 +5,7 @@ _:
   kind = "vps";
 
   features = {
+    diskHealth.enable = true;
     firewall.enable = true;
     tailscale.enable = true;
     zerotier = {

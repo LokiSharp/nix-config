@@ -20,6 +20,7 @@ _:
   };
 
   namespacedDeploymentTags = {
+    feature = true;
     role = true;
     kind = true;
     network = true;

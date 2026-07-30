@@ -7,25 +7,23 @@ let
     name = "coredump-metrics";
     runtimeInputs = [
       pkgs.coreutils
-      pkgs.gnugrep
+      pkgs.jq
       pkgs.systemd
     ];
     text = ''
-      coredump_log="$(
-        journalctl \
-          --identifier=systemd-coredump \
-          --since="-24 hours" \
-          --no-pager \
-          --output=cat
+      coredumps="$(
+        coredumpctl \
+          --json=short \
+          list \
+          --since="24 hours ago" \
+          --no-pager
       )"
 
-      total="$(
-        printf '%s\n' "$coredump_log" |
-          grep --count --extended-regexp 'dumped core\.$' || true
-      )"
+      total="$(jq 'length' <<< "$coredumps")"
       journald="$(
-        printf '%s\n' "$coredump_log" |
-          grep --count --extended-regexp 'Process .+ \(systemd-journal\).+ dumped core\.$' || true
+        jq \
+          '[.[] | select(.exe | endswith("/systemd-journald"))] | length' \
+          <<< "$coredumps"
       )"
 
       tmp_file="$(mktemp ${metricsDirectory}/.coredumps.XXXXXX)"

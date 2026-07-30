@@ -2,6 +2,18 @@ groups:
   - name: NodeExporter
 
     rules:
+      - alert: HostNodeExporterDown
+        expr: 'up{job=~"node-exporter-.+"} == 0'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Host node exporter is down (instance {{ $labels.instance }})
+          description:
+            "Node exporter has been unreachable for five minutes. The host may be offline or
+            Loki-Net connectivity may be interrupted.\n  VALUE = {{ $value }}\n  LABELS = {{
+            $labels }}"
+
       - alert: HostOutOfMemory
         expr:
           '(node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 10) * on(instance)

@@ -120,6 +120,33 @@ curl --fail --silent http://127.0.0.1:9633/metrics
 exporter 在目标节点正常但 Server 无法采集时，再检查 Loki-Net 连通性、防火墙和
 VictoriaMetrics target 的 `up` 指标。
 
+## 节点或 node-exporter 不可达
+
+对应告警：`HostNodeExporterDown`
+
+该规则检查所有 `node-exporter-*` job 的 `up` 指标。目标连续 5 分钟不可达后进入 firing，
+严重级别为 critical；短暂的单次采集失败不会触发。Alertmanager 还有 5 分钟 group wait，
+因此新分组通常在持续故障约 10 分钟后发送第一封邮件。
+
+先从 `Server-NixOS` 确认是单个 exporter、Loki-Net 路径还是整个节点故障：
+
+```console
+ping <instance-address>
+curl --fail --max-time 10 http://<instance-address>:9100/metrics
+```
+
+如果 SSH 仍可连接目标节点：
+
+```console
+systemctl status prometheus-node-exporter
+journalctl -u prometheus-node-exporter --since "-30 minutes"
+zerotier-cli status
+ss -ltn
+```
+
+同时检查 `Server-NixOS` 的 ZeroTier 状态和到该实例地址的路由。不要为了消除告警而从
+scrape 配置删除节点；连接或 exporter 恢复后，下一次成功采集会使告警自然 resolved。
+
 ## systemd 服务失败
 
 对应告警：`HostSystemdServiceCrashed`
@@ -423,12 +450,3 @@ just test
 
 先部署 Test 验证节点侧 exporter，再部署 `Server-NixOS` 使中心规则生效。完整发布顺序参见
 [金丝雀部署与健康检查](deployment-rollout.md)。
-
-## 当前已知监控缺口
-
-当前规则没有直接针对 `up{job=~"node-exporter-.+"} == 0` 的通用主机不可达告警。
-`HostCoredumpMetricsMissing` 和 `BtrfsSnapshotMetricsMissing` 只在 node-exporter 本身可达但
-专项指标缺失时触发，不能替代 HostDown。
-
-下一步应增加带合理 `for` 时间的 node-exporter target down 告警，并验证它能区分短暂
-Loki-Net 抖动和持续节点离线。

@@ -4,6 +4,7 @@
 , ...
 }:
 let
+  # Physical disk monitoring is opt-in through per-host metadata.
   configLib = mylib.withConfig config;
   enabled = configLib.this.features.diskHealth.enable;
 in

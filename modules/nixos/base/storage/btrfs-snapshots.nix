@@ -4,6 +4,7 @@
 , ...
 }:
 let
+  # Only snapshot source/destination pairs on the same Btrfs filesystem.
   metricsDirectory = "/var/lib/prometheus-node-exporter/textfile";
   metricsFile = "${metricsDirectory}/btrfs-snapshots.prom";
   stateDirectory = "/var/lib/btrfs-snapshot-metrics";

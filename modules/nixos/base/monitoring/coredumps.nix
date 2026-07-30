@@ -1,5 +1,6 @@
 { pkgs, ... }:
 let
+  # Read external coredump metadata without touching the journal.
   metricsDirectory = "/var/lib/prometheus-node-exporter/textfile";
   metricsFile = "${metricsDirectory}/coredumps.prom";
   coredumpDirectory = "/var/lib/systemd/coredump";

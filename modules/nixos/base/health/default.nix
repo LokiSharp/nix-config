@@ -7,6 +7,7 @@
 }:
 
 let
+  # Keep privileged probes behind one fixed, sudo-approved entry point.
   utilsNu = mylib.relativeToRoot "utils.nu";
   rootHelper = pkgs.writeShellApplication {
     name = "deployment-health-root";

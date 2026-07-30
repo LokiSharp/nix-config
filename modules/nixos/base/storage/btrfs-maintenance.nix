@@ -4,6 +4,7 @@
 , ...
 }:
 let
+  # Subvolumes on the same device share scrub and device error counters.
   btrfsFileSystems = lib.mapAttrsToList
     (
       mountPoint: fileSystem:

@@ -57,5 +57,6 @@
     '';
     owner = "root";
     mode = "0400";
+    restartUnits = [ "alertmanager.service" ];
   };
 }

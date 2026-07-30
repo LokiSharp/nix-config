@@ -52,6 +52,10 @@ in
     useDHCP = false;
   };
 
+  # This host boots from two mdraid1 arrays. Keep the collector explicit so
+  # RAID monitoring does not depend on node_exporter's default collector set.
+  services.prometheus.exporters.node.enabledCollectors = [ "mdadm" ];
+
   modules.server.proxy = {
     enable = true;
   };

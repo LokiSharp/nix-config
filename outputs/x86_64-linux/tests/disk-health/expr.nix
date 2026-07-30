@@ -6,6 +6,10 @@
 }:
 let
   serverConfig = outputs.nixosConfigurations.Server-NixOS.config;
+  ovhConfig = outputs.nixosConfigurations.OVH-CA-EAST-BHS.config;
+  nodeExporterRules = builtins.readFile (
+    mylib.relativeToRoot "hosts/server-nixos/services/monitoring/alert_rules/node-exporter.yml"
+  );
   diskHealthHosts = lib.filter (host: host.features.diskHealth.enable) (lib.attrValues mylib.hosts);
   localNodeExporterHostNames = map lib.toLower (builtins.attrNames myvars.networking.hostsAddr);
   remoteNodeExporterHosts = lib.filterAttrs
@@ -76,5 +80,27 @@ in
         rule: lib.hasSuffix "btrfs-snapshots.yml" (toString rule)
       )
       serverConfig.services.vmalert.instances."".settings.rule;
+    ovhRaidMonitoring = {
+      mdadmCollectorExplicit =
+        builtins.elem "mdadm" ovhConfig.services.prometheus.exporters.node.enabledCollectors;
+      degradedAlertConfigured =
+        lib.hasInfix "alert: HostRaidArrayDegraded" nodeExporterRules
+        && lib.hasInfix "node_md_degraded > 0" nodeExporterRules;
+      missingMetricsAlertConfigured =
+        lib.hasInfix "alert: HostRaidMetricsMissing" nodeExporterRules
+        && lib.hasInfix ''absent(node_md_state{host="ovh-ca-east-bhs"})'' nodeExporterRules;
+      raidDeviceLabelCorrect =
+        lib.hasInfix "$labels.device" nodeExporterRules
+        && !(lib.hasInfix "$labels.md_device" nodeExporterRules);
+      emailReceiverConfigured =
+        lib.any
+          (receiver: (receiver.email_configs or [ ]) != [ ])
+          serverConfig.services.prometheus.alertmanager.configuration.receivers;
+      smtpConsumersRestartOnChange =
+        builtins.elem
+          "alertmanager.service"
+          serverConfig.sops.templates."alertmanager-env".restartUnits
+        && builtins.elem "gitea.service" serverConfig.sops.templates."gitea-mailer-env".restartUnits;
+    };
   };
 }

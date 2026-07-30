@@ -87,5 +87,6 @@
     '';
     owner = "gitea";
     mode = "0400";
+    restartUnits = [ "gitea.service" ];
   };
 }

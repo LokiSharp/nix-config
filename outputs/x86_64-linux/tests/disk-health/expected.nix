@@ -12,5 +12,13 @@
     smartctlTargetsComplete = true;
     smartctlAlertRulesEnabled = true;
     snapshotAlertRulesEnabled = true;
+    ovhRaidMonitoring = {
+      mdadmCollectorExplicit = true;
+      degradedAlertConfigured = true;
+      missingMetricsAlertConfigured = true;
+      raidDeviceLabelCorrect = true;
+      emailReceiverConfigured = true;
+      smtpConsumersRestartOnChange = true;
+    };
   };
 }

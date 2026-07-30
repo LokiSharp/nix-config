@@ -291,14 +291,16 @@ groups:
           description: "systemd service crashed\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
       - alert: HostJournaldCoredumpDetected
-        expr: "nixos_journald_coredumps_24h > 0"
+        expr:
+          "time() - nixos_journald_last_coredump_timestamp_seconds >= 0 and
+          time() - nixos_journald_last_coredump_timestamp_seconds < 15 * 60"
         for: 0m
         labels:
           severity: critical
         annotations:
           summary: Host journald coredump detected (instance {{ $labels.instance }})
           description:
-            "systemd-journald crashed during the last 24 hours. Logging may have been
+            "systemd-journald crashed during the last 15 minutes. Logging may have been
             interrupted.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
       - alert: HostApplicationCoredumpDetected

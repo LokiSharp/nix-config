@@ -7,7 +7,9 @@ in
 {
   journaldCrashAlert =
     lib.hasInfix "alert: HostJournaldCoredumpDetected" rules
-    && lib.hasInfix "nixos_journald_coredumps_24h > 0" rules;
+    && lib.hasInfix
+      "time() - nixos_journald_last_coredump_timestamp_seconds < 15 * 60"
+      rules;
   applicationCrashAlert =
     lib.hasInfix "alert: HostApplicationCoredumpDetected" rules
     && lib.hasInfix "nixos_coredumps_24h - nixos_journald_coredumps_24h > 0" rules;

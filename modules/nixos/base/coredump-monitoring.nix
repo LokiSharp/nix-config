@@ -86,9 +86,19 @@ let
       mv "$work_dir/journal.cursor" "$cursor_file"
 
       total="$(jq 'length' "$events_file")"
+      last="$(
+        jq \
+          '[.[].timestamp] | max // 0' \
+          "$events_file"
+      )"
       journald="$(
         jq \
           '[.[] | select(.comm == "systemd-journal")] | length' \
+          "$events_file"
+      )"
+      journald_last="$(
+        jq \
+          '[.[] | select(.comm == "systemd-journal") | .timestamp] | max // 0' \
           "$events_file"
       )"
 
@@ -99,9 +109,15 @@ let
         echo "# HELP nixos_coredumps_24h Number of coredumps recorded during the last 24 hours."
         echo "# TYPE nixos_coredumps_24h gauge"
         printf 'nixos_coredumps_24h %s\n' "$total"
+        echo "# HELP nixos_last_coredump_timestamp_seconds Unix timestamp of the most recent coredump in the last 24 hours."
+        echo "# TYPE nixos_last_coredump_timestamp_seconds gauge"
+        printf 'nixos_last_coredump_timestamp_seconds %s\n' "$last"
         echo "# HELP nixos_journald_coredumps_24h Number of systemd-journald coredumps recorded during the last 24 hours."
         echo "# TYPE nixos_journald_coredumps_24h gauge"
         printf 'nixos_journald_coredumps_24h %s\n' "$journald"
+        echo "# HELP nixos_journald_last_coredump_timestamp_seconds Unix timestamp of the most recent systemd-journald coredump in the last 24 hours."
+        echo "# TYPE nixos_journald_last_coredump_timestamp_seconds gauge"
+        printf 'nixos_journald_last_coredump_timestamp_seconds %s\n' "$journald_last"
       } > "$tmp_file"
 
       chmod 0644 "$tmp_file"

@@ -55,10 +55,11 @@ in
       max_connections = 100;
 
       # logging
-      log_connections = true;
-      log_statement = "all";
-      logging_collector = true;
-      log_disconnections = true;
+      log_connections = false;
+      log_disconnections = false;
+      log_statement = "none";
+      log_min_duration_statement = 1000;
+      logging_collector = false;
       log_destination = lib.mkForce "syslog";
 
       # ssl

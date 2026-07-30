@@ -137,4 +137,5 @@ just upp mysecrets
 - [主机元数据与标签](docs/host-metadata-and-tags.md)
 - [部署与健康检查](docs/deployment-rollout.md)
 - [存储、快照与磁盘健康](docs/storage-and-snapshots.md)
+- [监控与告警处理手册](docs/monitoring-runbook.md)
 - [安全基线](docs/security-baseline.md)

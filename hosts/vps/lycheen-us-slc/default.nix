@@ -59,6 +59,10 @@ in
 
   modules.server.proxy = {
     enable = true;
+    # The provider's virtual disk stalls under connection-level error bursts.
+    # Service health checks retain failure visibility without persisting each
+    # unreachable client destination.
+    logLevel = "fatal";
   };
 
   system.stateVersion = "24.11"; # Did you read the comment?

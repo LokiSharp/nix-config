@@ -18,6 +18,20 @@ in
       default = 443;
       description = "Port to listen on";
     };
+
+    logLevel = mkOption {
+      type = types.enum [
+        "trace"
+        "debug"
+        "info"
+        "warn"
+        "error"
+        "fatal"
+        "panic"
+      ];
+      default = "warn";
+      description = "Sing-box log level";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -26,7 +40,7 @@ in
     # Directly generate the full config via template to avoid redundancy
     sops.templates."sing-box.json" = {
       content = builtins.toJSON {
-        log.level = "warn";
+        log.level = cfg.logLevel;
         inbounds = [
           {
             type = "vless";

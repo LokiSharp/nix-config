@@ -24,7 +24,15 @@ lib.mapAttrs
     {
       singBoxConnectionLogsSuppressed =
         !proxyEnabled
-        || singBoxConfig.log.level == "warn";
+        || builtins.elem singBoxConfig.log.level [
+          "warn"
+          "error"
+          "fatal"
+          "panic"
+        ];
+      lycheenDiskSafeSingBoxLogs =
+        _name != "Lycheen-US-SLC"
+        || singBoxConfig.log.level == "fatal";
       singBoxRestartsOnConfigChange =
         !proxyEnabled
         || builtins.elem

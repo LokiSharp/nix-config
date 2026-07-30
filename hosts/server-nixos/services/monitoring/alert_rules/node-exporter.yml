@@ -290,6 +290,41 @@ groups:
           summary: Host systemd service crashed (instance {{ $labels.instance }})
           description: "systemd service crashed\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
+      - alert: HostJournaldCoredumpDetected
+        expr: "nixos_journald_coredumps_24h > 0"
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: Host journald coredump detected (instance {{ $labels.instance }})
+          description:
+            "systemd-journald crashed during the last 24 hours. Logging may have been
+            interrupted.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: HostApplicationCoredumpDetected
+        expr: "nixos_coredumps_24h - nixos_journald_coredumps_24h > 0"
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host application coredump detected (instance {{ $labels.instance }})
+          description:
+            "One or more non-journald processes dumped core during the last 24 hours.\n  VALUE
+            = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: HostCoredumpMetricsMissing
+        expr:
+          'up{job=~"node-exporter-.+"} == 1 unless on(instance)
+          nixos_coredumps_24h'
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host coredump metrics missing (instance {{ $labels.instance }})
+          description:
+            "The node is reachable but does not expose recent coredump metrics.\n  VALUE = {{
+            $value }}\n  LABELS = {{ $labels }}"
+
       - alert: HostPhysicalComponentTooHot
         expr:
           '((node_hwmon_temp_celsius * ignoring(label) group_left(instance, job, node, sensor)

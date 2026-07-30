@@ -1,6 +1,7 @@
 { myvars, ... }:
 
 let
+  textfileDirectory = "/var/lib/prometheus-node-exporter/textfile";
   filesystemMountPointsExclude =
     "^/(dev|proc|run/credentials/.+|run/user/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|home/${myvars.username}/.+)($|/)";
 in
@@ -19,11 +20,16 @@ in
     ];
     extraFlags = [
       "--collector.filesystem.mount-points-exclude=${filesystemMountPointsExclude}"
+      "--collector.textfile.directory=${textfileDirectory}"
     ];
 
     # use either enabledCollectors or disabledCollectors
     # disabledCollectors = [];
   };
+
+  systemd.tmpfiles.rules = [
+    "d ${textfileDirectory} 0755 root root -"
+  ];
 
   deployment.healthChecks.requiredUnits = [ "prometheus-node-exporter" ];
 }

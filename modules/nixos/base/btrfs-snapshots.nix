@@ -194,13 +194,9 @@ in
     };
 
     tmpfiles.rules = lib.optionals enabled [
-      "d ${metricsDirectory} 0755 root root -"
       "d ${stateDirectory} 0755 root root -"
     ];
   };
-
-  services.prometheus.exporters.node.extraFlags =
-    lib.optional enabled "--collector.textfile.directory=${metricsDirectory}";
 
   deployment.healthChecks.requiredUnits = lib.optional enabled "btrbk-local.timer";
 }

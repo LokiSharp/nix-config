@@ -3,6 +3,7 @@ result/
 .direnv/
 .DS_Store
 logs/
-core*
+core
+core.*
 !core/
 !core.nix

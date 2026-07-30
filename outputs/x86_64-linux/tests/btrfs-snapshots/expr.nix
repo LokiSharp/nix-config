@@ -77,6 +77,11 @@ lib.mapAttrs
           builtins.hasAttr "btrbk-local" config.systemd.timers
           && builtins.elem "btrbk-local.timer" config.deployment.healthChecks.requiredUnits
         );
+      successSummarySuppressed =
+        !enabled
+        || lib.hasInfix
+          "btrbk --quiet -c /etc/btrbk/local.conf snapshot"
+          config.systemd.services.btrbk-local.serviceConfig.ExecStart;
       metricsExported =
         !enabled
         || (

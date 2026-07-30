@@ -10,5 +10,6 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (_: {
   retentionPolicyConfigured = true;
   mountDependenciesComplete = true;
   timerMonitored = true;
+  successSummarySuppressed = true;
   metricsExported = true;
 })

@@ -145,16 +145,21 @@ in
 
   systemd = {
     services = {
-      btrbk-local.unitConfig = {
-        RequiresMountsFor = lib.mkIf enabled (
-          lib.concatMap
-            (snapshot: [
-              snapshot.source
-              snapshot.snapshotDir
-            ])
-            snapshotSources
+      btrbk-local = {
+        unitConfig = {
+          RequiresMountsFor = lib.mkIf enabled (
+            lib.concatMap
+              (snapshot: [
+                snapshot.source
+                snapshot.snapshotDir
+              ])
+              snapshotSources
+          );
+          OnSuccess = lib.mkIf enabled "btrfs-snapshot-metrics-success.service";
+        };
+        serviceConfig.ExecStart = lib.mkIf enabled (
+          lib.mkForce "${pkgs.btrbk}/bin/btrbk --quiet -c /etc/btrbk/local.conf snapshot"
         );
-        OnSuccess = lib.mkIf enabled "btrfs-snapshot-metrics-success.service";
       };
 
       btrfs-snapshot-metrics = lib.mkIf enabled {

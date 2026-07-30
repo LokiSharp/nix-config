@@ -2,105 +2,45 @@
 let
   metricsDirectory = "/var/lib/prometheus-node-exporter/textfile";
   metricsFile = "${metricsDirectory}/coredumps.prom";
-  stateDirectory = "/var/lib/coredump-metrics";
+  coredumpDirectory = "/var/lib/systemd/coredump";
 
   coredumpMetrics = pkgs.writeShellApplication {
     name = "coredump-metrics";
     runtimeInputs = [
       pkgs.coreutils
-      pkgs.jq
-      pkgs.systemd
+      pkgs.findutils
     ];
     text = ''
-      events_file=${stateDirectory}/events.json
-      cursor_file=${stateDirectory}/journal.cursor
-      work_dir="$(mktemp -d ${stateDirectory}/.update.XXXXXX)"
-      trap 'rm -rf "$work_dir"' EXIT
-
-      if [ -r "$events_file" ]; then
-        cp "$events_file" "$work_dir/existing.json"
-      else
-        printf '[]\n' > "$work_dir/existing.json"
-      fi
-
-      if [ -r "$cursor_file" ]; then
-        cp "$cursor_file" "$work_dir/journal.cursor"
-        journalctl \
-          --identifier=systemd-coredump \
-          --cursor-file="$work_dir/journal.cursor" \
-          --no-pager \
-          --output=json \
-          > "$work_dir/new.json"
-      else
-        # Capture the current global cursor before the initial import. Any
-        # entries arriving during that import will be read on the next run.
-        tail_cursor="$(
-          journalctl \
-            --lines=0 \
-            --show-cursor \
-            --no-pager |
-            tail -n 1
-        )"
-        printf '%s\n' "''${tail_cursor#-- cursor: }" \
-          > "$work_dir/journal.cursor"
-
-        journalctl \
-          --identifier=systemd-coredump \
-          --since="24 hours ago" \
-          --no-pager \
-          --output=json \
-          > "$work_dir/new.json"
-      fi
-
+      total=0
+      last=0
+      journald=0
+      journald_last=0
       cutoff="$(( $(date +%s) - 24 * 60 * 60 ))"
-      jq \
-        --slurp \
-        --argjson cutoff "$cutoff" \
-        --slurpfile existing "$work_dir/existing.json" \
-        '
-          (
-            $existing[0]
-            + [
-                .[]
-                | select(.COREDUMP_PID != null)
-                | {
-                    key: (
-                      (._BOOT_ID // "unknown")
-                      + ":"
-                      + (.COREDUMP_PID | tostring)
-                    ),
-                    timestamp: (
-                      (.__REALTIME_TIMESTAMP | tonumber) / 1000000 | floor
-                    ),
-                    comm: (.COREDUMP_COMM // "")
-                  }
-              ]
-          )
-          | map(select(.timestamp >= $cutoff))
-          | unique_by(.key)
-        ' \
-        "$work_dir/new.json" \
-        > "$work_dir/events.json"
 
-      mv "$work_dir/events.json" "$events_file"
-      mv "$work_dir/journal.cursor" "$cursor_file"
+      if [ -d ${coredumpDirectory} ]; then
+        while IFS= read -r -d "" file; do
+          timestamp="$(stat --format=%Y "$file")"
+          total="$(( total + 1 ))"
+          if [ "$timestamp" -gt "$last" ]; then
+            last="$timestamp"
+          fi
 
-      total="$(jq 'length' "$events_file")"
-      last="$(
-        jq \
-          '[.[].timestamp] | max // 0' \
-          "$events_file"
-      )"
-      journald="$(
-        jq \
-          '[.[] | select(.comm == "systemd-journal")] | length' \
-          "$events_file"
-      )"
-      journald_last="$(
-        jq \
-          '[.[] | select(.comm == "systemd-journal") | .timestamp] | max // 0' \
-          "$events_file"
-      )"
+          case "''${file##*/}" in
+            core.systemd-journal.*)
+              journald="$(( journald + 1 ))"
+              if [ "$timestamp" -gt "$journald_last" ]; then
+                journald_last="$timestamp"
+              fi
+              ;;
+          esac
+        done < <(
+          find ${coredumpDirectory} \
+            -maxdepth 1 \
+            -type f \
+            -newermt "@$cutoff" \
+            -print0
+        )
+      fi
 
       tmp_file="$(mktemp ${metricsDirectory}/.coredumps.XXXXXX)"
       trap 'rm -f "$tmp_file"' EXIT
@@ -132,7 +72,6 @@ in
       description = "Export recent coredump metrics";
       serviceConfig = {
         Type = "oneshot";
-        StateDirectory = "coredump-metrics";
         ExecStart = "${coredumpMetrics}/bin/coredump-metrics";
       };
     };

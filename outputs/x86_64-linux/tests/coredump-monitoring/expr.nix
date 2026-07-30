@@ -13,9 +13,6 @@ lib.mapAttrs
       exporterReadsTextfileMetrics =
         builtins.elem textfileFlag config.services.prometheus.exporters.node.extraFlags;
       metricsServiceExists = builtins.hasAttr "coredump-metrics" config.systemd.services;
-      metricsServiceUsesPersistentState =
-        config.systemd.services.coredump-metrics.serviceConfig.StateDirectory
-        == "coredump-metrics";
       metricsTimerMonitored =
         builtins.hasAttr "coredump-metrics" config.systemd.timers
         && builtins.elem

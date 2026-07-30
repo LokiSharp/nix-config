@@ -39,5 +39,6 @@ in
     '';
     owner = "minio";
     mode = "0400";
+    restartUnits = [ "minio.service" ];
   };
 }

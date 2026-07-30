@@ -25,6 +25,11 @@ lib.mapAttrs
       singBoxConnectionLogsSuppressed =
         !proxyEnabled
         || singBoxConfig.log.level == "warn";
+      singBoxRestartsOnConfigChange =
+        !proxyEnabled
+        || builtins.elem
+          "sing-box.service"
+          config.sops.templates."sing-box.json".restartUnits;
       tailscaleRouteLogsFiltered =
         !config.services.tailscale.enable
         || builtins.elem

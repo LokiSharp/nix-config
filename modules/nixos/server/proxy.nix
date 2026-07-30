@@ -63,6 +63,7 @@ in
       };
       owner = "sing-box";
       mode = "0400";
+      restartUnits = [ "sing-box.service" ];
     };
 
     users.users.sing-box = {

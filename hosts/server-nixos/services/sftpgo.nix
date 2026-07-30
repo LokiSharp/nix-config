@@ -14,6 +14,7 @@ in
     '';
     owner = "sftpgo";
     mode = "0400";
+    restartUnits = [ "sftpgo.service" ];
   };
 
   # Create Directories

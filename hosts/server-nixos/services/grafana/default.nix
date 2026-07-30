@@ -65,6 +65,7 @@
       GF_SECURITY_SECRET_KEY=${config.sops.placeholder."grafana-secret-key"}
     '';
     owner = "grafana";
+    restartUnits = [ "grafana.service" ];
   };
 
   systemd.services.grafana.serviceConfig.EnvironmentFile = config.sops.templates."grafana-env".path;

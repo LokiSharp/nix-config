@@ -4,4 +4,5 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (_: {
   kernelAuditEnabled = true;
   auditBacklogLimitConfigured = true;
   localAuditRulesServiceEnabled = true;
+  systemdSessionSetupExcluded = true;
 })

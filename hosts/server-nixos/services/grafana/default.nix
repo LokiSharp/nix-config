@@ -8,6 +8,11 @@
     dataDir = "/data/apps/grafana";
     # DeclarativePlugins = with pkgs.grafanaPlugins; [ grafana-piechart-panel ];
     settings = {
+      analytics = {
+        reporting_enabled = false;
+        check_for_updates = false;
+        check_for_plugin_updates = false;
+      };
       server = {
         http_addr = "127.0.0.1";
         http_port = 3351;

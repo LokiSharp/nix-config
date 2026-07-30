@@ -1,0 +1,4 @@
+{
+  reportingDisabled = true;
+  updateChecksDisabled = true;
+}

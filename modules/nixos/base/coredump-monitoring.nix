@@ -12,17 +12,20 @@ let
     ];
     text = ''
       coredumps="$(
-        coredumpctl \
-          --json=short \
-          list \
+        journalctl \
+          --identifier=systemd-coredump \
           --since="24 hours ago" \
-          --no-pager
+          --no-pager \
+          --output=json |
+          jq \
+            --slurp \
+            '[.[] | select(.COREDUMP_PID != null)] | unique_by(.COREDUMP_PID)'
       )"
 
       total="$(jq 'length' <<< "$coredumps")"
       journald="$(
         jq \
-          '[.[] | select(.exe | endswith("/systemd-journald"))] | length' \
+          '[.[] | select(.COREDUMP_COMM == "systemd-journal")] | length' \
           <<< "$coredumps"
       )"
 

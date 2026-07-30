@@ -1,3 +1,4 @@
+_:
 {
   ipv6PeerAddress = true;
   ipv6PeerGateway = true;

@@ -1,3 +1,4 @@
+_:
 {
   connectionLogsDisabled = true;
   statementsLimitedToSlowQueries = true;

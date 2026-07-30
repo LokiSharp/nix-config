@@ -2,21 +2,30 @@
 
 lib.mapAttrs
   (
-    _name: system:
+    name: system:
     let
       inherit (system) config;
       journaldConfig = config.services.journald.extraConfig;
       coredumpConfig = config.systemd.coredump.settings.Coredump;
     in
     {
-      journaldBounded = lib.all (setting: lib.hasInfix setting journaldConfig) [
-        "SystemMaxUse=256M"
-        "SystemKeepFree=1G"
-        "SystemMaxFileSize=32M"
-        "RuntimeMaxUse=64M"
-        "RuntimeMaxFileSize=16M"
-        "MaxRetentionSec=2week"
-      ];
+      journaldBounded =
+        if name == "Lycheen-US-SLC" then
+          lib.all (setting: lib.hasInfix setting journaldConfig) [
+            "Storage=volatile"
+            "RuntimeMaxUse=64M"
+            "RuntimeMaxFileSize=16M"
+            "MaxRetentionSec=1day"
+          ]
+        else
+          lib.all (setting: lib.hasInfix setting journaldConfig) [
+            "SystemMaxUse=256M"
+            "SystemKeepFree=1G"
+            "SystemMaxFileSize=32M"
+            "RuntimeMaxUse=64M"
+            "RuntimeMaxFileSize=16M"
+            "MaxRetentionSec=2week"
+          ];
       coredumpsBounded =
         coredumpConfig == {
           Storage = "external";

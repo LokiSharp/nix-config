@@ -57,6 +57,16 @@ in
     useNetworkd = true;
   };
 
+  # This provider's virtual disk periodically stalls for seconds under tiny
+  # synchronous writes. Keep ordinary journals in RAM so logging cannot wedge
+  # systemd-journald; auditd and external coredumps remain persistent.
+  services.journald.extraConfig = lib.mkForce ''
+    Storage=volatile
+    RuntimeMaxUse=64M
+    RuntimeMaxFileSize=16M
+    MaxRetentionSec=1day
+  '';
+
   modules.server.proxy = {
     enable = true;
     # The provider's virtual disk stalls under connection-level error bursts.

@@ -26,7 +26,7 @@ in
     # Directly generate the full config via template to avoid redundancy
     sops.templates."sing-box.json" = {
       content = builtins.toJSON {
-        log.level = "info";
+        log.level = "warn";
         inbounds = [
           {
             type = "vless";

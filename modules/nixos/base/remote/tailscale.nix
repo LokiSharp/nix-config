@@ -14,5 +14,10 @@ in
 
   deployment.healthChecks.requiredUnits = lib.optional config.services.tailscale.enable "tailscaled";
 
-  systemd.services.tailscaled.serviceConfig.NotifyAccess = "all";
+  systemd.services.tailscaled.serviceConfig = {
+    NotifyAccess = "all";
+    LogFilterPatterns = [
+      "~^monitor: RTM_(NEW|DEL)ROUTE:"
+    ];
+  };
 }

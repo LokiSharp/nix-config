@@ -2,6 +2,7 @@
 let
   metricsDirectory = "/var/lib/prometheus-node-exporter/textfile";
   metricsFile = "${metricsDirectory}/coredumps.prom";
+  stateDirectory = "/var/lib/coredump-metrics";
 
   coredumpMetrics = pkgs.writeShellApplication {
     name = "coredump-metrics";
@@ -11,22 +12,84 @@ let
       pkgs.systemd
     ];
     text = ''
-      coredumps="$(
+      events_file=${stateDirectory}/events.json
+      cursor_file=${stateDirectory}/journal.cursor
+      work_dir="$(mktemp -d ${stateDirectory}/.update.XXXXXX)"
+      trap 'rm -rf "$work_dir"' EXIT
+
+      if [ -r "$events_file" ]; then
+        cp "$events_file" "$work_dir/existing.json"
+      else
+        printf '[]\n' > "$work_dir/existing.json"
+      fi
+
+      if [ -r "$cursor_file" ]; then
+        cp "$cursor_file" "$work_dir/journal.cursor"
+        journalctl \
+          --identifier=systemd-coredump \
+          --cursor-file="$work_dir/journal.cursor" \
+          --no-pager \
+          --output=json \
+          > "$work_dir/new.json"
+      else
+        # Capture the current global cursor before the initial import. Any
+        # entries arriving during that import will be read on the next run.
+        tail_cursor="$(
+          journalctl \
+            --lines=0 \
+            --show-cursor \
+            --no-pager |
+            tail -n 1
+        )"
+        printf '%s\n' "''${tail_cursor#-- cursor: }" \
+          > "$work_dir/journal.cursor"
+
         journalctl \
           --identifier=systemd-coredump \
           --since="24 hours ago" \
           --no-pager \
-          --output=json |
-          jq \
-            --slurp \
-            '[.[] | select(.COREDUMP_PID != null)] | unique_by(.COREDUMP_PID)'
-      )"
+          --output=json \
+          > "$work_dir/new.json"
+      fi
 
-      total="$(jq 'length' <<< "$coredumps")"
+      cutoff="$(( $(date +%s) - 24 * 60 * 60 ))"
+      jq \
+        --slurp \
+        --argjson cutoff "$cutoff" \
+        --slurpfile existing "$work_dir/existing.json" \
+        '
+          (
+            $existing[0]
+            + [
+                .[]
+                | select(.COREDUMP_PID != null)
+                | {
+                    key: (
+                      (._BOOT_ID // "unknown")
+                      + ":"
+                      + (.COREDUMP_PID | tostring)
+                    ),
+                    timestamp: (
+                      (.__REALTIME_TIMESTAMP | tonumber) / 1000000 | floor
+                    ),
+                    comm: (.COREDUMP_COMM // "")
+                  }
+              ]
+          )
+          | map(select(.timestamp >= $cutoff))
+          | unique_by(.key)
+        ' \
+        "$work_dir/new.json" \
+        > "$work_dir/events.json"
+
+      mv "$work_dir/events.json" "$events_file"
+      mv "$work_dir/journal.cursor" "$cursor_file"
+
+      total="$(jq 'length' "$events_file")"
       journald="$(
         jq \
-          '[.[] | select(.COREDUMP_COMM == "systemd-journal")] | length' \
-          <<< "$coredumps"
+          '[.[] | select(.comm == "systemd-journal")] | length' \
+          "$events_file"
       )"
 
       tmp_file="$(mktemp ${metricsDirectory}/.coredumps.XXXXXX)"
@@ -53,6 +116,7 @@ in
       description = "Export recent coredump metrics";
       serviceConfig = {
         Type = "oneshot";
+        StateDirectory = "coredump-metrics";
         ExecStart = "${coredumpMetrics}/bin/coredump-metrics";
       };
     };

@@ -16,6 +16,8 @@ let
       last=0
       journald=0
       journald_last=0
+      application=0
+      application_last=0
       cutoff="$(( $(date +%s) - 24 * 60 * 60 ))"
 
       if [ -d ${coredumpDirectory} ]; then
@@ -31,6 +33,12 @@ let
               journald="$(( journald + 1 ))"
               if [ "$timestamp" -gt "$journald_last" ]; then
                 journald_last="$timestamp"
+              fi
+              ;;
+            *)
+              application="$(( application + 1 ))"
+              if [ "$timestamp" -gt "$application_last" ]; then
+                application_last="$timestamp"
               fi
               ;;
           esac
@@ -59,6 +67,12 @@ let
         echo "# HELP nixos_journald_last_coredump_timestamp_seconds Unix timestamp of the most recent systemd-journald coredump in the last 24 hours."
         echo "# TYPE nixos_journald_last_coredump_timestamp_seconds gauge"
         printf 'nixos_journald_last_coredump_timestamp_seconds %s\n' "$journald_last"
+        echo "# HELP nixos_application_coredumps_24h Number of non-journald coredumps recorded during the last 24 hours."
+        echo "# TYPE nixos_application_coredumps_24h gauge"
+        printf 'nixos_application_coredumps_24h %s\n' "$application"
+        echo "# HELP nixos_application_last_coredump_timestamp_seconds Unix timestamp of the most recent non-journald coredump in the last 24 hours."
+        echo "# TYPE nixos_application_last_coredump_timestamp_seconds gauge"
+        printf 'nixos_application_last_coredump_timestamp_seconds %s\n' "$application_last"
       } > "$tmp_file"
 
       chmod 0644 "$tmp_file"

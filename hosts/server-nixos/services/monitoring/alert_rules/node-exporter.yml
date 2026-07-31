@@ -316,15 +316,17 @@ groups:
             interrupted.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
       - alert: HostApplicationCoredumpDetected
-        expr: "nixos_coredumps_24h - nixos_journald_coredumps_24h > 0"
-        for: 5m
+        expr:
+          "time() - nixos_application_last_coredump_timestamp_seconds >= 0 and
+          time() - nixos_application_last_coredump_timestamp_seconds < 15 * 60"
+        for: 0m
         labels:
           severity: warning
         annotations:
           summary: Host application coredump detected (instance {{ $labels.instance }})
           description:
-            "One or more non-journald processes dumped core during the last 24 hours.\n  VALUE
-            = {{ $value }}\n  LABELS = {{ $labels }}"
+            "A non-journald process dumped core during the last 15 minutes.\n  SECONDS SINCE
+            LATEST CRASH = {{ $value }}\n  LABELS = {{ $labels }}"
 
       - alert: HostCoredumpMetricsMissing
         expr:

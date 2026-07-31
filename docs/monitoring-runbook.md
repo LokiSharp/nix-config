@@ -189,8 +189,9 @@ oneshot，还要检查对应 timer 的下次触发时间和最近运行结果。
 24 小时的外部 coredump，不读取 journal，并把指标写入 node-exporter textfile 目录。
 
 `HostJournaldCoredumpDetected` 只在最新 journald coredump 发生后的 15 分钟内 firing，
-严重级别为 critical。`HostApplicationCoredumpDetected` 在最近 24 小时存在非 journald
-coredump 时 firing，严重级别为 warning。
+严重级别为 critical。`HostApplicationCoredumpDetected` 同样只在最新非 journald
+coredump 发生后的 15 分钟内 firing，严重级别为 warning。两类 24 小时计数仍保留用于
+历史查询，但不会让邮件告警持续一整天。
 
 检查指标和文件：
 
@@ -221,7 +222,7 @@ coredumpctl info <PID-or-executable>
 - 是否在相同时间重复发生；
 - 当前 journald 和日志写入是否正常。
 
-旧文件会在滑动 24 小时窗口外自然退出计数；journald 专项告警则在最新崩溃超过 15 分钟后
+旧文件会在滑动 24 小时窗口外自然退出计数；两类告警都会在各自最新崩溃超过 15 分钟后
 自然恢复。不要只为消除告警而删除 coredump。
 
 `Lycheen-US-SLC` 因供应商虚拟磁盘会在小型同步写入时周期性停顿，普通 journal 使用

@@ -341,6 +341,59 @@ groups:
             "The node is reachable but does not expose recent coredump metrics.\n  VALUE = {{
             $value }}\n  LABELS = {{ $labels }}"
 
+      - alert: HostDeploymentMetricsMissing
+        expr:
+          'up{job=~"node-exporter-.+"} == 1 unless on(instance)
+          nixos_deployment_timestamp_seconds'
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host deployment metrics missing (instance {{ $labels.instance }})
+          description:
+            "The node is reachable but does not expose its deployed NixOS revision and profile
+            state.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: HostSystemProfileDrift
+        expr:
+          '(nixos_system_profile_matches_current == 0) * on(instance) group_left (nodename)
+          node_uname_info{nodename=~".+"}'
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host active system differs from its system profile (instance {{ $labels.instance }})
+          description:
+            "The system profile has not pointed to /run/current-system for 30 minutes. A deployment
+            may not have switched or persisted correctly.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: HostDeploymentStale
+        expr:
+          '((time() - nixos_deployment_timestamp_seconds) > 90 * 24 * 60 * 60) * on(instance)
+          group_left (nodename) node_uname_info{nodename=~".+"}'
+        for: 24h
+        labels:
+          severity: info
+        annotations:
+          summary: Host deployment is older than 90 days (instance {{ $labels.instance }})
+          description:
+            "The active NixOS revision was first observed on this host more than 90 days ago.
+            Check whether the node was omitted from recent rollouts.\n  VALUE = {{ $value }}\n  LABELS
+            = {{ $labels }}"
+
+      - alert: HostDeploymentRevisionDrift
+        expr:
+          'count by (revision) (nixos_deployment_info) <
+          scalar(count(nixos_deployment_info))'
+        for: 6h
+        labels:
+          severity: info
+        annotations:
+          summary: Fleet is running more than one NixOS revision
+          description:
+            "Revision {{ $labels.revision }} is not present on every monitored host after the
+            six-hour rollout window.\n  HOSTS ON REVISION = {{ $value }}\n  LABELS = {{ $labels }}"
+
       - alert: HostPhysicalComponentTooHot
         expr:
           '((node_hwmon_temp_celsius * ignoring(label) group_left(instance, job, node, sensor)

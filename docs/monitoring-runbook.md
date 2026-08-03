@@ -147,6 +147,34 @@ ss -ltn
 同时检查 `Server-NixOS` 的 ZeroTier 状态和到该实例地址的路由。不要为了消除告警而从
 scrape 配置删除节点；连接或 exporter 恢复后，下一次成功采集会使告警自然 resolved。
 
+## 部署版本与配置漂移
+
+每个节点的 `deployment-state-metrics.timer` 每 15 分钟导出以下指标：
+
+- `nixos_deployment_info{revision="..."}`：构建当前配置的 Git revision；
+- `nixos_deployment_timestamp_seconds`：该 revision 首次在本机生效的时间；
+- `nixos_system_profile_matches_current`：`/nix/var/nix/profiles/system` 是否指向
+  `/run/current-system`。
+
+相关告警：
+
+- `HostDeploymentMetricsMissing`：节点可达但连续 30 分钟没有部署指标；
+- `HostSystemProfileDrift`：当前运行系统与 system profile 连续 30 分钟不一致；
+- `HostDeploymentStale`：某节点 90 天没有出现新 revision，持续一天后发 info；
+- `HostDeploymentRevisionDrift`：全体节点存在多个 revision 且超过 6 小时的正常发布窗口。
+
+检查本机状态：
+
+```console
+systemctl status deployment-state-metrics.timer deployment-state-metrics.service
+cat /var/lib/prometheus-node-exporter/textfile/deployment-state.prom
+readlink -f /run/current-system
+readlink -f /nix/var/nix/profiles/system
+```
+
+revision 不同不一定表示故障：分批部署期间属于正常状态，因此规则保留 6 小时窗口。如果窗口后
+仍不一致，应通过 `just deploy-health <HostName>` 检查遗漏或失败的节点；不要手工修改指标文件。
+
 ## systemd 服务失败
 
 对应告警：`HostSystemdServiceCrashed`

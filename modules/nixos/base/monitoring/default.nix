@@ -8,6 +8,7 @@ in
 {
   imports = [
     ./coredumps.nix
+    ./deployment-state.nix
     ./external-server.nix
     ./reboot-required.nix
   ];

@@ -57,6 +57,7 @@ in
       network.enable = mkEnableOption "NixOS Secrets for Network Servers";
       application.enable = mkEnableOption "NixOS Secrets for Application Servers";
       operation.enable = mkEnableOption "NixOS Secrets for Operation Servers(Backup, Monitoring, etc)";
+      smtp.enable = mkEnableOption "SMTP credentials for independent notification services";
       webserver.enable = mkEnableOption "NixOS Secrets for Web Servers(contains tls cert keys)";
       storage.enable = mkEnableOption "NixOS Secrets for HDD Data's LUKS Encryption";
       dn42.enable = mkEnableOption "NixOS Secrets for DN42";
@@ -114,7 +115,7 @@ in
       };
     })
 
-    (mkIf (cfg.server.operation.enable || cfg.server.application.enable) {
+    (mkIf (cfg.server.smtp.enable || cfg.server.operation.enable || cfg.server.application.enable) {
       sops.secrets = {
         SMTP_HOST = {
           sopsFile = "${mysecrets}/server/smtp.yaml";

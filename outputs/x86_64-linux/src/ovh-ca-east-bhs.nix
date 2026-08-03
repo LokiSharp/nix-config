@@ -24,8 +24,33 @@ let
       ])
       ++ [
         {
-          modules.secrets.server.dn42.enable = true;
-          modules.secrets.impermanence.enable = true;
+          modules = {
+            secrets = {
+              server = {
+                dn42.enable = true;
+                smtp.enable = true;
+              };
+              impermanence.enable = true;
+            };
+            monitoring.externalServer = {
+              enable = true;
+              recipient = "me@slk.moe";
+              targets = [
+                {
+                  name = "Server-NixOS";
+                  url = "https://git.slk.moe/api/healthz";
+                }
+                {
+                  name = "VictoriaMetrics";
+                  url = "https://prometheus.slk.moe/health";
+                }
+                {
+                  name = "Alertmanager";
+                  url = "https://alertmanager.slk.moe/-/healthy";
+                }
+              ];
+            };
+          };
         }
       ];
     home-modules = map mylib.relativeToRoot [

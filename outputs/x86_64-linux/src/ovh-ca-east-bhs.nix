@@ -39,14 +39,17 @@ let
                 {
                   name = "Server-NixOS";
                   url = "https://git.slk.moe/api/healthz";
+                  connectAddress = "198.18.0.12";
                 }
                 {
                   name = "VictoriaMetrics";
                   url = "https://prometheus.slk.moe/health";
+                  connectAddress = "198.18.0.12";
                 }
                 {
                   name = "Alertmanager";
                   url = "https://alertmanager.slk.moe/-/healthy";
+                  connectAddress = "198.18.0.12";
                 }
               ];
             };

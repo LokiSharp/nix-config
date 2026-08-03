@@ -51,7 +51,7 @@ let
           --retry 1 \
           --retry-delay 1 \
           --output /dev/null \
-          ${lib.escapeShellArg target.url}; then
+          ${lib.optionalString (target.connectAddress != null) "--connect-to ${lib.escapeShellArg "::${target.connectAddress}:"}"} ${lib.escapeShellArg target.url}; then
           echo "[PASS] ${target.name}: ${target.url}"
         else
           echo "[FAIL] ${target.name}: ${target.url}" >&2
@@ -120,6 +120,11 @@ in
         options = {
           name = lib.mkOption { type = lib.types.str; };
           url = lib.mkOption { type = lib.types.str; };
+          connectAddress = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = "Optional address to connect to while preserving the URL host for TLS and HTTP.";
+          };
         };
       });
       default = [ ];

@@ -12,6 +12,9 @@ in
       (system: !system.config.modules.monitoring.externalServer.enable)
       (builtins.attrValues otherConfigs);
   threeIndependentTargets = lib.length ovhConfig.modules.monitoring.externalServer.targets == 3;
+  targetsUseServerOverlay = lib.all
+    (target: target.connectAddress == "198.18.0.12")
+    ovhConfig.modules.monitoring.externalServer.targets;
   failureThresholdConfigured = ovhConfig.modules.monitoring.externalServer.failureThreshold == 3;
   timerMonitored = builtins.elem
     "server-external-monitor.timer"

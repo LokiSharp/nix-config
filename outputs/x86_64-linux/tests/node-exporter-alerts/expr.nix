@@ -16,7 +16,7 @@ let
     "        expr:"
     "          '(avg by (instance) (rate(node_cpu_seconds_total{mode=\"iowait\"}[5m])) * 100 > 10) *"
     "          on(instance) group_left (nodename) node_uname_info{nodename=~\".+\"}'"
-    "        for: 5m"
+    "        for: 15m"
     "        labels:"
     "          severity: warning"
   ];

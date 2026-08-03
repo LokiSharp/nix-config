@@ -233,7 +233,7 @@ volatile 存储并限制为 64 MiB；audit 和外部 coredump 仍然持久化。
 
 相关告警：
 
-- `HostCpuHighIowait`：5 分钟平均 iowait 超过 10%，并持续 5 分钟；
+- `HostCpuHighIowait`：5 分钟平均 iowait 超过 10%，并持续 15 分钟；
 - `HostUnusualDiskReadLatency`：读平均延迟超过 100 ms，持续 2 分钟；
 - `HostUnusualDiskWriteLatency`：写平均延迟超过 100 ms，持续 2 分钟；
 - `HostUnusualDiskIo`：设备 I/O busy 比例过高，持续 5 分钟；

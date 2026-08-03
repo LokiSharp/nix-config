@@ -1,0 +1,59 @@
+groups:
+  - name: MonitoringStack
+
+    rules:
+      - alert: MonitoringScrapeTargetDown
+        expr: 'up{job=~"victoriametrics|vmalert|alertmanager"} == 0'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Monitoring component is not being scraped ({{ $labels.job }})
+          description:
+            "VictoriaMetrics has been unable to scrape {{ $labels.job }} for five minutes.\n  VALUE
+            = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: VmalertRuleEvaluationErrors
+        expr: 'sum by (alertname, group) (increase(vmalert_alerting_rules_errors_total[15m])) > 0'
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: vmalert rule evaluation failed ({{ $labels.alertname }})
+          description:
+            "vmalert recorded rule evaluation errors during the last 15 minutes.\n  VALUE = {{
+            $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: VmalertExecutionErrors
+        expr: 'increase(vmalert_execution_errors_total[15m]) > 0'
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: vmalert execution errors detected
+          description:
+            "vmalert recorded execution errors during the last 15 minutes.\n  VALUE = {{ $value
+            }}\n  LABELS = {{ $labels }}"
+
+      - alert: VmalertNotificationErrors
+        expr: 'sum(increase(vmalert_alerts_send_errors_total[15m])) > 0'
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: vmalert could not send alerts to Alertmanager
+          description:
+            "vmalert recorded alert delivery errors during the last 15 minutes.\n  VALUE = {{
+            $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: AlertmanagerEmailNotificationFailures
+        expr:
+          'sum(increase(alertmanager_notifications_failed_total{integration="email"}[15m])) > 0'
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: Alertmanager email delivery failed
+          description:
+            "Alertmanager recorded email delivery failures during the last 15 minutes. Check SMTP
+            connectivity and credentials.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"

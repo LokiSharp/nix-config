@@ -48,6 +48,55 @@ in
     # https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config
     prometheusConfig = {
       scrape_configs = [
+        # --- Monitoring stack --- #
+        {
+          job_name = "victoriametrics";
+          scrape_interval = "30s";
+          metrics_path = "/metrics";
+          static_configs = [
+            {
+              targets = [ "127.0.0.1:9090" ];
+              labels = {
+                type = "app";
+                app = "victoriametrics";
+                host = "Server-NixOS";
+              };
+            }
+          ];
+        }
+
+        {
+          job_name = "vmalert";
+          scrape_interval = "30s";
+          metrics_path = "/metrics";
+          static_configs = [
+            {
+              targets = [ "127.0.0.1:8880" ];
+              labels = {
+                type = "app";
+                app = "vmalert";
+                host = "Server-NixOS";
+              };
+            }
+          ];
+        }
+
+        {
+          job_name = "alertmanager";
+          scrape_interval = "30s";
+          metrics_path = "/metrics";
+          static_configs = [
+            {
+              targets = [ "127.0.0.1:9093" ];
+              labels = {
+                type = "app";
+                app = "alertmanager";
+                host = "Server-NixOS";
+              };
+            }
+          ];
+        }
+
         # --- Homelab Applications --- #
         {
           job_name = "postgres-exporter";
@@ -176,6 +225,7 @@ in
         # from URLs in log messages or UI and exported metrics.
         "datasource.showURL" = false;
         rule = [
+          ./alert_rules/monitoring-stack.yml
           ./alert_rules/node-exporter.yml
           ./alert_rules/btrfs-snapshots.yml
           ./alert_rules/smartctl-exporter.yml

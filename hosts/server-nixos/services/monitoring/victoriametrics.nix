@@ -1,4 +1,5 @@
-{ lib
+{ config
+, lib
 , mylib
 , myvars
 , ...
@@ -229,6 +230,10 @@ in
           ./alert_rules/node-exporter.yml
           ./alert_rules/btrfs-snapshots.yml
           ./alert_rules/smartctl-exporter.yml
+        ]
+        ++ lib.optionals config.services.k3s.enable [
+          # Keep the cluster rule templates in the repository, but only make
+          # vmalert evaluate them when this host actually runs K3s.
           ./alert_rules/kubestate-exporter.yml
           ./alert_rules/etcd_embedded-exporter.yml
           ./alert_rules/istio_embedded-exporter.yml

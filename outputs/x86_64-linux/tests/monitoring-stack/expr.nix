@@ -16,6 +16,18 @@ in
   monitoringRulesEnabled = lib.any
     (rule: lib.hasSuffix "monitoring-stack.yml" (toString rule))
     serverConfig.services.vmalert.instances."".settings.rule;
+  dormantClusterRulesDisabled = lib.all
+    (
+      file:
+        !lib.any
+          (rule: lib.hasSuffix file (toString rule))
+          serverConfig.services.vmalert.instances."".settings.rule
+    )
+    [
+      "kubestate-exporter.yml"
+      "etcd_embedded-exporter.yml"
+      "istio_embedded-exporter.yml"
+    ];
   ruleEvaluationErrorsAlertConfigured = lib.hasInfix
     "increase(vmalert_alerting_rules_errors_total[15m])"
     rules;

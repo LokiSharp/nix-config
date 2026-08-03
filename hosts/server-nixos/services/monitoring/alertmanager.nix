@@ -20,7 +20,14 @@
         receiver = "default";
         routes = [
           {
-            group_by = [ "host" ];
+            # Some derived alerts retain instance/nodename but not the static
+            # scrape-time host label. Keep different alerts and nodes in
+            # separate notification groups even when host is absent.
+            group_by = [
+              "alertname"
+              "host"
+              "instance"
+            ];
             group_wait = "5m";
             group_interval = "5m";
             repeat_interval = "4h";

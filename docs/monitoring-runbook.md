@@ -427,7 +427,9 @@ just deploy-health <HostName>
 
 ## Kubernetes、etcd 与 Istio
 
-仓库还加载了 Kubernetes、etcd 和 Istio 告警规则。相关指标可以通过 VictoriaMetrics 的
+仓库保留 Kubernetes、etcd 和 Istio 告警规则模板，但仅在 `Server-NixOS` 启用
+`services.k3s` 时加载。目前没有节点启用 K3s，VictoriaMetrics 也没有相应指标，因此这些
+规则不会被 vmalert 评估。将来重新启用集群时，相关指标可以通过 VictoriaMetrics 的
 remote-write 入口进入，不要求在本文件中存在本地 scrape job。
 
 排查顺序：
@@ -471,9 +473,9 @@ Silence 应使用尽可能精确的 matcher，例如 `alertname` 加 `host`，�
 - 主机：`hosts/server-nixos/services/monitoring/alert_rules/node-exporter.yml`
 - 快照：`hosts/server-nixos/services/monitoring/alert_rules/btrfs-snapshots.yml`
 - SMART：`hosts/server-nixos/services/monitoring/alert_rules/smartctl-exporter.yml`
-- Kubernetes：`hosts/server-nixos/services/monitoring/alert_rules/kubestate-exporter.yml`
-- etcd：`hosts/server-nixos/services/monitoring/alert_rules/etcd_embedded-exporter.yml`
-- Istio：`hosts/server-nixos/services/monitoring/alert_rules/istio_embedded-exporter.yml`
+- Kubernetes 模板：`hosts/server-nixos/services/monitoring/alert_rules/kubestate-exporter.yml`
+- etcd 模板：`hosts/server-nixos/services/monitoring/alert_rules/etcd_embedded-exporter.yml`
+- Istio 模板：`hosts/server-nixos/services/monitoring/alert_rules/istio_embedded-exporter.yml`
 
 修改后运行：
 

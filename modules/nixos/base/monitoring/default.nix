@@ -6,7 +6,10 @@ let
     "^/(dev|proc|run/credentials/.+|run/user/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|home/${myvars.username}/.+)($|/)";
 in
 {
-  imports = [ ./coredumps.nix ];
+  imports = [
+    ./coredumps.nix
+    ./reboot-required.nix
+  ];
 
   # enable the node exporter on all nixos hosts
   # https://github.com/NixOS/nixpkgs/blob/nixos-24.05/nixos/modules/services/monitoring/prometheus/exporters/node.nix

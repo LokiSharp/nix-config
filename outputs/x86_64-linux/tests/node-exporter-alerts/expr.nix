@@ -20,6 +20,13 @@ let
     "        labels:"
     "          severity: warning"
   ];
+  rebootRequiredRule = builtins.concatStringsSep "\n" [
+    "      - alert: HostRequiresReboot"
+    "        expr:"
+    "          '(node_reboot_required > 0) * on(instance) group_left (nodename)"
+    "          node_uname_info{nodename=~\".+\"}'"
+    "        for: 4h"
+  ];
 in
 {
   nodeExporterRulesEnabled = lib.any
@@ -29,4 +36,5 @@ in
     serverConfig.services.vmalert.instances."".settings.rule;
   targetDownRuleConfigured = lib.hasInfix targetDownRule nodeExporterRules;
   sustainedIowaitRuleConfigured = lib.hasInfix sustainedIowaitRule nodeExporterRules;
+  rebootRequiredRuleConfigured = lib.hasInfix rebootRequiredRule nodeExporterRules;
 }

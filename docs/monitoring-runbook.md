@@ -234,13 +234,18 @@ volatile 存储并限制为 64 MiB；audit 和外部 coredump 仍然持久化。
 相关告警：
 
 - `HostCpuHighIowait`：5 分钟平均 iowait 超过 10%，并持续 15 分钟；
-- `HostUnusualDiskReadLatency`：读平均延迟超过 100 ms，持续 2 分钟；
-- `HostUnusualDiskWriteLatency`：写平均延迟超过 100 ms，持续 2 分钟；
+- `HostUnusualDiskReadLatency`：5 分钟读平均延迟超过 100 ms、读 IOPS 至少为 5，持续
+  10 分钟；
+- `HostUnusualDiskWriteLatency`：5 分钟写平均延迟超过 100 ms、写 IOPS 至少为 5，持续
+  10 分钟；
 - `HostUnusualDiskIo`：设备 I/O busy 比例过高，持续 5 分钟；
 - `HostUnusualDiskReadRate`、`HostUnusualDiskWriteRate`：吞吐量异常升高。
 
 iowait 表示 CPU 在等待块设备 I/O 完成，不等于 CPU 本身性能不足。虚拟机上还可能来自
 宿主机存储争用。
+
+延迟告警要求最低 IOPS，是为了避免一次低频慢操作把平均值抬高后产生告警；低负载但持续
+阻塞整机的情况仍由 `HostCpuHighIowait` 和 `HostUnusualDiskIo` 覆盖。
 
 先确认具体进程和设备：
 

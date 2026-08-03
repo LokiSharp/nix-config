@@ -20,6 +20,23 @@ let
     "        labels:"
     "          severity: warning"
   ];
+  sustainedReadLatencyRule = builtins.concatStringsSep "\n" [
+    "      - alert: HostUnusualDiskReadLatency"
+    "        expr:"
+    "          '(rate(node_disk_read_time_seconds_total[5m]) / rate(node_disk_reads_completed_total[5m])"
+    "          > 0.1 and rate(node_disk_reads_completed_total[5m]) >= 5) * on(instance) group_left"
+    "          (nodename) node_uname_info{nodename=~\".+\"}'"
+    "        for: 10m"
+  ];
+  sustainedWriteLatencyRule = builtins.concatStringsSep "\n" [
+    "      - alert: HostUnusualDiskWriteLatency"
+    "        expr:"
+    "          '(rate(node_disk_write_time_seconds_total[5m]) /"
+    "          rate(node_disk_writes_completed_total[5m]) > 0.1 and"
+    "          rate(node_disk_writes_completed_total[5m]) >= 5) * on(instance) group_left (nodename)"
+    "          node_uname_info{nodename=~\".+\"}'"
+    "        for: 10m"
+  ];
   rebootRequiredRule = builtins.concatStringsSep "\n" [
     "      - alert: HostRequiresReboot"
     "        expr:"
@@ -36,5 +53,7 @@ in
     serverConfig.services.vmalert.instances."".settings.rule;
   targetDownRuleConfigured = lib.hasInfix targetDownRule nodeExporterRules;
   sustainedIowaitRuleConfigured = lib.hasInfix sustainedIowaitRule nodeExporterRules;
+  sustainedReadLatencyRuleConfigured = lib.hasInfix sustainedReadLatencyRule nodeExporterRules;
+  sustainedWriteLatencyRuleConfigured = lib.hasInfix sustainedWriteLatencyRule nodeExporterRules;
   rebootRequiredRuleConfigured = lib.hasInfix rebootRequiredRule nodeExporterRules;
 }

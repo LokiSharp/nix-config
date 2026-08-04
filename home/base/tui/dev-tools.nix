@@ -1,7 +1,4 @@
-{ pkgs
-, pkgs-unstable
-, ...
-}:
+{ pkgs, ... }:
 {
   home.packages = with pkgs; [
     colmena # nixos's remote deployment tool
@@ -13,7 +10,6 @@
     sqlite
 
     # misc
-    pkgs-unstable.codex
     devbox
     protobuf
   ];

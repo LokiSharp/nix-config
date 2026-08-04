@@ -1,4 +1,11 @@
+{ pkgs-unstable, ... }:
 {
+  home.packages = [
+    pkgs-unstable.claude-code
+    pkgs-unstable.codex
+    pkgs-unstable.opencode
+  ];
+
   modules.desktop.hyprland = {
     nvidia = false;
     settings = {

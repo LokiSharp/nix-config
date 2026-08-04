@@ -1,7 +1,4 @@
-{ pkgs
-, pkgs-unstable
-, ...
-}:
+{ pkgs, ... }:
 {
   home.packages =
     with pkgs;
@@ -30,8 +27,5 @@
       python3
       ruff
       uv
-    ]
-    ++ [
-      pkgs-unstable.claude-code
     ];
 }

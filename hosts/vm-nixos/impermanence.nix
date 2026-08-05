@@ -73,9 +73,20 @@
         ".config/Code/User"
         ".config/Code - Insiders/User"
 
-        # antigravity
-        ".antigravity"
-        ".antigravity-server"
+        # claude code
+        ".claude"
+
+        # grok
+        ".grok"
+
+        # gemini
+        ".gemini"
+
+        # codex
+        ".codex"
+
+        # opencode
+        ".config/opencode"
 
         # rust
         ".rustup"

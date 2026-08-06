@@ -79,14 +79,8 @@
         # grok
         ".grok"
 
-        # gemini
-        ".gemini"
-
         # codex
         ".codex"
-
-        # opencode
-        ".config/opencode"
 
         # rust
         ".rustup"

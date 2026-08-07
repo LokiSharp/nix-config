@@ -4,6 +4,7 @@
 
     extraConfig = ''
       $env.PATH = ([
+        "${config.home.homeDirectory}/.grok/bin"
         "${config.home.homeDirectory}/bin"
         "${config.home.homeDirectory}/.local/bin"
 

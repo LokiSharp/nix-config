@@ -1,5 +1,9 @@
 { pkgs-unstable, ... }:
 {
+  # Prefer Grok's managed binary so `grok update` can provide releases newer
+  # than the version currently available in nixpkgs.
+  home.sessionPath = [ "$HOME/.grok/bin" ];
+
   home.packages = [
     pkgs-unstable.claude-code
     pkgs-unstable.codex

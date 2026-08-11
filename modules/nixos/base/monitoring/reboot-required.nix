@@ -8,6 +8,7 @@ let
     runtimeInputs = [
       pkgs.coreutils
       pkgs.findutils
+      pkgs.jq
     ];
     text = ''
       running_kernel="$(uname -r)"
@@ -24,18 +25,37 @@ let
         exit 1
       fi
 
+      booted_kernel_image="$(readlink -f /run/booted-system/kernel)"
+      expected_kernel_image="$(readlink -f /run/current-system/kernel)"
+      booted_initrd="$(readlink -f /run/booted-system/initrd)"
+      expected_initrd="$(readlink -f /run/current-system/initrd)"
+      booted_kernel_params="$(${pkgs.jq}/bin/jq -ce '."org.nixos.bootspec.v1".kernelParams' /run/booted-system/boot.json)"
+      expected_kernel_params="$(${pkgs.jq}/bin/jq -ce '."org.nixos.bootspec.v1".kernelParams' /run/current-system/boot.json)"
+
       reboot_required=0
+      reboot_reason="none"
       if [ "$running_kernel" != "$expected_kernel" ]; then
         reboot_required=1
+        reboot_reason="kernel_version_mismatch"
+      elif [ "$booted_kernel_image" != "$expected_kernel_image" ]; then
+        reboot_required=1
+        reboot_reason="kernel_build_mismatch"
+      elif [ "$booted_kernel_params" != "$expected_kernel_params" ]; then
+        reboot_required=1
+        reboot_reason="kernel_parameters_mismatch"
+      elif [ "$booted_initrd" != "$expected_initrd" ]; then
+        reboot_required=1
+        reboot_reason="initrd_mismatch"
       fi
 
       tmp_file="$(mktemp ${metricsDirectory}/.reboot-required.XXXXXX)"
       trap 'rm -f "$tmp_file"' EXIT
 
       {
-        echo "# HELP node_reboot_required Whether the running kernel differs from the current NixOS system kernel."
+        echo "# HELP node_reboot_required Whether the booted kernel state differs from the current NixOS system."
         echo "# TYPE node_reboot_required gauge"
-        printf 'node_reboot_required %s\n' "$reboot_required"
+        printf 'node_reboot_required{reason="%s",running_kernel="%s",expected_kernel="%s"} %s\n' \
+          "$reboot_reason" "$running_kernel" "$expected_kernel" "$reboot_required"
       } > "$tmp_file"
 
       chmod 0644 "$tmp_file"
@@ -47,7 +67,7 @@ in
 {
   systemd = {
     services.reboot-required-metrics = {
-      description = "Export whether the current NixOS kernel requires a reboot";
+      description = "Export whether the current NixOS system requires a reboot";
       serviceConfig = {
         Type = "oneshot";
         ExecStart = "${rebootRequiredMetrics}/bin/reboot-required-metrics";

@@ -629,6 +629,18 @@ groups:
           severity: info
         annotations:
           summary: Host requires reboot (instance {{ $labels.instance }})
-          description:
-            "{{ $labels.instance }} requires a reboot.\n  VALUE = {{ $value }}\n  LABELS = {{
-            $labels }}"
+          description: |-
+            {{ $labels.instance }} requires a reboot.
+            {{ if eq $labels.reason "kernel_version_mismatch" -}}
+            Reason: running kernel {{ $labels.running_kernel }} differs from expected kernel {{ $labels.expected_kernel }}.
+            {{ else if eq $labels.reason "kernel_build_mismatch" -}}
+            Reason: the deployed kernel build differs from the kernel used at boot, although both report version {{ $labels.running_kernel }}.
+            {{ else if eq $labels.reason "kernel_parameters_mismatch" -}}
+            Reason: the deployed kernel command-line parameters differ from those used at boot.
+            {{ else if eq $labels.reason "initrd_mismatch" -}}
+            Reason: the deployed initrd differs from the one used at boot; this can include early-boot or CPU microcode changes.
+            {{ else -}}
+            Reason: {{ $labels.reason }}.
+            {{ end }}
+            VALUE = {{ $value }}
+            LABELS = {{ $labels }}

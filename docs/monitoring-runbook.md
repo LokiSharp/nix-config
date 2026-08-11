@@ -416,6 +416,16 @@ readlink -f /run/booted-system/kernel
 uname -r
 ```
 
+`HostRequiresReboot` 会报告以下可可靠判断的原因：
+
+- `kernel_version_mismatch`：运行中的内核版本与当前系统期望版本不同。
+- `kernel_build_mismatch`：版本号相同，但当前部署的内核构建与启动时不同。
+- `kernel_parameters_mismatch`：当前部署的内核启动参数与启动时不同。
+- `initrd_mismatch`：当前部署的 initrd 与启动时不同，包括可能的 early-boot 或 CPU
+  microcode 变化。
+
+普通服务或共享库更新只需要重启相关服务，不作为整机重启原因。
+
 在业务允许的窗口重启，再运行：
 
 ```console

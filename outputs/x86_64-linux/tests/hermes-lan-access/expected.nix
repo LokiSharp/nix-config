@@ -4,6 +4,7 @@ _:
   apiBindsAllInterfaces = true;
   envNotClobberedByModule = true;
   envMergeActivation = true;
+  dashboardUnlocksEnv = true;
   dashboardUnitEnabled = true;
   lanRuleInFilterChain = true;
   lanSourceRestricted = true;

@@ -14,6 +14,7 @@ in
   apiBindsAllInterfaces = lib.hasInfix "API_SERVER_HOST=0.0.0.0" hermesEnv;
   envNotClobberedByModule = config.services.hermes-agent.environmentFiles == [ ];
   envMergeActivation = config.system.activationScripts ? hermes-env-merge;
+  dashboardUnlocksEnv = lib.hasInfix "--unsetenv HERMES_MANAGED" config.systemd.services.hermes-dashboard.serviceConfig.ExecStart;
   dashboardUnitEnabled = config.systemd.services.hermes-dashboard.wantedBy == [ "multi-user.target" ];
   lanRuleInFilterChain = lib.hasInfix extraInputRules filterTable;
   lanSourceRestricted = lib.hasInfix "ip saddr 192.168.0.0/24" extraInputRules;

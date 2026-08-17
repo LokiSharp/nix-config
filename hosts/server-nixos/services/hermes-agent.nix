@@ -154,6 +154,11 @@ in
 
     chown hermes:hermes "$env_file"
     chmod 0660 "$env_file"
+
+    # The upstream module drops a write-lock so the dashboard refuses to
+    # edit .env. Remove it after setup so Channels/API Keys can persist
+    # Telegram tokens; Nix still upserts the keys it owns above.
+    rm -f ${lib.escapeShellArg "${config.services.hermes-agent.stateDir}/.hermes/.managed"}
   '';
 
   # The NixOS module only starts `hermes gateway`. Dashboard is a separate
@@ -186,7 +191,9 @@ in
         echo "hermes-agent container is not ready" >&2
         exit 1
       '';
-      ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
+      # Unset HERMES_MANAGED so the dashboard can write .env. The gateway
+      # container still has the lock, so `hermes config set` stays blocked.
+      ExecStart = "${pkgs.podman}/bin/podman exec --user hermes --unsetenv HERMES_MANAGED hermes-agent /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
     };
   };
 

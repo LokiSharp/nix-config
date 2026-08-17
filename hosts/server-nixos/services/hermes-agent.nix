@@ -193,7 +193,7 @@ in
       '';
       # Unset HERMES_MANAGED so the dashboard can write .env. The gateway
       # container still has the lock, so `hermes config set` stays blocked.
-      ExecStart = "${pkgs.podman}/bin/podman exec --user hermes --unsetenv HERMES_MANAGED hermes-agent /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
+      ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent env -u HERMES_MANAGED /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
     };
   };
 

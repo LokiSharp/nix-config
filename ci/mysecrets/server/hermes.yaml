@@ -1,0 +1,4 @@
+# CI build fixture; contains no secret data.
+api_server_key: ci-placeholder-api-server-key
+dashboard_password: ci-placeholder
+dashboard_secret: ci-placeholder-dashboard-secret-32bytes

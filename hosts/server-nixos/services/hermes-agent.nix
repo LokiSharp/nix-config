@@ -1,9 +1,18 @@
-{ hermes-agent
+{ config
+, hermes-agent
+, lib
 , myvars
 , pkgs
 , ...
 }:
 let
+  apiPort = 8642;
+  dashboardPort = 9119;
+  lanPrefix = lib.concatStringsSep "." (
+    lib.take 3 (lib.splitString "." myvars.networking.hostsAddr.Server-NixOS.ipv4)
+  );
+  lanCidr = "${lanPrefix}.0/${toString myvars.networking.prefixLength}";
+
   # This host's IPv6 route resets some external TLS connections (including
   # auth.x.ai). Prefer IPv4 inside Hermes without disabling IPv6 fallback.
   gaiConf = pkgs.writeText "hermes-gai.conf" ''
@@ -92,9 +101,68 @@ in
       };
     };
 
-    # TODO: Add an sops-managed environment file if messaging credentials or
-    # the API-key-based xAI provider are enabled later.
-    # extraDependencyGroups = [ "messaging" ];
+    environment = {
+      API_SERVER_ENABLED = "true";
+      API_SERVER_HOST = "0.0.0.0";
+      API_SERVER_PORT = toString apiPort;
+      API_SERVER_CORS_ORIGINS = "*";
+      HERMES_DASHBOARD_HOST = "0.0.0.0";
+      HERMES_DASHBOARD_PORT = toString dashboardPort;
+      HERMES_DASHBOARD_BASIC_AUTH_USERNAME = myvars.username;
+    };
+
+    environmentFiles = [
+      config.sops.templates."hermes-env".path
+    ];
+  };
+
+  sops.templates."hermes-env" = {
+    content = ''
+      API_SERVER_KEY=${config.sops.placeholder."hermes-api-server-key"}
+      HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${config.sops.placeholder."hermes-dashboard-password"}
+      HERMES_DASHBOARD_BASIC_AUTH_SECRET=${config.sops.placeholder."hermes-dashboard-secret"}
+    '';
+    mode = "0400";
+    restartUnits = [
+      "hermes-agent.service"
+      "hermes-dashboard.service"
+    ];
+  };
+
+  # The NixOS module only starts `hermes gateway`. Dashboard is a separate
+  # process; official Docker's HERMES_DASHBOARD=1 is an s6 hook we do not have.
+  systemd.services.hermes-dashboard = {
+    description = "Hermes Agent Web Dashboard";
+    wantedBy = [ "multi-user.target" ];
+    after = [
+      "hermes-agent.service"
+      "network-online.target"
+    ];
+    requires = [ "hermes-agent.service" ];
+    partOf = [ "hermes-agent.service" ];
+    wants = [ "network-online.target" ];
+    serviceConfig = {
+      Type = "simple";
+      Restart = "always";
+      RestartSec = 5;
+      ExecStartPre = "${pkgs.podman}/bin/podman exec hermes-agent true";
+      ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
+    };
+  };
+
+  # ZeroTier and Tailscale already accept all inbound traffic. Only the LAN
+  # NIC would otherwise drop these ports. Do not add them to
+  # networking.firewall.allowedTCPPorts — that would open them on every
+  # interface, including a later public address.
+  networking.nftables.tables.hermes-lan = {
+    family = "inet";
+    content = ''
+      chain input {
+          type filter hook input priority -10;
+
+          ip saddr ${lanCidr} tcp dport { ${toString apiPort}, ${toString dashboardPort} } accept
+      }
+    '';
   };
 
   environment.systemPackages = [ hermesCli ];
@@ -111,5 +179,11 @@ in
     }
   ];
 
-  deployment.healthChecks.requiredUnits = [ "hermes-agent" ];
+  deployment.healthChecks = {
+    requiredUnits = [
+      "hermes-agent"
+      "hermes-dashboard"
+    ];
+    httpProbes.hermes-dashboard = "http://127.0.0.1:${toString dashboardPort}/api/status";
+  };
 }

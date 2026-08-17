@@ -174,6 +174,19 @@ in
           mode = "0400";
           owner = "gitea";
         };
+
+        "hermes-api-server-key" = {
+          sopsFile = "${mysecrets}/server/hermes.yaml";
+          key = "api_server_key";
+        };
+        "hermes-dashboard-password" = {
+          sopsFile = "${mysecrets}/server/hermes.yaml";
+          key = "dashboard_password";
+        };
+        "hermes-dashboard-secret" = {
+          sopsFile = "${mysecrets}/server/hermes.yaml";
+          key = "dashboard_secret";
+        };
       };
     })
 

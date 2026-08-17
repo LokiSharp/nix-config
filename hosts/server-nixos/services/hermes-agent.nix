@@ -120,10 +120,7 @@ in
       HERMES_DASHBOARD_BASIC_AUTH_SECRET=${config.sops.placeholder."hermes-dashboard-secret"}
     '';
     mode = "0400";
-    restartUnits = [
-      "hermes-agent.service"
-      "hermes-dashboard.service"
-    ];
+    restartUnits = [ "hermes-agent.service" ];
   };
 
   # Upsert only Nix-managed keys. Any other KEY=value (Telegram, provider
@@ -168,14 +165,27 @@ in
       "hermes-agent.service"
       "network-online.target"
     ];
-    requires = [ "hermes-agent.service" ];
-    partOf = [ "hermes-agent.service" ];
-    wants = [ "network-online.target" ];
+    wants = [
+      "hermes-agent.service"
+      "network-online.target"
+    ];
     serviceConfig = {
       Type = "simple";
       Restart = "always";
-      RestartSec = 5;
-      ExecStartPre = "${pkgs.podman}/bin/podman exec hermes-agent true";
+      RestartSec = 3;
+      ExecStartPre = pkgs.writeShellScript "wait-hermes-container" ''
+        set -eu
+        i=0
+        while [ "$i" -lt 30 ]; do
+          if ${pkgs.podman}/bin/podman exec hermes-agent true; then
+            exit 0
+          fi
+          i=$((i + 1))
+          sleep 1
+        done
+        echo "hermes-agent container is not ready" >&2
+        exit 1
+      '';
       ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
     };
   };

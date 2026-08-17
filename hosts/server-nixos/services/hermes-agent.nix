@@ -19,6 +19,9 @@
     container = {
       enable = true;
       backend = "podman";
+      # Docker Hub is unreliable over this host's IPv6 route. Use DaoCloud's
+      # transparent mirror for the same official Ubuntu image.
+      image = "m.daocloud.io/docker.io/library/ubuntu:24.04";
     };
 
     # Use `sudo hermes ...` to manage the rootful Podman instance. Deliberately

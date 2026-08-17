@@ -1,6 +1,14 @@
 { hermes-agent
+, pkgs
 , ...
 }:
+let
+  # This host's IPv6 route resets some external TLS connections (including
+  # auth.x.ai). Prefer IPv4 inside Hermes without disabling IPv6 fallback.
+  gaiConf = pkgs.writeText "hermes-gai.conf" ''
+    precedence ::ffff:0:0/96  100
+  '';
+in
 {
   imports = [
     hermes-agent.nixosModules.default
@@ -22,6 +30,7 @@
       # Docker Hub is unreliable over this host's IPv6 route. Use DaoCloud's
       # transparent mirror for the same official Ubuntu image.
       image = "m.daocloud.io/docker.io/library/ubuntu:24.04";
+      extraVolumes = [ "${gaiConf}:/etc/gai.conf:ro" ];
     };
 
     # Use `sudo hermes ...` to manage the rootful Podman instance. Deliberately

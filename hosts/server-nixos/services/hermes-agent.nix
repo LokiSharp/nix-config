@@ -37,9 +37,10 @@ let
 
   hermesCli = pkgs.writeShellApplication {
     name = "hermes";
-    runtimeInputs = [ pkgs.sudo ];
     text = ''
-      exec sudo -n ${hermesContainerExec}/bin/hermes-container-exec "$@"
+      exec /run/wrappers/bin/sudo -n \
+        ${hermesContainerExec}/bin/hermes-container-exec \
+        "$@"
     '';
   };
 in

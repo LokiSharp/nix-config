@@ -101,24 +101,21 @@ in
       };
     };
 
-    environment = {
-      API_SERVER_ENABLED = "true";
-      API_SERVER_HOST = "0.0.0.0";
-      API_SERVER_PORT = toString apiPort;
-      API_SERVER_CORS_ORIGINS = "*";
-      HERMES_DASHBOARD_HOST = "0.0.0.0";
-      HERMES_DASHBOARD_PORT = toString dashboardPort;
-      HERMES_DASHBOARD_BASIC_AUTH_USERNAME = myvars.username;
-    };
-
-    environmentFiles = [
-      config.sops.templates."hermes-env".path
-    ];
+    # Do not set environment/environmentFiles here. The upstream module
+    # rewrites $HERMES_HOME/.env from those options on every activation and
+    # would wipe Telegram tokens and other keys added in the dashboard.
   };
 
   sops.templates."hermes-env" = {
     content = ''
+      API_SERVER_ENABLED=true
+      API_SERVER_HOST=0.0.0.0
+      API_SERVER_PORT=${toString apiPort}
+      API_SERVER_CORS_ORIGINS=*
       API_SERVER_KEY=${config.sops.placeholder."hermes-api-server-key"}
+      HERMES_DASHBOARD_HOST=0.0.0.0
+      HERMES_DASHBOARD_PORT=${toString dashboardPort}
+      HERMES_DASHBOARD_BASIC_AUTH_USERNAME=${myvars.username}
       HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${config.sops.placeholder."hermes-dashboard-password"}
       HERMES_DASHBOARD_BASIC_AUTH_SECRET=${config.sops.placeholder."hermes-dashboard-secret"}
     '';
@@ -128,6 +125,39 @@ in
       "hermes-dashboard.service"
     ];
   };
+
+  # Upsert only Nix-managed keys. Any other KEY=value (Telegram, provider
+  # keys, allowlists) already in .env is left untouched.
+  system.activationScripts.hermes-env-merge = lib.stringAfter [ "hermes-agent-setup" ] ''
+    env_file=${lib.escapeShellArg "${config.services.hermes-agent.stateDir}/.hermes/.env"}
+    nix_file=${lib.escapeShellArg config.sops.templates."hermes-env".path}
+    mkdir -p "$(dirname "$env_file")"
+    touch "$env_file"
+
+    upsert() {
+      local key="$1"
+      local value="$2"
+      local tmp
+      tmp="$(mktemp)"
+      grep -v "^''${key}=" "$env_file" > "$tmp" || true
+      printf '%s=%s\n' "$key" "$value" >> "$tmp"
+      mv "$tmp" "$env_file"
+    }
+
+    if [ -f "$nix_file" ]; then
+      while IFS= read -r line || [ -n "$line" ]; do
+        case "$line" in
+          ""|\#*) continue ;;
+          *=*)
+            upsert "''${line%%=*}" "''${line#*=}"
+            ;;
+        esac
+      done < "$nix_file"
+    fi
+
+    chown hermes:hermes "$env_file"
+    chmod 0660 "$env_file"
+  '';
 
   # The NixOS module only starts `hermes gateway`. Dashboard is a separate
   # process; official Docker's HERMES_DASHBOARD=1 is an s6 hook we do not have.

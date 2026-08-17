@@ -7,10 +7,13 @@ let
   filterTable = config.networking.nftables.tables.filter.content;
   extraInputRules = config.networking.nftables.extraInputRules;
   allowedTCPPorts = config.networking.firewall.allowedTCPPorts;
+  hermesEnv = config.sops.templates."hermes-env".content;
 in
 {
-  apiEnabled = config.services.hermes-agent.environment.API_SERVER_ENABLED or "" == "true";
-  apiBindsAllInterfaces = config.services.hermes-agent.environment.API_SERVER_HOST or "" == "0.0.0.0";
+  apiEnabled = lib.hasInfix "API_SERVER_ENABLED=true" hermesEnv;
+  apiBindsAllInterfaces = lib.hasInfix "API_SERVER_HOST=0.0.0.0" hermesEnv;
+  envNotClobberedByModule = config.services.hermes-agent.environmentFiles == [ ];
+  envMergeActivation = config.system.activationScripts ? hermes-env-merge;
   dashboardUnitEnabled = config.systemd.services.hermes-dashboard.wantedBy == [ "multi-user.target" ];
   lanRuleInFilterChain = lib.hasInfix extraInputRules filterTable;
   lanSourceRestricted = lib.hasInfix "ip saddr 192.168.0.0/24" extraInputRules;

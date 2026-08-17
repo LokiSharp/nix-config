@@ -2,6 +2,8 @@ _:
 {
   apiEnabled = true;
   apiBindsAllInterfaces = true;
+  envNotClobberedByModule = true;
+  envMergeActivation = true;
   dashboardUnitEnabled = true;
   lanRuleInFilterChain = true;
   lanSourceRestricted = true;

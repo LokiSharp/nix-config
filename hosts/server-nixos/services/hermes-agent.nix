@@ -151,19 +151,11 @@ in
   };
 
   # ZeroTier and Tailscale already accept all inbound traffic. Only the LAN
-  # NIC would otherwise drop these ports. Do not add them to
-  # networking.firewall.allowedTCPPorts — that would open them on every
-  # interface, including a later public address.
-  networking.nftables.tables.hermes-lan = {
-    family = "inet";
-    content = ''
-      chain input {
-          type filter hook input priority -10;
-
-          ip saddr ${lanCidr} tcp dport { ${toString apiPort}, ${toString dashboardPort} } accept
-      }
-    '';
-  };
+  # NIC would otherwise drop these ports. The accept must live in the main
+  # filter input chain; a separate table cannot override that chain's drop.
+  networking.nftables.extraInputRules = ''
+    ip saddr ${lanCidr} tcp dport { ${toString apiPort}, ${toString dashboardPort} } accept
+  '';
 
   environment.systemPackages = [ hermesCli ];
 

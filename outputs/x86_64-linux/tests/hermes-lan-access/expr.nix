@@ -17,7 +17,8 @@ in
   dashboardUnlocksEnv = lib.hasInfix "env -u HERMES_MANAGED" config.systemd.services.hermes-dashboard.serviceConfig.ExecStart;
   dashboardUnitEnabled = config.systemd.services.hermes-dashboard.wantedBy == [ "multi-user.target" ];
   lanRuleInFilterChain = lib.hasInfix extraInputRules filterTable;
-  lanSourceRestricted = lib.hasInfix "ip saddr 192.168.0.0/24" extraInputRules;
+  lanSourceRestricted = lib.hasInfix "192.168.0.0/24" extraInputRules;
+  wireguardSourceAllowed = lib.hasInfix "192.168.10.0/24" extraInputRules;
   lanAllowsApiPort = lib.hasInfix "8642" extraInputRules;
   lanAllowsDashboardPort = lib.hasInfix "9119" extraInputRules;
   apiNotGloballyOpened = !(builtins.elem 8642 allowedTCPPorts);

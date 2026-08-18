@@ -12,6 +12,9 @@ let
     lib.take 3 (lib.splitString "." myvars.networking.hostsAddr.Server-NixOS.ipv4)
   );
   lanCidr = "${lanPrefix}.0/${toString myvars.networking.prefixLength}";
+  # Router WireGuard clients (e.g. 192.168.10.10) reach the LAN via the
+  # gateway, so they are not in lanCidr and need their own source prefix.
+  wireguardCidr = "192.168.10.0/24";
 
   # This host's IPv6 route resets some external TLS connections (including
   # auth.x.ai). Prefer IPv4 inside Hermes without disabling IPv6 fallback.
@@ -201,7 +204,7 @@ in
   # NIC would otherwise drop these ports. The accept must live in the main
   # filter input chain; a separate table cannot override that chain's drop.
   networking.nftables.extraInputRules = ''
-    ip saddr ${lanCidr} tcp dport { ${toString apiPort}, ${toString dashboardPort} } accept
+    ip saddr { ${lanCidr}, ${wireguardCidr} } tcp dport { ${toString apiPort}, ${toString dashboardPort} } accept
   '';
 
   environment.systemPackages = [ hermesCli ];

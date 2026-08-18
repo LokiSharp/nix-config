@@ -8,6 +8,7 @@ _:
   dashboardUnitEnabled = true;
   lanRuleInFilterChain = true;
   lanSourceRestricted = true;
+  wireguardSourceAllowed = true;
   lanAllowsApiPort = true;
   lanAllowsDashboardPort = true;
   apiNotGloballyOpened = true;

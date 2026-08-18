@@ -123,10 +123,10 @@ in
         ${hostCommonConfig}
         encode zstd gzip
         reverse_proxy http://localhost:9119 {
-          header_up Host {http.request.host}
+          # Dashboard rejects any Host other than the address it bound.
+          header_up Host 127.0.0.1:9119
           header_up X-Real-IP {http.request.remote.host}
           header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
-          header_up X-Forwarded-Proto {scheme}
           header_up Upgrade {http.request.header.Upgrade}
           header_up Connection {http.request.header.Connection}
         }

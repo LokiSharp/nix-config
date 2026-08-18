@@ -19,6 +19,31 @@ let
   containerName = "hermes-agent";
   containerDataDir = "/data";
   containerHomeDir = "/home/hermes";
+
+  # nixpkgs 26.05 still ships 3.51.2, which hits the WAL-reset bug.
+  # Rebuild only Hermes' interpreter against 3.51.3; do not overlay the host.
+  sqliteFixed = pkgs.sqlite.overrideAttrs (old: {
+    version = "3.51.3";
+    src = pkgs.fetchurl {
+      url = "https://sqlite.org/2026/sqlite-src-3510300.zip";
+      hash = "sha256-+KZ6H1tcrnxtQvCZTKe/GkpYWIaMgq3J/BNAvtXrjNI=";
+    };
+    docsrc = pkgs.fetchurl {
+      url = "https://sqlite.org/2026/sqlite-doc-3510300.zip";
+      hash = "sha256-7AU+ZqM7BHm0tMiBM67vTQIhTWPlotWe0GLK9QYeoiw=";
+    };
+    # archiveVersion is baked into the original postInstall as 3510200.
+    postInstall = lib.replaceStrings [ "sqlite-doc-3510200" ] [ "sqlite-doc-3510300" ] old.postInstall;
+    # Upstream check is a long serial `make test`. Skip it for this
+    # patch bump; the amalgamation compile is already one translation unit.
+    doCheck = false;
+  });
+  python312Fixed = pkgs.python312.override { sqlite = sqliteFixed; };
+  hermesPackage =
+    hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default.override
+      {
+        python312 = python312Fixed;
+      };
   # Keep the privileged operation fixed: callers may pass Hermes arguments,
   # but cannot select another container or run an arbitrary command as root.
   hermesContainerExec = pkgs.writeShellApplication {
@@ -64,6 +89,7 @@ in
     # Application state lives on the /data/apps volume with the other
     # Server-NixOS services so it is snapshotted independently of /persistent.
     inherit stateDir;
+    package = hermesPackage;
 
     # Keep the agent's mutable tools isolated from the host. Podman storage
     # stays under /var/lib/containers; only Hermes state is on /data/apps.

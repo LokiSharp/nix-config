@@ -134,15 +134,24 @@ in
       "hermes-api.slk.moe".extraConfig = ''
         ${hostCommonConfig}
         encode zstd gzip
-        reverse_proxy http://localhost:8642 {
-          header_up Host {http.request.host}
-          header_up X-Real-IP {http.request.remote.host}
-          header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
-          header_up X-Forwarded-Proto {scheme}
-          transport http {
-              dial_timeout 300s
-              read_timeout 300s
-              write_timeout 300s
+        @missingAuth {
+          not header Authorization *
+          not method OPTIONS
+        }
+        handle @missingAuth {
+          respond 401
+        }
+        handle {
+          reverse_proxy http://localhost:8642 {
+            header_up Host {http.request.host}
+            header_up X-Real-IP {http.request.remote.host}
+            header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
+            header_up X-Forwarded-Proto {scheme}
+            transport http {
+                dial_timeout 300s
+                read_timeout 300s
+                write_timeout 300s
+            }
           }
         }
       '';

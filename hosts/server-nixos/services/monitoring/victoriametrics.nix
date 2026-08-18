@@ -105,7 +105,7 @@ in
           metrics_path = "/metrics";
           static_configs = [
             {
-              targets = [ "${myvars.networking.hostsAddr.Server-NixOS.ipv4}:9187" ];
+              targets = [ "127.0.0.1:9187" ];
               labels = {
                 type = "app";
                 app = "postgresql";
@@ -121,7 +121,7 @@ in
           metrics_path = "/metrics";
           static_configs = [
             {
-              targets = [ "${myvars.networking.hostsAddr.Server-NixOS.ipv4}:10000" ];
+              targets = [ "127.0.0.1:10000" ];
               labels = {
                 type = "app";
                 app = "sftpgo";
@@ -219,6 +219,7 @@ in
       settings = {
         "datasource.url" = "http://localhost:9090";
         "notifier.url" = [ "http://localhost:9093" ]; # alertmanager's api
+        "httpListenAddr" = "127.0.0.1:8880";
 
         # Whether to disable long-lived connections to the datasource.
         "datasource.disableKeepAlive" = true;

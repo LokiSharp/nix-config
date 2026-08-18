@@ -94,7 +94,7 @@ in
       # prometheus metrics
       telemetry = {
         bind_port = 10000;
-        bind_address = "0.0.0.0";
+        bind_address = "127.0.0.1";
         # auth_user_file = "";
       };
       # multi-factor authentication settings

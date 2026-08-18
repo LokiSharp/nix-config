@@ -99,6 +99,11 @@ in
         memory_enabled = true;
         user_profile_enabled = true;
       };
+      dashboard = {
+        # Local token/cost figures only. They omit auxiliary calls and
+        # retries, so they are a lower bound, not the provider bill.
+        show_token_analytics = true;
+      };
     };
 
     # Do not set environment/environmentFiles here. The upstream module

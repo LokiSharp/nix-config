@@ -20,4 +20,5 @@ _:
   containerUsesBridge = true;
   entrypointIsInContainer = true;
   portsPublishedOnLoopback = true;
+  tokenAnalyticsEnabled = true;
 }

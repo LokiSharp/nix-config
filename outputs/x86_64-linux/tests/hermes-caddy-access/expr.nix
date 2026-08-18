@@ -33,4 +33,6 @@ in
   portsPublishedOnLoopback =
     lib.hasInfix "--publish=127.0.0.1:8642:8642" preStart
     && lib.hasInfix "--publish=127.0.0.1:9119:9119" preStart;
+  tokenAnalyticsEnabled =
+    (config.services.hermes-agent.settings.dashboard.show_token_analytics or false) == true;
 }

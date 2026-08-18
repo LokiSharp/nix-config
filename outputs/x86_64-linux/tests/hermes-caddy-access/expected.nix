@@ -12,4 +12,5 @@ _:
   apiVhostProxiesLocal = true;
   apiNotGloballyOpened = true;
   dashboardNotGloballyOpened = true;
+  stateDirOnDataApps = true;
 }

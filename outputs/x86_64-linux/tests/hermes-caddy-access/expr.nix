@@ -22,4 +22,5 @@ in
   apiVhostProxiesLocal = lib.hasInfix "reverse_proxy http://localhost:8642" apiVhost;
   apiNotGloballyOpened = !(builtins.elem 8642 allowedTCPPorts);
   dashboardNotGloballyOpened = !(builtins.elem 9119 allowedTCPPorts);
+  stateDirOnDataApps = config.services.hermes-agent.stateDir == "/data/apps/hermes";
 }

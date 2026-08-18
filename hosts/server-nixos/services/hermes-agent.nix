@@ -57,13 +57,12 @@ in
   services.hermes-agent = {
     enable = true;
 
-    # This host persists all of /var/lib under /persistent. Keep the state
-    # root explicit so auth, sessions, memories, skills, home and workspace
-    # remain covered if the upstream module ever changes its default.
-    stateDir = "/var/lib/hermes";
+    # Application state lives on the /data/apps volume with the other
+    # Server-NixOS services so it is snapshotted independently of /persistent.
+    stateDir = "/data/apps/hermes";
 
-    # Keep the agent's mutable tools isolated from the host. Podman's storage
-    # under /var/lib/containers is covered by the same persistence mount.
+    # Keep the agent's mutable tools isolated from the host. Podman storage
+    # stays under /var/lib/containers; only Hermes state is on /data/apps.
     container = {
       enable = true;
       backend = "podman";
@@ -162,6 +161,8 @@ in
 
   # The NixOS module only starts `hermes gateway`. Dashboard is a separate
   # process; official Docker's HERMES_DASHBOARD=1 is an s6 hook we do not have.
+  systemd.services.hermes-agent.unitConfig.RequiresMountsFor = [ "/data/apps" ];
+
   systemd.services.hermes-dashboard = {
     description = "Hermes Agent Web Dashboard";
     wantedBy = [ "multi-user.target" ];

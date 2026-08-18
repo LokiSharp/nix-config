@@ -7,8 +7,11 @@ let
 in
 {
   # Enable the OpenSSH daemon.
+  # openFirewall (default true) adds these ports to allowedTCPPorts, which
+  # the host nftables input chain accepts before its final drop.
   services.openssh = {
     enable = true;
+    openFirewall = true;
     ports = [ configLib.this.sshPort ];
     settings = {
       X11Forwarding = true;

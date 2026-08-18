@@ -1,10 +1,23 @@
 args:
 let
   inherit (import ../common.nix args) this;
+  inherit (args) lib config;
   sys = import ./sys.nix args;
   dn42 = import ./dn42.nix args;
   loki-net = import ./loki-net.nix args;
   slk-net = import ./slk-net.nix args;
+  lokiNetPeers = config.services.loki-net or { };
+  lokiNetBgpRules = lib.concatMapStrings
+    (
+      peer:
+      (lib.optionalString (peer.addressing.peerIPv4 != null && peer.addressing.peerIPv4 != "") ''
+        ip saddr ${peer.addressing.peerIPv4} tcp dport 179 accept
+      '')
+      + (lib.optionalString (peer.addressing.peerIPv6 != null && peer.addressing.peerIPv6 != "") ''
+        ip6 saddr ${peer.addressing.peerIPv6} tcp dport 179 accept
+      '')
+    )
+    (lib.attrValues lokiNetPeers);
 in
 {
   imports = [
@@ -69,6 +82,16 @@ in
       in
       baseConfig ++ dn42Config ++ loki-netConfig ++ slk-netConfig
     );
+  };
+
+  networking.nftables = lib.mkIf this.networks.loki-net.enable {
+    extraInputRules = lib.optionalString (lokiNetPeers != { }) ''
+      ${lokiNetBgpRules}
+    '';
+    extraForwardRules = ''
+      ip6 saddr 2a0e:aa07:e220::/44 accept
+      ip6 daddr 2a0e:aa07:e220::/44 accept
+    '';
   };
 
   deployment.healthChecks.requiredUnits = [ "bird" ];

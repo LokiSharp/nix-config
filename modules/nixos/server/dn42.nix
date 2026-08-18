@@ -168,37 +168,49 @@ in
     default = { };
   };
 
-  config.networking.wireguard = {
-    enable = true;
-    useNetworkd = false;
-    interfaces =
-      let
-        cfgToWg =
-          n: v:
-          let
-            interfaceName = "${v.peering.network}-${n}";
-          in
-          lib.nameValuePair interfaceName {
-            allowedIPsAsRoutes = false;
-            listenPort = v.tunnel.localPort;
-            peers = [
-              {
-                allowedIPs = [
-                  "0.0.0.0/0"
-                  "::/0"
-                ];
-                endpoint = lib.mkIf
-                  (
-                    v.tunnel.remoteAddress != null
-                  ) "${v.tunnel.remoteAddress}:${builtins.toString v.tunnel.remotePort}";
-                publicKey = v.tunnel.wireguardPubkey;
-                presharedKeyFile = v.tunnel.wireguardPresharedKeyFile;
-              }
-            ];
-            postSetup = setupAddressing interfaceName v;
-            privateKeyFile = config.sops.secrets.wg-priv.path;
-          };
-      in
-      lib.mapAttrs' cfgToWg (filterType "wireguard" config.services.dn42);
+  config.networking = {
+    nftables = lib.mkIf this.networks.dn42.enable {
+      extraInputRules = ''
+        iifname "dn42-*" accept
+      '';
+      extraForwardRules = ''
+        iifname "dn42-*" accept
+        oifname "dn42-*" accept
+      '';
+    };
+
+    wireguard = {
+      enable = true;
+      useNetworkd = false;
+      interfaces =
+        let
+          cfgToWg =
+            n: v:
+            let
+              interfaceName = "${v.peering.network}-${n}";
+            in
+            lib.nameValuePair interfaceName {
+              allowedIPsAsRoutes = false;
+              listenPort = v.tunnel.localPort;
+              peers = [
+                {
+                  allowedIPs = [
+                    "0.0.0.0/0"
+                    "::/0"
+                  ];
+                  endpoint = lib.mkIf
+                    (
+                      v.tunnel.remoteAddress != null
+                    ) "${v.tunnel.remoteAddress}:${builtins.toString v.tunnel.remotePort}";
+                  publicKey = v.tunnel.wireguardPubkey;
+                  presharedKeyFile = v.tunnel.wireguardPresharedKeyFile;
+                }
+              ];
+              postSetup = setupAddressing interfaceName v;
+              privateKeyFile = config.sops.secrets.wg-priv.path;
+            };
+        in
+        lib.mapAttrs' cfgToWg (filterType "wireguard" config.services.dn42);
+    };
   };
 }

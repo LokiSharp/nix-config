@@ -23,10 +23,9 @@ lib.genAttrs publicHostNames (
     config = outputs.nixosConfigurations.${name}.config;
     nftRuleset = config.networking.nftables.tables.filter.content;
     sshPort = builtins.toString host.sshPort;
-    sshRule = "tcp dport ${sshPort} accept";
     afterInputChain = builtins.elemAt (lib.splitString "chain input {" nftRuleset) 1;
     inputChain = builtins.elemAt (lib.splitString "# Allow all outgoing connections." afterInputChain) 0;
-    sshRuleParts = lib.splitString sshRule inputChain;
+    sshPortParts = lib.splitString sshPort inputChain;
     colmenaConfig = outputs.colmena.${name} { inherit name; };
     healthMetadata = inputs.self.deploymentHostMetadata.${name};
   in
@@ -37,10 +36,14 @@ lib.genAttrs publicHostNames (
     deploymentTargetPortMatches = colmenaConfig.deployment.targetPort == host.sshPort;
     healthMetadataPortMatches = healthMetadata.sshPort == host.sshPort;
     nftablesEnabled = config.networking.nftables.enable;
-    firewallAllowsConfiguredSshPort = lib.hasInfix sshRule inputChain;
-    firewallRuleUnique = lib.length sshRuleParts == 2;
+    firewallAllowsConfiguredSshPort =
+      builtins.elem host.sshPort config.networking.firewall.allowedTCPPorts
+      && lib.hasInfix sshPort inputChain;
+    firewallRuleUnique =
+      !(lib.hasInfix "tcp dport ${sshPort} accept" inputChain)
+      && lib.length (lib.filter (port: port == host.sshPort) config.networking.firewall.allowedTCPPorts) == 1;
     firewallRuleBeforeFinalDrop =
-      lib.length sshRuleParts == 2
-      && lib.hasInfix "counter drop" (builtins.elemAt sshRuleParts 1);
+      lib.length sshPortParts == 2
+      && lib.hasInfix "counter drop" (builtins.elemAt sshPortParts 1);
   }
 )

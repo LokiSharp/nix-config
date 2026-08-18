@@ -27,6 +27,16 @@ in
     };
   };
 
+  networking.nftables = lib.mkIf isEnabled {
+    extraInputRules = ''
+      iifname "${interfaceName}" accept
+    '';
+    extraForwardRules = ''
+      iifname "${interfaceName}" accept
+      oifname "${interfaceName}" accept
+    '';
+  };
+
   deployment.healthChecks.requiredUnits = lib.optional isEnabled "zerotierone";
 
   systemd.services.zerotierone.preStart = lib.mkIf isEnabled ''

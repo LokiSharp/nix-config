@@ -7,4 +7,5 @@ in
   minio = builtins.elem "minio.service" templates."minio-root-credentials".restartUnits;
   sftpgo = builtins.elem "sftpgo.service" templates."sftpgo-env".restartUnits;
   hermesAgent = builtins.elem "hermes-agent.service" templates."hermes-env".restartUnits;
+  hermesDashboard = builtins.elem "hermes-dashboard.service" templates."hermes-env".restartUnits;
 }

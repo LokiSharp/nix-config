@@ -4,4 +4,5 @@ _:
   minio = true;
   sftpgo = true;
   hermesAgent = true;
+  hermesDashboard = true;
 }

@@ -8,13 +8,6 @@
 let
   apiPort = 8642;
   dashboardPort = 9119;
-  lanPrefix = lib.concatStringsSep "." (
-    lib.take 3 (lib.splitString "." myvars.networking.hostsAddr.Server-NixOS.ipv4)
-  );
-  lanCidr = "${lanPrefix}.0/${toString myvars.networking.prefixLength}";
-  # Router WireGuard clients (e.g. 192.168.10.10) reach the LAN via the
-  # gateway, so they are not in lanCidr and need their own source prefix.
-  wireguardCidr = "192.168.10.0/24";
 
   # This host's IPv6 route resets some external TLS connections (including
   # auth.x.ai). Prefer IPv4 inside Hermes without disabling IPv6 fallback.
@@ -112,18 +105,21 @@ in
   sops.templates."hermes-env" = {
     content = ''
       API_SERVER_ENABLED=true
-      API_SERVER_HOST=0.0.0.0
+      API_SERVER_HOST=127.0.0.1
       API_SERVER_PORT=${toString apiPort}
       API_SERVER_CORS_ORIGINS=*
       API_SERVER_KEY=${config.sops.placeholder."hermes-api-server-key"}
-      HERMES_DASHBOARD_HOST=0.0.0.0
+      HERMES_DASHBOARD_HOST=127.0.0.1
       HERMES_DASHBOARD_PORT=${toString dashboardPort}
       HERMES_DASHBOARD_BASIC_AUTH_USERNAME=${myvars.username}
       HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${config.sops.placeholder."hermes-dashboard-password"}
       HERMES_DASHBOARD_BASIC_AUTH_SECRET=${config.sops.placeholder."hermes-dashboard-secret"}
     '';
     mode = "0400";
-    restartUnits = [ "hermes-agent.service" ];
+    restartUnits = [
+      "hermes-agent.service"
+      "hermes-dashboard.service"
+    ];
   };
 
   # Upsert only Nix-managed keys. Any other KEY=value (Telegram, provider
@@ -196,16 +192,9 @@ in
       '';
       # Unset HERMES_MANAGED so the dashboard can write .env. The gateway
       # container still has the lock, so `hermes config set` stays blocked.
-      ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent env -u HERMES_MANAGED /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
+      ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent env -u HERMES_MANAGED /data/current-package/bin/hermes dashboard --host 127.0.0.1 --port ${toString dashboardPort} --no-open";
     };
   };
-
-  # ZeroTier and Tailscale already accept all inbound traffic. Only the LAN
-  # NIC would otherwise drop these ports. The accept must live in the main
-  # filter input chain; a separate table cannot override that chain's drop.
-  networking.nftables.extraInputRules = ''
-    ip saddr { ${lanCidr}, ${wireguardCidr} } tcp dport { ${toString apiPort}, ${toString dashboardPort} } accept
-  '';
 
   environment.systemPackages = [ hermesCli ];
 

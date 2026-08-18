@@ -10,8 +10,6 @@ _:
   dashboardUnitEnabled = true;
   dashboardVhostProxiesLocal = true;
   apiVhostProxiesLocal = true;
-  extraRulesDoNotOpenApi = true;
-  extraRulesDoNotOpenDashboard = true;
   apiNotGloballyOpened = true;
   dashboardNotGloballyOpened = true;
 }

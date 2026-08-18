@@ -4,7 +4,6 @@
 }:
 let
   config = outputs.nixosConfigurations.Server-NixOS.config;
-  extraInputRules = config.networking.nftables.extraInputRules;
   allowedTCPPorts = config.networking.firewall.allowedTCPPorts;
   hermesEnv = config.sops.templates."hermes-env".content;
   dashboardVhost = config.services.caddy.virtualHosts."hermes.slk.moe".extraConfig;
@@ -21,8 +20,6 @@ in
   dashboardUnitEnabled = config.systemd.services.hermes-dashboard.wantedBy == [ "multi-user.target" ];
   dashboardVhostProxiesLocal = lib.hasInfix "reverse_proxy http://localhost:9119" dashboardVhost;
   apiVhostProxiesLocal = lib.hasInfix "reverse_proxy http://localhost:8642" apiVhost;
-  extraRulesDoNotOpenApi = !(lib.hasInfix "8642" extraInputRules);
-  extraRulesDoNotOpenDashboard = !(lib.hasInfix "9119" extraInputRules);
   apiNotGloballyOpened = !(builtins.elem 8642 allowedTCPPorts);
   dashboardNotGloballyOpened = !(builtins.elem 9119 allowedTCPPorts);
 }

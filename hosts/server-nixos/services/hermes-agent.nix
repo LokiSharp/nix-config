@@ -38,12 +38,19 @@ let
     # patch bump; the amalgamation compile is already one translation unit.
     doCheck = false;
   });
-  python312Fixed = pkgs.python312.override { sqlite = sqliteFixed; };
-  hermesPackage =
-    hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default.override
-      {
-        python312 = python312Fixed;
-      };
+  # The flake package ignores an overridden python312 (its venv is
+  # callPackage'd from nixpkgs). _sqlite3.so is dynamically linked, so
+  # preload 3.51.3 instead of rebuilding CPython.
+  upstreamHermes = hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  hermesPackage = pkgs.symlinkJoin {
+    name = "${upstreamHermes.name}-sqlite-3.51.3";
+    paths = [ upstreamHermes ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/hermes \
+        --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ sqliteFixed ]}
+    '';
+  };
   # Keep the privileged operation fixed: callers may pass Hermes arguments,
   # but cannot select another container or run an arbitrary command as root.
   hermesContainerExec = pkgs.writeShellApplication {

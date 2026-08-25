@@ -145,6 +145,11 @@ in
       "visual-studio-code"
       "ghostty" # terminal emulator
 
+      # AI agents
+      "claude-code"
+      "codex"
+      "grok-build"
+
       "obsidian" # note app
 
       # Window management
@@ -174,7 +179,6 @@ in
       "tabby" # terminal emulator
       "wireshark-app" # network analyzer
       "orbstack" # docker alternative
-      "clash-verge-rev" # network proxy client
     ];
   };
 }

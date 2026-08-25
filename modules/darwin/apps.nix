@@ -149,6 +149,7 @@ in
       "claude-code"
       "codex"
       "grok-build"
+      "grok-bot"
 
       "obsidian" # note app
 

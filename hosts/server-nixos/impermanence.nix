@@ -44,6 +44,9 @@
         "codes"
         "nix-config"
         "tmp"
+
+        # token tracker
+        ".tokentracker"
       ];
       files = [
         ".config/nushell/history.txt"

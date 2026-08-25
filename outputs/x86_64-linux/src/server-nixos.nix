@@ -31,6 +31,7 @@ let
       ];
     home-modules = map mylib.relativeToRoot [
       "home/linux/tui.nix"
+      "hosts/${hostNameLower}/home.nix"
     ];
   };
 

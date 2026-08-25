@@ -82,6 +82,9 @@
         # codex
         ".codex"
 
+        # token tracker
+        ".tokentracker"
+
         # rust
         ".rustup"
         ".cargo"

@@ -1,5 +1,7 @@
 { pkgs-unstable, ... }:
 {
+  imports = [ ../../home/base/token-tracker.nix ];
+
   # Prefer Grok's managed binary so `grok update` can provide releases newer
   # than the version currently available in nixpkgs.
   home.sessionPath = [ "$HOME/.grok/bin" ];

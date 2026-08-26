@@ -21,4 +21,6 @@ _:
   entrypointIsInContainer = true;
   portsPublishedOnLoopback = true;
   tokenAnalyticsEnabled = true;
+  sqliteNotNixpkgsVulnerable = true;
+  sqliteUsesUnstable = true;
 }

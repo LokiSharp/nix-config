@@ -35,4 +35,8 @@ in
     && lib.hasInfix "--publish=127.0.0.1:9119:9119" preStart;
   tokenAnalyticsEnabled =
     (config.services.hermes-agent.settings.dashboard.show_token_analytics or false) == true;
+  # nixpkgs 26.05 still ships SQLite 3.51.2 (WAL-reset). Hermes must wrap
+  # the binary against pkgs-unstable's already-fixed SQLite instead.
+  sqliteNotNixpkgsVulnerable = !(lib.hasInfix "-sqlite-3.51.2" config.services.hermes-agent.package.name);
+  sqliteUsesUnstable = lib.hasInfix "-sqlite-3.53" config.services.hermes-agent.package.name;
 }

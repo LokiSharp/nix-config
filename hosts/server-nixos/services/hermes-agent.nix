@@ -3,6 +3,7 @@
 , lib
 , myvars
 , pkgs
+, pkgs-unstable
 , ...
 }:
 let
@@ -20,30 +21,15 @@ let
   containerDataDir = "/data";
   containerHomeDir = "/home/hermes";
 
-  # nixpkgs 26.05 still ships 3.51.2, which hits the WAL-reset bug.
-  # Rebuild only Hermes' interpreter against 3.51.3; do not overlay the host.
-  sqliteFixed = pkgs.sqlite.overrideAttrs (old: {
-    version = "3.51.3";
-    src = pkgs.fetchurl {
-      url = "https://sqlite.org/2026/sqlite-src-3510300.zip";
-      hash = "sha256-+KZ6H1tcrnxtQvCZTKe/GkpYWIaMgq3J/BNAvtXrjNI=";
-    };
-    docsrc = pkgs.fetchurl {
-      url = "https://sqlite.org/2026/sqlite-doc-3510300.zip";
-      hash = "sha256-7AU+ZqM7BHm0tMiBM67vTQIhTWPlotWe0GLK9QYeoiw=";
-    };
-    # archiveVersion is baked into the original postInstall as 3510200.
-    postInstall = lib.replaceStrings [ "sqlite-doc-3510200" ] [ "sqlite-doc-3510300" ] old.postInstall;
-    # Upstream check is a long serial `make test`. Skip it for this
-    # patch bump; the amalgamation compile is already one translation unit.
-    doCheck = false;
-  });
-  # The flake package ignores an overridden python312 (its venv is
-  # callPackage'd from nixpkgs). _sqlite3.so is dynamically linked, so
-  # preload 3.51.3 instead of rebuilding CPython.
+  # nixpkgs 26.05 still ships 3.51.2, which hits the WAL-reset bug
+  # (3.7.0–3.51.2). Unstable already has a fixed SQLite; preload it
+  # instead of rebuilding 3.51.3. The flake package ignores an
+  # overridden python312, and _sqlite3.so is dynamically linked.
+  sqliteFixed = pkgs-unstable.sqlite;
+  sqliteMinFixed = "3.51.3";
   upstreamHermes = hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
   hermesPackage = pkgs.symlinkJoin {
-    name = "${upstreamHermes.name}-sqlite-3.51.3";
+    name = "${upstreamHermes.name}-sqlite-${sqliteFixed.version}";
     paths = [ upstreamHermes ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
@@ -88,6 +74,13 @@ in
 {
   imports = [
     hermes-agent.nixosModules.default
+  ];
+
+  assertions = [
+    {
+      assertion = lib.versionAtLeast sqliteFixed.version sqliteMinFixed;
+      message = "Hermes requires SQLite ${sqliteMinFixed}+ to avoid the WAL-reset bug; pkgs-unstable.sqlite is ${sqliteFixed.version}.";
+    }
   ];
 
   services.hermes-agent = {

@@ -22,6 +22,7 @@ in
   shellToolsDisabled = (containerEnv.VIBE_TRADING_ENABLE_SHELL_TOOLS or "") == "0";
   schedulerEnabled = (containerEnv.VIBE_TRADING_ENABLE_SCHEDULER or "") == "1";
   trustsForwardedHeaders = (containerEnv.FORWARDED_ALLOW_IPS or "") == "*";
+  extraPythonOnPath = (containerEnv.PYTHONPATH or "") == "/home/vibe/.vibe-trading/python";
   vhostProxiesLocal = lib.hasInfix "reverse_proxy http://localhost:8899" vhost;
   vhostPreservesHost = lib.hasInfix "header_up Host {http.request.host}" vhost;
   vhostForwardsProto = lib.hasInfix "header_up X-Forwarded-Proto {scheme}" vhost;

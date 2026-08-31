@@ -7,6 +7,7 @@ _:
   shellToolsDisabled = true;
   schedulerEnabled = true;
   trustsForwardedHeaders = true;
+  extraPythonOnPath = true;
   vhostProxiesLocal = true;
   vhostPreservesHost = true;
   vhostForwardsProto = true;

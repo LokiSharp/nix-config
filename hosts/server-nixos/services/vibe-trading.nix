@@ -16,6 +16,10 @@ let
   imageRev = vibe-trading.shortRev or (builtins.substring 0 7 vibe-trading.rev);
   imageTag = "localhost/vibe-trading:${imageRev}";
   envFile = "${stateDir}/agent.env";
+  # Optional pip extras (longbridge, …) cannot land in the read-only venv.
+  # --target this path and keep it on PYTHONPATH; venv ignores --user site.
+  extraPython = "${stateDir}/home/python";
+  extraPythonInContainer = "/home/vibe/.vibe-trading/python";
   # Root is a 2G tmpfs. Podman writes image blobs to $TMPDIR (/var/tmp by
   # default), so a venv copy blows that away. Keep build scratch on /data.
   buildTmpDir = "${stateDir}/build-tmp";
@@ -146,6 +150,7 @@ in
       # container. Without this, uvicorn ignores X-Forwarded-Proto and the
       # app treats https://vibe-trading.slk.moe as a cross-site caller.
       FORWARDED_ALLOW_IPS = "*";
+      PYTHONPATH = extraPythonInContainer;
     };
     environmentFiles = [ envFile ];
     volumes = [
@@ -180,6 +185,7 @@ in
       "d ${stateDir}/runs 0750 ${toString containerUid} ${toString containerGid} -"
       "d ${stateDir}/sessions 0750 ${toString containerUid} ${toString containerGid} -"
       "d ${stateDir}/home 0750 ${toString containerUid} ${toString containerGid} -"
+      "d ${extraPython} 0750 ${toString containerUid} ${toString containerGid} -"
       "d ${stateDir}/swarm-runs 0750 ${toString containerUid} ${toString containerGid} -"
       "d ${stateDir}/uploads 0750 ${toString containerUid} ${toString containerGid} -"
       "d ${buildTmpDir} 0750 root root -"

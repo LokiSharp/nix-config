@@ -23,15 +23,25 @@ let
     precedence ::ffff:0:0/96  100
   '';
 
-  # Docker Hub is unreliable over this host's IPv6 route. Rewrite the digest-pinned
-  # official images to DaoCloud's pull-through mirror; hashes stay the same.
+  # Docker Hub and PyPI are unreliable over this host's IPv6 route. Rewrite the
+  # digest-pinned official images to DaoCloud and point pip at TUNA; hashes stay
+  # the same because those are pull-through / content-addressed mirrors.
   imageSrc = pkgs.runCommand "vibe-trading-src-${imageRev}" { } ''
     mkdir -p $out
     cp -R ${vibe-trading}/. $out/
     chmod -R u+w $out
     substituteInPlace $out/Dockerfile \
       --replace-fail 'FROM node:22-slim@' 'FROM m.daocloud.io/docker.io/library/node:22-slim@' \
-      --replace-fail 'FROM python:3.11-slim@' 'FROM m.daocloud.io/docker.io/library/python:3.11-slim@'
+      --replace-fail 'FROM python:3.11-slim@' 'FROM m.daocloud.io/docker.io/library/python:3.11-slim@' \
+      --replace-fail 'RUN pip install --no-cache-dir --require-hashes -r requirements-lock.txt' "$(cat <<'EOF'
+    RUN printf 'precedence ::ffff:0:0/96  100\n' > /etc/gai.conf
+    ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+        PIP_DEFAULT_TIMEOUT=120 \
+        PIP_RETRIES=10 \
+        PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+    RUN pip install --no-cache-dir --require-hashes -r requirements-lock.txt
+    EOF
+    )"
   '';
 
   vibeTradingContainerExec = pkgs.writeShellApplication {
@@ -92,11 +102,25 @@ let
     if $inspect image exists ${lib.escapeShellArg imageTag}; then
       exit 0
     fi
+
     echo "Building ${imageTag} from pinned Vibe-Trading ${imageRev}"
-    $inspect build \
-      --network=host \
-      --tag ${lib.escapeShellArg imageTag} \
-      ${lib.escapeShellArg imageSrc}
+    attempt=1
+    max_attempts=5
+    while true; do
+      if $inspect build \
+        --network=host \
+        --tag ${lib.escapeShellArg imageTag} \
+        ${lib.escapeShellArg imageSrc}; then
+        exit 0
+      fi
+      if [ "$attempt" -ge "$max_attempts" ]; then
+        echo "Vibe-Trading image build failed after $max_attempts attempts" >&2
+        exit 1
+      fi
+      attempt=$((attempt + 1))
+      echo "Retrying image build ($attempt/$max_attempts) in 20s"
+      ${pkgs.coreutils}/bin/sleep 20
+    done
   '';
 in
 {

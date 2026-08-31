@@ -155,6 +155,25 @@ in
           }
         }
       '';
+
+      "vibe-trading.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        encode zstd gzip
+        reverse_proxy http://localhost:8899 {
+          header_up Host {http.request.host}
+          header_up X-Real-IP {http.request.remote.host}
+          header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
+          header_up X-Forwarded-Proto {scheme}
+          header_up Upgrade {http.request.header.Upgrade}
+          header_up Connection {http.request.header.Connection}
+          flush_interval -1
+          transport http {
+              dial_timeout 30s
+              read_timeout 0
+              write_timeout 0
+          }
+        }
+      '';
     };
   };
   networking.firewall.allowedTCPPorts = [

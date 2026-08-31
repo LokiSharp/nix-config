@@ -51,6 +51,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Docker-first Python/Node app; we build the upstream image with Podman.
+    vibe-trading = {
+      url = "github:HKUDS/Vibe-Trading";
+      flake = false;
+    };
+
     ########################  My own repositories  #########################################
 
     # my private secrets, it's a private repository, you need to replace it with your own.

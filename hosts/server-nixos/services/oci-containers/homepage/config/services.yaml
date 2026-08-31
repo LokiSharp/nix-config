@@ -35,3 +35,8 @@
         href: "https://git.slk.moe/"
         description: Gitea - Git with a cup of tea
         siteMonitor: "https://git.slk.moe/"
+    - Vibe-Trading:
+        icon: mdi-chart-areaspline
+        href: "https://vibe-trading.slk.moe/"
+        description: Personal trading research agent
+        siteMonitor: "https://vibe-trading.slk.moe/live"

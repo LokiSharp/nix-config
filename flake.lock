@@ -496,6 +496,7 @@
         "nixpkgs-stable": "nixpkgs-stable",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "sops-nix": "sops-nix",
+        "vibe-trading": "vibe-trading",
         "vscode-server": "vscode-server"
       }
     },
@@ -556,6 +557,22 @@
       "original": {
         "owner": "pyproject-nix",
         "repo": "uv2nix",
+        "type": "github"
+      }
+    },
+    "vibe-trading": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788175456,
+        "narHash": "sha256-7NEBhcIn1BEhDHxaIkjdTBT42MVyahYMNVyIWjc5z5Y=",
+        "owner": "HKUDS",
+        "repo": "Vibe-Trading",
+        "rev": "c7f4cbef3c2d038569d2ba8cea46cc3e32bda348",
+        "type": "github"
+      },
+      "original": {
+        "owner": "HKUDS",
+        "repo": "Vibe-Trading",
         "type": "github"
       }
     },

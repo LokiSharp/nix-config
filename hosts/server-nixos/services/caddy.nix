@@ -164,6 +164,12 @@ in
           header_up X-Real-IP {http.request.remote.host}
           header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
           header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-Host {http.request.host}
+          header_up X-Forwarded-Port {http.request.port}
+          # The app compares Origin's port to the container bind (8899), so a
+          # browser Origin of https://vibe-trading.slk.moe is treated as
+          # cross-site. Same-origin UI traffic does not need Origin for CORS.
+          header_up -Origin
           header_up Upgrade {http.request.header.Upgrade}
           header_up Connection {http.request.header.Connection}
           flush_interval -1

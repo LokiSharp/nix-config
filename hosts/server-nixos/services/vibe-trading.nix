@@ -142,6 +142,10 @@ in
       ENABLE_SESSION_RUNTIME = "true";
       VIBE_TRADING_ENABLE_SCHEDULER = "1";
       VIBE_TRADING_ENABLE_SHELL_TOOLS = "0";
+      # Caddy connects via the Podman gateway, not 127.0.0.1 inside the
+      # container. Without this, uvicorn ignores X-Forwarded-Proto and the
+      # app treats https://vibe-trading.slk.moe as a cross-site caller.
+      FORWARDED_ALLOW_IPS = "*";
     };
     environmentFiles = [ envFile ];
     volumes = [

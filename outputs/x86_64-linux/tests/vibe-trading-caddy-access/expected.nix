@@ -6,8 +6,11 @@ _:
   allowedHostsLocked = true;
   shellToolsDisabled = true;
   schedulerEnabled = true;
+  trustsForwardedHeaders = true;
   vhostProxiesLocal = true;
   vhostPreservesHost = true;
+  vhostForwardsProto = true;
+  vhostDropsOrigin = true;
   vhostFlushesSse = true;
   portNotGloballyOpened = true;
   portsPublishedOnLoopback = true;

@@ -16,6 +16,9 @@ let
   imageRev = vibe-trading.shortRev or (builtins.substring 0 7 vibe-trading.rev);
   imageTag = "localhost/vibe-trading:${imageRev}";
   envFile = "${stateDir}/agent.env";
+  # Root is a 2G tmpfs. Podman writes image blobs to $TMPDIR (/var/tmp by
+  # default), so a venv copy blows that away. Keep build scratch on /data.
+  buildTmpDir = "${stateDir}/build-tmp";
 
   # This host's IPv6 route resets some external TLS connections (including
   # api.x.ai). Prefer IPv4 inside the container without disabling IPv6 fallback.
@@ -103,6 +106,11 @@ let
       exit 0
     fi
 
+    export TMPDIR=${lib.escapeShellArg buildTmpDir}
+    export TMP="$TMPDIR"
+    export TEMP="$TMPDIR"
+    ${pkgs.coreutils}/bin/mkdir -p "$TMPDIR"
+
     echo "Building ${imageTag} from pinned Vibe-Trading ${imageRev}"
     attempt=1
     max_attempts=5
@@ -170,6 +178,7 @@ in
       "d ${stateDir}/home 0750 ${toString containerUid} ${toString containerGid} -"
       "d ${stateDir}/swarm-runs 0750 ${toString containerUid} ${toString containerGid} -"
       "d ${stateDir}/uploads 0750 ${toString containerUid} ${toString containerGid} -"
+      "d ${buildTmpDir} 0750 root root -"
     ];
     services = {
       vibe-trading-image = {
@@ -177,13 +186,23 @@ in
         wantedBy = [ "multi-user.target" ];
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
-        unitConfig.RequiresMountsFor = [ "/var/lib/containers" ];
+        unitConfig.RequiresMountsFor = [
+          "/var/lib/containers"
+          "/data/apps"
+        ];
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
           TimeoutStartSec = "2h";
+          # Do not bind a private /tmp on the 2G root tmpfs.
+          PrivateTmp = false;
           ExecStart = buildImage;
-          Environment = [ "NODE_OPTIONS=--dns-result-order=ipv4first" ];
+          Environment = [
+            "NODE_OPTIONS=--dns-result-order=ipv4first"
+            "TMPDIR=${buildTmpDir}"
+            "TMP=${buildTmpDir}"
+            "TEMP=${buildTmpDir}"
+          ];
         };
       };
       "podman-${containerName}" = {

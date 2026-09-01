@@ -56,7 +56,7 @@ in
   appKeepsSandboxSetuid =
     lib.hasInfix "--cap-add=SETUID" appExtra && lib.hasInfix "--cap-add=SETGID" appExtra;
   redisDropsCapabilities = lib.hasInfix "--cap-drop=ALL" redisExtra;
-  appReadOnlyRootfs = lib.hasInfix "--read-only" appExtra;
+  dataDirIsPersistent = (appEnv.DATA_DIR or "") == "/app/data";
   noNewPrivileges =
     lib.hasInfix "no-new-privileges:true" appExtra
     && lib.hasInfix "no-new-privileges:true" postgresExtra

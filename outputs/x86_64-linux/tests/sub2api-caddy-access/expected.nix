@@ -22,7 +22,7 @@ _:
   appDropsCapabilities = true;
   appKeepsSandboxSetuid = true;
   redisDropsCapabilities = true;
-  appReadOnlyRootfs = true;
+  dataDirIsPersistent = true;
   noNewPrivileges = true;
   isolatedNetwork = true;
   waitsForHealthyDeps = true;

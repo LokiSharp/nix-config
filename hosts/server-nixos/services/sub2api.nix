@@ -39,6 +39,7 @@ let
       ${lib.escapeShellArg "${stateDir}/data"} \
       ${lib.escapeShellArg "${stateDir}/postgres"} \
       ${lib.escapeShellArg "${stateDir}/redis"}
+    ${pkgs.coreutils}/bin/chown 1000:1000 ${lib.escapeShellArg "${stateDir}/data"}
 
     env_file=${lib.escapeShellArg envFile}
     ${pkgs.coreutils}/bin/touch "$env_file"
@@ -181,6 +182,7 @@ in
         REDIS_PORT = "6379";
         REDIS_DB = "0";
         ADMIN_EMAIL = myvars.useremail;
+        DATA_DIR = "/app/data";
         TZ = "Asia/Shanghai";
         LOG_LEVEL = "info";
         LOG_FORMAT = "json";
@@ -194,10 +196,10 @@ in
       ];
       extraOptions = commonExtraOptions ++ [
         "--cap-drop=ALL"
-        # Image entrypoint uses su-exec to drop to a non-root user.
+        # Image entrypoint uses su-exec to drop to uid 1000, then AUTO_SETUP
+        # writes ./config.yaml under /app. That path is not on the data volume.
         "--cap-add=SETUID"
         "--cap-add=SETGID"
-        "--read-only"
         "--tmpfs=/tmp"
         "--memory=2g"
         "--cpus=2"
@@ -215,7 +217,7 @@ in
   systemd = {
     tmpfiles.rules = [
       "d ${stateDir} 0750 root root -"
-      "d ${stateDir}/data 0750 root root -"
+      "d ${stateDir}/data 0750 1000 1000 -"
       "d ${stateDir}/postgres 0700 root root -"
       "d ${stateDir}/redis 0750 root root -"
       "f ${envFile} 0640 root root -"

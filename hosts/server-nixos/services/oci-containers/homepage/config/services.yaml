@@ -40,3 +40,8 @@
         href: "https://vibe-trading.slk.moe/"
         description: Personal trading research agent
         siteMonitor: "https://vibe-trading.slk.moe/live"
+    - Sub2API:
+        icon: mdi-api
+        href: "https://sub2api.slk.moe/"
+        description: Personal AI subscription API gateway
+        siteMonitor: "https://sub2api.slk.moe/health"

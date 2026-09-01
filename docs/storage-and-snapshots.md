@@ -14,7 +14,7 @@
 | `Server-NixOS` | `/data/apps` | `/data/apps-snapshots` | `apps` |
 
 `Server-NixOS` 上新装的应用状态默认放在 `/data/apps/<服务名>`，与 Caddy、Gitea、Grafana、
-MinIO、PostgreSQL、SFTPGo、Homepage、VictoriaMetrics、Hermes、Vibe-Trading 一致。只有模块强制要求
+MinIO、PostgreSQL、SFTPGo、Homepage、VictoriaMetrics、Hermes、Vibe-Trading、Sub2API 一致。只有模块强制要求
 `/var/lib`，或数据必须跟系统盘一起持久化时才例外。
 
 `MacbookAir` 不使用这套 NixOS Btrfs 策略。`/nix`、`/tmp`、`/swap`、

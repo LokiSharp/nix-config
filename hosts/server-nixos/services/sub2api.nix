@@ -194,6 +194,9 @@ in
       ];
       extraOptions = commonExtraOptions ++ [
         "--cap-drop=ALL"
+        # Image entrypoint uses su-exec to drop to a non-root user.
+        "--cap-add=SETUID"
+        "--cap-add=SETGID"
         "--read-only"
         "--tmpfs=/tmp"
         "--memory=2g"

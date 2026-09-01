@@ -20,6 +20,7 @@ _:
   appImageFromGhcr = true;
   depsUseDaocloudMirror = true;
   appDropsCapabilities = true;
+  appKeepsSandboxSetuid = true;
   redisDropsCapabilities = true;
   appReadOnlyRootfs = true;
   noNewPrivileges = true;

@@ -53,6 +53,8 @@ in
     lib.hasPrefix "m.daocloud.io/docker.io/library/postgres:" postgres.image
     && lib.hasPrefix "m.daocloud.io/docker.io/library/redis:" redis.image;
   appDropsCapabilities = lib.hasInfix "--cap-drop=ALL" appExtra;
+  appKeepsSandboxSetuid =
+    lib.hasInfix "--cap-add=SETUID" appExtra && lib.hasInfix "--cap-add=SETGID" appExtra;
   redisDropsCapabilities = lib.hasInfix "--cap-drop=ALL" redisExtra;
   appReadOnlyRootfs = lib.hasInfix "--read-only" appExtra;
   noNewPrivileges =

@@ -41,7 +41,7 @@ in
     && !(appEnv ? REDIS_PASSWORD)
     && !(config.sops.templates ? "sub2api-env")
     && !(config.sops.secrets ? "sub2api-jwt-secret");
-  runModeIsSimple = (appEnv.RUN_MODE or "") == "simple";
+  runModeIsStandard = (appEnv.RUN_MODE or "") == "standard";
   autoSetupEnabled = (appEnv.AUTO_SETUP or "") == "true";
   databaseIsInternal = (appEnv.DATABASE_HOST or "") == "sub2api-postgres";
   redisIsInternal = (appEnv.REDIS_HOST or "") == "sub2api-redis";

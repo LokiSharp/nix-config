@@ -12,7 +12,7 @@ _:
   gaiConfMounted = true;
   envFileUsed = true;
   secretsNotInNix = true;
-  runModeIsSimple = true;
+  runModeIsStandard = true;
   autoSetupEnabled = true;
   databaseIsInternal = true;
   redisIsInternal = true;

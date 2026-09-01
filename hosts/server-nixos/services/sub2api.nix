@@ -169,8 +169,8 @@ in
         SERVER_HOST = "0.0.0.0";
         SERVER_PORT = toString port;
         SERVER_MODE = "release";
-        # Personal/internal use: hide SaaS billing and skip balance checks.
-        RUN_MODE = "simple";
+        # Full SaaS mode: billing, balance checks, and the admin billing UI.
+        RUN_MODE = "standard";
         DATABASE_HOST = "sub2api-postgres";
         DATABASE_PORT = "5432";
         DATABASE_USER = "sub2api";

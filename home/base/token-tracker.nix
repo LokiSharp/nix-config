@@ -36,16 +36,30 @@ in
 
   systemd.user.services.token-tracker = {
     Unit = {
-      Description = "Token Tracker dashboard";
+      Description = "Token Tracker sync";
       Documentation = "https://www.tokentracker.cc";
     };
 
     Service = {
-      ExecStart = "${lib.getExe tokenTrackerCli} serve --port 7680 --no-open";
-      Restart = "on-failure";
-      RestartSec = "5s";
+      Type = "oneshot";
+      ExecStart = "${lib.getExe tokenTrackerCli} sync";
+      TimeoutStartSec = "5min";
+    };
+  };
+
+  systemd.user.timers.token-tracker = {
+    Unit = {
+      Description = "Periodic Token Tracker sync";
+      Documentation = "https://www.tokentracker.cc";
     };
 
-    Install.WantedBy = [ "default.target" ];
+    Timer = {
+      OnBootSec = "2m";
+      OnUnitActiveSec = "15m";
+      Persistent = true;
+      RandomizedDelaySec = "30s";
+    };
+
+    Install.WantedBy = [ "timers.target" ];
   };
 }

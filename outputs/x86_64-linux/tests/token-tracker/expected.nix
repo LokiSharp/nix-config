@@ -12,10 +12,10 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (
   in
   {
     packageInstalled = enabled;
-    userServiceEnabled = enabled;
-    servePinnedLocally = enabled;
+    syncServiceEnabled = enabled;
+    syncTimerEnabled = enabled;
     lingerEnabled = enabled;
     statePersisted = enabled;
-    dashboardNotGloballyOpened = true;
+    dashboardNotServed = true;
   }
 )

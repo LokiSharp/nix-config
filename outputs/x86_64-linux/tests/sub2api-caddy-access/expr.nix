@@ -46,9 +46,12 @@ in
   databaseIsInternal = (appEnv.DATABASE_HOST or "") == "sub2api-postgres";
   redisIsInternal = (appEnv.REDIS_HOST or "") == "sub2api-redis";
   imagePinnedNotLatest =
-    lib.hasInfix "weishaw/sub2api:0.1.185" app.image
+    lib.hasInfix "wei-shaw/sub2api:0.1.185" app.image
     && !(lib.hasSuffix ":latest" app.image);
-  usesDaocloudMirror = lib.hasPrefix "m.daocloud.io/docker.io/" app.image;
+  appImageFromGhcr = lib.hasPrefix "ghcr.io/wei-shaw/sub2api:" app.image;
+  depsUseDaocloudMirror =
+    lib.hasPrefix "m.daocloud.io/docker.io/library/postgres:" postgres.image
+    && lib.hasPrefix "m.daocloud.io/docker.io/library/redis:" redis.image;
   appDropsCapabilities = lib.hasInfix "--cap-drop=ALL" appExtra;
   redisDropsCapabilities = lib.hasInfix "--cap-drop=ALL" redisExtra;
   appReadOnlyRootfs = lib.hasInfix "--read-only" appExtra;

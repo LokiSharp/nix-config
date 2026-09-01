@@ -17,7 +17,8 @@ _:
   databaseIsInternal = true;
   redisIsInternal = true;
   imagePinnedNotLatest = true;
-  usesDaocloudMirror = true;
+  appImageFromGhcr = true;
+  depsUseDaocloudMirror = true;
   appDropsCapabilities = true;
   redisDropsCapabilities = true;
   appReadOnlyRootfs = true;

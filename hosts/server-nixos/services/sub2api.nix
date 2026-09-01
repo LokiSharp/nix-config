@@ -9,9 +9,10 @@ let
   envFile = "${stateDir}/sub2api.env";
   networkName = "sub2api";
 
-  # Docker Hub is unreliable over this host's IPv6 route. DaoCloud is a
-  # pull-through mirror; tags still resolve to the same upstream images.
-  appImage = "m.daocloud.io/docker.io/weishaw/sub2api:0.1.185";
+  # Official library images go through DaoCloud because Docker Hub is
+  # unreliable over this host's IPv6 route. weishaw/sub2api is not on that
+  # allowlist, so the app image is pulled from GHCR instead.
+  appImage = "ghcr.io/wei-shaw/sub2api:0.1.185";
   postgresImage = "m.daocloud.io/docker.io/library/postgres:18-alpine";
   redisImage = "m.daocloud.io/docker.io/library/redis:8-alpine";
 
@@ -243,16 +244,19 @@ in
         unitConfig.RequiresMountsFor = [ "/data/apps" ];
         after = [ "sub2api-prepare.service" ];
         requires = [ "sub2api-prepare.service" ];
+        serviceConfig.RestartSec = "10s";
       };
       podman-sub2api-postgres = {
         unitConfig.RequiresMountsFor = [ "/data/apps" ];
         after = [ "sub2api-prepare.service" ];
         requires = [ "sub2api-prepare.service" ];
+        serviceConfig.RestartSec = "10s";
       };
       podman-sub2api-redis = {
         unitConfig.RequiresMountsFor = [ "/data/apps" ];
         after = [ "sub2api-prepare.service" ];
         requires = [ "sub2api-prepare.service" ];
+        serviceConfig.RestartSec = "10s";
       };
     };
   };

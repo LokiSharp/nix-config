@@ -25,8 +25,8 @@
 - `disko-fs.nix`：磁盘、分区、Btrfs 子卷和挂载布局。
 - `impermanence.nix`：需要跨重启保留的路径。
 - `home.nix`：仅该主机使用的 Home Manager 配置。
-- `services/`：只在该主机运行的应用服务。`Server-NixOS` 的应用数据默认写到
-  `/data/apps/<服务名>`。
+- `services/`：只在该主机运行的应用服务。`Server-NixOS` 和 `OVH-CA-EAST-BHS`
+  的应用数据默认写到 `/data/apps/<服务名>`。
 
 元数据字段、派生标签与一致性约束参见
 [主机元数据与标签系统](../docs/host-metadata-and-tags.md)。

@@ -140,6 +140,41 @@ in
                       "noatime"
                     ];
                   };
+                  # Application and reserved data on the existing RAID1 pool.
+                  # Create these subvolumes on the live filesystem before the
+                  # first deploy; do not re-run destructive disko.
+                  "@apps" = {
+                    mountpoint = "/data/apps";
+                    mountOptions = [
+                      "compress-force=zstd:1"
+                      "noatime"
+                      "nofail"
+                    ];
+                  };
+                  "@apps-snapshots" = {
+                    mountpoint = "/data/apps-snapshots";
+                    mountOptions = [
+                      "compress-force=zstd:1"
+                      "noatime"
+                      "nofail"
+                    ];
+                  };
+                  "@fileshare" = {
+                    mountpoint = "/data/fileshare";
+                    mountOptions = [
+                      "compress-force=zstd:1"
+                      "noatime"
+                      "nofail"
+                    ];
+                  };
+                  "@backups" = {
+                    mountpoint = "/data/backups";
+                    mountOptions = [
+                      "compress-force=zstd:1"
+                      "noatime"
+                      "nofail"
+                    ];
+                  };
                   "@swap" = {
                     mountpoint = "/swap";
                     mountOptions = [

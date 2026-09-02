@@ -11,11 +11,17 @@
 | 节点 | 来源 | 快照目录 | 快照名前缀 |
 | --- | --- | --- | --- |
 | 所有当前 NixOS 节点 | `/persistent` | `/snapshots` | `persistent` |
-| `Server-NixOS` | `/data/apps` | `/data/apps-snapshots` | `apps` |
+| `Server-NixOS`、`OVH-CA-EAST-BHS` | `/data/apps` | `/data/apps-snapshots` | `apps` |
 
-`Server-NixOS` 上新装的应用状态默认放在 `/data/apps/<服务名>`，与 Caddy、Gitea、Grafana、
-MinIO、PostgreSQL、SFTPGo、Homepage、VictoriaMetrics、Hermes、Vibe-Trading、Sub2API 一致。只有模块强制要求
-`/var/lib`，或数据必须跟系统盘一起持久化时才例外。
+应用状态默认放在 `/data/apps/<服务名>`。`Server-NixOS` 当前按此存放 Caddy、Gitea、Grafana、
+MinIO、PostgreSQL、SFTPGo、Homepage、VictoriaMetrics、Hermes、Vibe-Trading、Sub2API。
+`OVH-CA-EAST-BHS` 使用同样的 `/data/apps`、`/data/apps-snapshots`、`/data/fileshare`
+和 `/data/backups` 布局，但尚未部署应用。只有模块强制要求 `/var/lib`，或数据必须跟
+系统盘一起持久化时才例外。
+
+`Server-NixOS` 的这些目录在独立的加密数据盘上。`OVH-CA-EAST-BHS` 的对应子卷位于系统盘
+RAID1，与 `/persistent`、`/nix` 共享同一 Btrfs 池。Server 额外还有独立的
+`/data/fileshare/public` 盘；OVH 未预留这块。
 
 `MacbookAir` 不使用这套 NixOS Btrfs 策略。`/nix`、`/tmp`、`/swap`、
 `/data/fileshare` 和 `/data/backups` 当前不在快照范围内。
@@ -90,7 +96,10 @@ scrub 不是磁盘表面全盘修复工具，也不替代 SMART。没有冗余�
 - `Server-NixOS` 上的 VictoriaMetrics 每 30 秒采集一次；
 - 部署健康检查要求 `smartd` 和 `prometheus-smartctl-exporter` 正常运行。
 
-OVH 节点的系统盘使用两组 mdraid1：启动阵列和主数据阵列。node-exporter 负责导出阵列
+OVH 节点的系统盘使用两组 mdraid1：启动阵列和主数据阵列。`/data/apps`、
+`/data/fileshare` 和 `/data/backups` 是主数据阵列上的 Btrfs 子卷，不是独立磁盘。
+在已有阵列上增加子卷时，应在线上池中创建 `@apps`、`@apps-snapshots`、`@fileshare`
+和 `@backups`，不要对现网节点重新执行 destructive Disko。node-exporter 负责导出阵列
 状态，监控规则检查指标缺失、阵列 inactive、阵列 degraded 和成员磁盘 failed。
 
 ## 日常检查
@@ -123,7 +132,7 @@ sudo btrfs subvolume list -s /snapshots
 sudo ls -lah /snapshots
 ```
 
-`Server-NixOS` 还应检查：
+`Server-NixOS` 和 `OVH-CA-EAST-BHS` 还应检查：
 
 ```console
 sudo btrfs subvolume list -s /data/apps-snapshots
@@ -177,8 +186,10 @@ sudo systemctl status btrfs-health-check.service
 sudo btrfs scrub start -Bd /persistent
 ```
 
-`Server-NixOS` 的独立数据文件系统可以使用 `/data/apps` 作为检查和 scrub 路径。不要同时
-对同一设备上的多个子卷启动 scrub。
+`Server-NixOS` 的独立数据文件系统可以使用 `/data/apps` 作为检查和 scrub 路径。
+`OVH-CA-EAST-BHS` 的 `/data/apps`、`/data/fileshare`、`/data/backups` 与 `/persistent`
+位于同一组 RAID1 Btrfs，不要对这些数据子卷再单独启动 scrub。不要同时对同一设备上的
+多个子卷启动 scrub。
 
 ## 恢复单个文件
 
@@ -232,7 +243,7 @@ sudo mdadm --detail /dev/md/<array>
 | 告警 | 首要检查 |
 | --- | --- |
 | `BtrfsSnapshotRunStale` | `btrbk-local.timer`、服务日志、来源和快照目录是否可挂载 |
-| `BtrfsSnapshotDirectoryUnavailable` | `findmnt /snapshots`；Server 还检查 `/data/apps-snapshots` |
+| `BtrfsSnapshotDirectoryUnavailable` | `findmnt /snapshots`；Server 和 OVH 还检查 `/data/apps-snapshots` |
 | `BtrfsSnapshotsMissing` | 快照目录内容、首次 timer 是否成功、btrbk 日志 |
 | `BtrfsSnapshotMetricsMissing` | node-exporter textfile 目录和 `btrfs-snapshot-metrics.timer` |
 | `SmartctlExporterDown` | exporter unit、TCP 9633、防火墙与 Loki-Net 连通性 |

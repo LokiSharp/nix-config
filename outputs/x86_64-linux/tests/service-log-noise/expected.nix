@@ -5,4 +5,5 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (_: {
   lycheenDiskSafeSingBoxLogs = true;
   singBoxRestartsOnConfigChange = true;
   tailscaleRouteLogsFiltered = true;
+  qqbotReconnectLogsFiltered = true;
 })

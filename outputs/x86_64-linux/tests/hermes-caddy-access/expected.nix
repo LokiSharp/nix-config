@@ -21,6 +21,9 @@ _:
   entrypointIsInContainer = true;
   portsPublishedOnLoopback = true;
   tokenAnalyticsEnabled = true;
+  emailPlatformEnabled = true;
+  emailImapPortIs993 = true;
+  qqbotReconnectLogsFiltered = true;
   sqliteNotNixpkgsVulnerable = true;
   sqliteUsesUnstable = true;
 }

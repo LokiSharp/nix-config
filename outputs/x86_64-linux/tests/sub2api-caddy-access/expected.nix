@@ -28,6 +28,7 @@ _:
   waitsForHealthyDeps = true;
   prepareIsOneshot = true;
   containersRequirePrepare = true;
+  postgresCheckpointsSuppressed = true;
   healthProbeIsLive = true;
   requiredUnitsCoverStack = true;
 }

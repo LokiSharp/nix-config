@@ -130,6 +130,7 @@ in
         # retries, so they are a lower bound, not the provider bill.
         show_token_analytics = true;
       };
+      platforms.email.enabled = true;
     };
 
     # Do not set environment/environmentFiles here. The upstream module
@@ -149,6 +150,7 @@ in
       HERMES_DASHBOARD_BASIC_AUTH_USERNAME=${myvars.username}
       HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${config.sops.placeholder."hermes-dashboard-password"}
       HERMES_DASHBOARD_BASIC_AUTH_SECRET=${config.sops.placeholder."hermes-dashboard-secret"}
+      EMAIL_IMAP_PORT=993
     '';
     mode = "0400";
     restartUnits = [
@@ -200,6 +202,11 @@ in
   systemd.services = {
     hermes-agent = {
       unitConfig.RequiresMountsFor = [ "/data/apps" ];
+      # QQ session timeouts are expected reconnects. systemd filters the
+      # unit's own stream; health checks also ignore the conmon copy.
+      serviceConfig.LogFilterPatterns = [
+        "~WebSocket closed: code=4009 reason=Session timed out"
+      ];
 
       # Upstream hardcodes --network=host. Combining that with --network=bridge
       # fails, so replace the just-created container when it is still on the

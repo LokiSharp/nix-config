@@ -108,6 +108,13 @@ in
       volumes = [
         "${stateDir}/postgres:/var/lib/postgresql/data"
       ];
+      # PG 15+ logs checkpoints at LOG on stderr. Podman/conmon records
+      # container stderr as journal priority 3, which trips deploy health.
+      cmd = [
+        "postgres"
+        "-c"
+        "log_checkpoints=off"
+      ];
       extraOptions = commonExtraOptions ++ [
         "--memory=1g"
         "--cpus=1"

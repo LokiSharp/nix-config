@@ -43,6 +43,11 @@ lib.mapAttrs
         || builtins.elem
           "~^monitor: RTM_(NEW|DEL)ROUTE:"
           config.systemd.services.tailscaled.serviceConfig.LogFilterPatterns;
+      qqbotReconnectLogsFiltered =
+        !(config.systemd.services ? hermes-agent)
+        || builtins.elem
+          "~WebSocket closed: code=4009 reason=Session timed out"
+          (config.systemd.services.hermes-agent.serviceConfig.LogFilterPatterns or [ ]);
     }
   )
   outputs.nixosConfigurations

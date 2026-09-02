@@ -35,6 +35,12 @@ in
     && lib.hasInfix "--publish=127.0.0.1:9119:9119" preStart;
   tokenAnalyticsEnabled =
     (config.services.hermes-agent.settings.dashboard.show_token_analytics or false) == true;
+  emailPlatformEnabled =
+    (config.services.hermes-agent.settings.platforms.email.enabled or false) == true;
+  emailImapPortIs993 = lib.hasInfix "EMAIL_IMAP_PORT=993" hermesEnv;
+  qqbotReconnectLogsFiltered = builtins.elem
+    "~WebSocket closed: code=4009 reason=Session timed out"
+    (config.systemd.services.hermes-agent.serviceConfig.LogFilterPatterns or [ ]);
   # nixpkgs 26.05 still ships SQLite 3.51.2 (WAL-reset). Hermes must wrap
   # the binary against pkgs-unstable's already-fixed SQLite instead.
   sqliteNotNixpkgsVulnerable = !(lib.hasInfix "-sqlite-3.51.2" config.services.hermes-agent.package.name);

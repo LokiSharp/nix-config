@@ -65,7 +65,11 @@ just deploy-all 4
 
 每次健康检查使用进程独立的 SSH control socket，避免复用上次运行遗留的失效连接。如果当前复用连接仍发生 mux/control-master 错误，检查会自动改用全新非复用连接重试一次；认证、网络和远端命令的真实错误不会触发该降级。
 
-当前已知的 D-Bus `Ignoring duplicate name` 和公网 SSH pre-auth 连接重置会从日志失败条件中排除；AppArmor、audit、内核或服务产生的其他高优先级日志仍会阻止发布通过。
+当前已知的 D-Bus `Ignoring duplicate name`、公网 SSH pre-auth 连接重置，以及 QQBot
+`WebSocket closed: code=4009 reason=Session timed out` 会从日志失败条件中排除。
+QQBot 4009 是会话超时后的预期重连；Podman conmon 把容器 stderr 记成 journal
+priority 3，所以健康检查必须显式忽略。AppArmor、audit、内核或服务产生的其他
+高优先级日志仍会阻止发布通过。
 
 ## 普通用户与 root 检查
 

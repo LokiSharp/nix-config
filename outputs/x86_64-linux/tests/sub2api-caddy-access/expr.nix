@@ -79,6 +79,9 @@ in
     && builtins.elem "sub2api-prepare.service" (
       config.systemd.services.podman-sub2api-redis.requires or [ ]
     );
+  postgresCheckpointsSuppressed =
+    builtins.elem "postgres" (postgres.cmd or [ ])
+    && builtins.elem "log_checkpoints=off" (postgres.cmd or [ ]);
   healthProbeIsLive =
     config.deployment.healthChecks.httpProbes.podman-sub2api == "http://127.0.0.1:8080/health";
   requiredUnitsCoverStack = lib.all

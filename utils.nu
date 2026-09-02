@@ -759,7 +759,8 @@ def check-deployment-host [
                 let trimmed = ($line | str trim)
                 let duplicate_dbus = ($line | str contains "Ignoring duplicate name")
                 let ssh_preauth_reset = (($line | str contains "kex_exchange_identification") and ($line | str contains "[preauth]"))
-                ($trimmed != "") and ($trimmed != "-- No entries --") and not $duplicate_dbus and not $ssh_preauth_reset
+                let qqbot_session_timeout = ($line | str contains "WebSocket closed: code=4009 reason=Session timed out")
+                ($trimmed != "") and ($trimmed != "-- No entries --") and not $duplicate_dbus and not $ssh_preauth_reset and not $qqbot_session_timeout
             }
         )
         if ($unexpected | is-empty) {

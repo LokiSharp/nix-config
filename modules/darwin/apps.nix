@@ -105,6 +105,8 @@ in
       # Xcode = 497799835;
       Wechat = 836500024;
       QQ = 451108668;
+      # Official Clash for Mac (clash.md). Unavailable in the mainland China App Store.
+      Clash = 6794257189;
     };
 
     brews = [
@@ -161,6 +163,8 @@ in
       # IM & audio & remote desktop & meeting
       "remoteviewer" # remote desktop client
       "telegram"
+      # Official Discord desktop is not on the Mac App Store (iOS-only, opted out of Mac).
+      "discord"
 
       # Misc
       "daisydisk" # disk space analyzer

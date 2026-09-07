@@ -9,6 +9,8 @@
 let
   apiPort = 8642;
   dashboardPort = 9119;
+  vncPort = 5900;
+  novncPort = 6080;
 
   # This host's IPv6 route resets some external TLS connections (including
   # auth.x.ai). Prefer IPv4 inside Hermes without disabling IPv6 fallback.
@@ -20,6 +22,112 @@ let
   containerName = "hermes-agent";
   containerDataDir = "/data";
   containerHomeDir = "/home/hermes";
+  # Root is a 2G tmpfs. Podman image builds write blobs to $TMPDIR.
+  buildTmpDir = "${stateDir}/build-tmp";
+  novncCaddyAuthFile = "/data/apps/caddy/hermes-novnc-auth.caddy";
+  debianBaseImage = "m.daocloud.io/docker.io/library/debian:stable";
+
+  # extraPackages only lands on the host hermes user PATH. Computer Use
+  # binaries must live in the Debian image so overlay apt is not required.
+  desktopDockerfileText = ''
+    FROM ${debianBaseImage}
+    RUN printf 'precedence ::ffff:0:0/96  100\n' > /etc/gai.conf \
+     && apt-get update \
+     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+          xvfb \
+          x11vnc \
+          fluxbox \
+          novnc \
+          websockify \
+          at-spi2-core \
+          dbus \
+          dbus-x11 \
+          wmctrl \
+          xdotool \
+          x11-utils \
+          xterm \
+          firefox-esr \
+          fonts-noto-cjk \
+          libx11-6 \
+          libxtst6 \
+          libgtk-3-0 \
+          python3 \
+          ca-certificates \
+     && rm -rf /var/lib/apt/lists/*
+  '';
+  desktopDockerfile = pkgs.writeText "hermes-agent-cua.Dockerfile" desktopDockerfileText;
+  desktopImageHash = builtins.hashString "sha256" desktopDockerfileText;
+  desktopImageTag = "localhost/hermes-agent-cua:${builtins.substring 0 12 desktopImageHash}";
+  desktopImageSrc = pkgs.runCommand "hermes-agent-cua-image-src" { } ''
+    mkdir -p $out
+    cp ${desktopDockerfile} $out/Dockerfile
+  '';
+
+  buildDesktopImage = pkgs.writeShellScript "hermes-agent-build-cua-image" ''
+    set -eu
+    inspect=${pkgs.podman}/bin/podman
+    if $inspect image exists ${lib.escapeShellArg desktopImageTag}; then
+      exit 0
+    fi
+
+    export TMPDIR=${lib.escapeShellArg buildTmpDir}
+    export TMP="$TMPDIR"
+    export TEMP="$TMPDIR"
+    ${pkgs.coreutils}/bin/mkdir -p "$TMPDIR"
+
+    echo "Building ${desktopImageTag} for Hermes Computer Use"
+    attempt=1
+    max_attempts=5
+    while true; do
+      if $inspect build \
+        --network=host \
+        --tag ${lib.escapeShellArg desktopImageTag} \
+        ${lib.escapeShellArg desktopImageSrc}; then
+        exit 0
+      fi
+      if [ "$attempt" -ge "$max_attempts" ]; then
+        echo "Hermes Computer Use image build failed after $max_attempts attempts" >&2
+        exit 1
+      fi
+      attempt=$((attempt + 1))
+      echo "Retrying image build ($attempt/$max_attempts) in 20s"
+      ${pkgs.coreutils}/bin/sleep 20
+    done
+  '';
+
+  startCuaWatchdog = pkgs.writeShellScript "hermes-cua-watchdog" ''
+    set -eu
+    inspect=${pkgs.podman}/bin/podman
+    i=0
+    while [ "$i" -lt 120 ]; do
+      if $inspect exec ${containerName} true; then
+        exec $inspect exec -d -u hermes ${containerName} \
+          python3 /data/.hermes/scripts/cua-desktop-watchdog.py
+      fi
+      i=$((i + 1))
+      ${pkgs.coreutils}/bin/sleep 1
+    done
+    echo "hermes-agent container is not ready for CUA watchdog" >&2
+    exit 1
+  '';
+
+  renderNovncCaddyAuth = pkgs.writeShellScript "hermes-novnc-caddy-auth" ''
+    set -eu
+    secret=${lib.escapeShellArg config.sops.secrets."hermes-dashboard-password".path}
+    if [ ! -s "$secret" ]; then
+      echo "missing Hermes dashboard password for noVNC Caddy auth" >&2
+      exit 1
+    fi
+    hash=$(${pkgs.coreutils}/bin/tr -d '\r\n' < "$secret" | ${pkgs.caddy}/bin/caddy hash-password)
+    hash_escaped=$(printf '%s' "$hash" | ${pkgs.gnused}/bin/sed 's/\$/\$\$/g')
+    umask 077
+    ${pkgs.coreutils}/bin/mkdir -p /data/apps/caddy
+    tmp=$(${pkgs.coreutils}/bin/mktemp /data/apps/caddy/hermes-novnc-auth.caddy.XXXXXX)
+    printf 'basic_auth {\n  %s %s\n}\n' ${lib.escapeShellArg myvars.username} "$hash_escaped" > "$tmp"
+    ${pkgs.coreutils}/bin/chown caddy:caddy "$tmp"
+    ${pkgs.coreutils}/bin/chmod 0400 "$tmp"
+    ${pkgs.coreutils}/bin/mv "$tmp" ${lib.escapeShellArg novncCaddyAuthFile}
+  '';
 
   # nixpkgs 26.05 still ships 3.51.2, which hits the WAL-reset bug
   # (3.7.0–3.51.2). Unstable already has a fixed SQLite; preload it
@@ -96,9 +204,9 @@ in
     container = {
       enable = true;
       backend = "podman";
-      # Docker Hub is unreliable over this host's IPv6 route. Use DaoCloud's
-      # transparent mirror for Debian's official current-stable image.
-      image = "m.daocloud.io/docker.io/library/debian:stable";
+      # Local image derived from Debian stable (DaoCloud pull-through). The
+      # Computer Use desktop stack is baked in so overlay apt is not required.
+      image = desktopImageTag;
       extraVolumes = [ "${gaiConf}:/etc/gai.conf:ro" ];
       hostUsers = [ ];
     };
@@ -156,6 +264,8 @@ in
     restartUnits = [
       "hermes-agent.service"
       "hermes-dashboard.service"
+      "hermes-novnc-caddy-auth.service"
+      "caddy.service"
     ];
   };
 
@@ -200,27 +310,80 @@ in
   # The NixOS module only starts `hermes gateway`. Dashboard is a separate
   # process; official Docker's HERMES_DASHBOARD=1 is an s6 hook we do not have.
   systemd.services = {
+    hermes-agent-image = {
+      description = "Build the Hermes Computer Use container image";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      unitConfig.RequiresMountsFor = [
+        "/var/lib/containers"
+        "/data/apps"
+      ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        TimeoutStartSec = "2h";
+        PrivateTmp = false;
+        ExecStart = buildDesktopImage;
+        Environment = [
+          "TMPDIR=${buildTmpDir}"
+          "TMP=${buildTmpDir}"
+          "TEMP=${buildTmpDir}"
+        ];
+      };
+    };
+
+    hermes-novnc-caddy-auth = {
+      description = "Render Caddy basic_auth snippet for Hermes noVNC";
+      wantedBy = [ "multi-user.target" ];
+      before = [ "caddy.service" ];
+      after = [ "sops-install-secrets.service" ];
+      unitConfig.RequiresMountsFor = [ "/data/apps" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = renderNovncCaddyAuth;
+      };
+    };
+
     hermes-agent = {
+      after = [ "hermes-agent-image.service" ];
+      requires = [ "hermes-agent-image.service" ];
       unitConfig.RequiresMountsFor = [ "/data/apps" ];
       # QQ session timeouts are expected reconnects. systemd filters the
       # unit's own stream; health checks also ignore the conmon copy.
-      serviceConfig.LogFilterPatterns = [
-        "~WebSocket closed: code=4009 reason=Session timed out"
-      ];
+      serviceConfig = {
+        LogFilterPatterns = [
+          "~WebSocket closed: code=4009 reason=Session timed out"
+        ];
+        ExecStartPost = startCuaWatchdog;
+        TimeoutStartSec = 300;
+      };
 
-      # Upstream hardcodes --network=host. Combining that with --network=bridge
-      # fails, so replace the just-created container when it is still on the
-      # host net. Later starts see the bridge identity and leave it alone.
+      # Keep the custom preStart (bridge + loopback publish). Upstream still
+      # hardcodes --network=host; combining that with --network=bridge fails,
+      # so replace the just-created container when it is still on the host
+      # net or missing Computer Use ports/env.
       preStart = lib.mkAfter ''
         inspect=${pkgs.podman}/bin/podman
         if $inspect inspect ${containerName} >/dev/null 2>&1; then
           mode="$($inspect inspect --format '{{.HostConfig.NetworkMode}}' ${containerName})"
           ports="$($inspect inspect --format '{{json .HostConfig.PortBindings}}' ${containerName})"
           entry="$($inspect inspect --format '{{join .Config.Entrypoint " "}}' ${containerName})"
-          if [ "$mode" != "host" ] && echo "$ports" | grep -q '127.0.0.1' && echo "$entry" | grep -q '${containerDataDir}/current-entrypoint'; then
+          image="$($inspect inspect --format '{{.Config.Image}}' ${containerName})"
+          envs="$($inspect inspect --format '{{range .Config.Env}}{{println .}}{{end}}' ${containerName})"
+          if [ "$mode" != "host" ] \
+            && [ "$image" = ${lib.escapeShellArg desktopImageTag} ] \
+            && echo "$ports" | grep -q '127.0.0.1' \
+            && echo "$ports" | grep -q '"${toString apiPort}/tcp"' \
+            && echo "$ports" | grep -q '"${toString dashboardPort}/tcp"' \
+            && echo "$ports" | grep -q '"${toString vncPort}/tcp"' \
+            && echo "$ports" | grep -q '"${toString novncPort}/tcp"' \
+            && echo "$envs" | grep -qx 'DISPLAY=:99' \
+            && echo "$entry" | grep -q '${containerDataDir}/current-entrypoint'; then
             exit 0
           fi
-          echo "Replacing Hermes container so it uses a loopback-published bridge"
+          echo "Replacing Hermes container so Computer Use desktop ports stay on loopback"
           $inspect rm -f ${containerName} || true
         fi
 
@@ -234,9 +397,12 @@ in
 
         $inspect create \
           --name ${containerName} \
+          --pull=never \
           --network=bridge \
           --publish=127.0.0.1:${toString apiPort}:${toString apiPort} \
           --publish=127.0.0.1:${toString dashboardPort}:${toString dashboardPort} \
+          --publish=127.0.0.1:${toString vncPort}:${toString vncPort} \
+          --publish=127.0.0.1:${toString novncPort}:${toString novncPort} \
           --entrypoint ${containerDataDir}/current-entrypoint \
           --volume /nix/store:/nix/store:ro \
           --volume ${stateDir}:${containerDataDir} \
@@ -247,9 +413,15 @@ in
           --env HERMES_HOME=${containerDataDir}/.hermes \
           --env HERMES_MANAGED=true \
           --env HOME=${containerHomeDir} \
+          --env DISPLAY=:99 \
           ${lib.escapeShellArg config.services.hermes-agent.container.image} \
           ${containerDataDir}/current-package/bin/hermes gateway run --replace
       '';
+    };
+
+    caddy = {
+      after = [ "hermes-novnc-caddy-auth.service" ];
+      requires = [ "hermes-novnc-caddy-auth.service" ];
     };
 
     hermes-dashboard = {

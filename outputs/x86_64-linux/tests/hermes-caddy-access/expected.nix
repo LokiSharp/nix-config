@@ -20,6 +20,17 @@ _:
   containerUsesBridge = true;
   entrypointIsInContainer = true;
   portsPublishedOnLoopback = true;
+  displayEnvForGateway = true;
+  cuaWatchdogExecStartPost = true;
+  noKeepId = true;
+  noUserns = true;
+  vncNotGloballyOpened = true;
+  novncNotGloballyOpened = true;
+  containerImageIsLocal = true;
+  agentRequiresDesktopImage = true;
+  novncVhostProxiesLoopback = true;
+  novncVhostRequiresCaddyAuth = true;
+  novncVhostHasWebsocket = true;
   tokenAnalyticsEnabled = true;
   emailPlatformEnabled = true;
   emailImapPortIs993 = true;

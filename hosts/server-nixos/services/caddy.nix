@@ -131,6 +131,19 @@ in
           header_up Connection {http.request.header.Connection}
         }
       '';
+      "hermes-vnc.slk.moe".extraConfig = ''
+        ${hostCommonConfig}
+        encode zstd gzip
+        import /data/apps/caddy/hermes-novnc-auth.caddy
+        reverse_proxy http://127.0.0.1:6080 {
+          header_up Host {http.request.host}
+          header_up X-Real-IP {http.request.remote.host}
+          header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
+          header_up X-Forwarded-Proto {scheme}
+          header_up Upgrade {http.request.header.Upgrade}
+          header_up Connection {http.request.header.Connection}
+        }
+      '';
       "hermes-api.slk.moe".extraConfig = ''
         ${hostCommonConfig}
         encode zstd gzip

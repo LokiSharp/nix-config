@@ -8,7 +8,12 @@ let
   hermesEnv = config.sops.templates."hermes-env".content;
   dashboardVhost = config.services.caddy.virtualHosts."hermes.slk.moe".extraConfig;
   apiVhost = config.services.caddy.virtualHosts."hermes-api.slk.moe".extraConfig;
+  novncVhost = config.services.caddy.virtualHosts."hermes-vnc.slk.moe".extraConfig;
   preStart = config.systemd.services.hermes-agent.preStart;
+  execStartPost = config.systemd.services.hermes-agent.serviceConfig.ExecStartPost or "";
+  execStartPostText =
+    if builtins.isList execStartPost then lib.concatStringsSep " " (map toString execStartPost)
+    else toString execStartPost;
 in
 {
   apiEnabled = lib.hasInfix "API_SERVER_ENABLED=true" hermesEnv;
@@ -32,7 +37,22 @@ in
   entrypointIsInContainer = lib.hasInfix "--entrypoint /data/current-entrypoint" preStart;
   portsPublishedOnLoopback =
     lib.hasInfix "--publish=127.0.0.1:8642:8642" preStart
-    && lib.hasInfix "--publish=127.0.0.1:9119:9119" preStart;
+    && lib.hasInfix "--publish=127.0.0.1:9119:9119" preStart
+    && lib.hasInfix "--publish=127.0.0.1:5900:5900" preStart
+    && lib.hasInfix "--publish=127.0.0.1:6080:6080" preStart;
+  displayEnvForGateway = lib.hasInfix "--env DISPLAY=:99" preStart;
+  cuaWatchdogExecStartPost = lib.hasInfix "hermes-cua-watchdog" execStartPostText;
+  noKeepId = !(lib.hasInfix "keep-id" preStart);
+  noUserns = !(lib.hasInfix "userns" preStart);
+  vncNotGloballyOpened = !(builtins.elem 5900 allowedTCPPorts);
+  novncNotGloballyOpened = !(builtins.elem 6080 allowedTCPPorts);
+  containerImageIsLocal = lib.hasPrefix "localhost/hermes-agent-cua:" config.services.hermes-agent.container.image;
+  agentRequiresDesktopImage = builtins.elem "hermes-agent-image.service" (
+    config.systemd.services.hermes-agent.requires or [ ]
+  );
+  novncVhostProxiesLoopback = lib.hasInfix "reverse_proxy http://127.0.0.1:6080" novncVhost;
+  novncVhostRequiresCaddyAuth = lib.hasInfix "import /data/apps/caddy/hermes-novnc-auth.caddy" novncVhost;
+  novncVhostHasWebsocket = lib.hasInfix "header_up Upgrade" novncVhost;
   tokenAnalyticsEnabled =
     (config.services.hermes-agent.settings.dashboard.show_token_analytics or false) == true;
   emailPlatformEnabled =

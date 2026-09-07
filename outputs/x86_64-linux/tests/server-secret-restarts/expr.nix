@@ -8,4 +8,6 @@ in
   sftpgo = builtins.elem "sftpgo.service" templates."sftpgo-env".restartUnits;
   hermesAgent = builtins.elem "hermes-agent.service" templates."hermes-env".restartUnits;
   hermesDashboard = builtins.elem "hermes-dashboard.service" templates."hermes-env".restartUnits;
+  hermesNovncAuth = builtins.elem "hermes-novnc-caddy-auth.service" templates."hermes-env".restartUnits;
+  hermesNovncCaddy = builtins.elem "caddy.service" templates."hermes-env".restartUnits;
 }

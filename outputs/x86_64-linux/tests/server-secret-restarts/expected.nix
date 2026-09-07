@@ -5,4 +5,6 @@ _:
   sftpgo = true;
   hermesAgent = true;
   hermesDashboard = true;
+  hermesNovncAuth = true;
+  hermesNovncCaddy = true;
 }

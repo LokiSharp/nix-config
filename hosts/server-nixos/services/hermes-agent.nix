@@ -113,17 +113,26 @@ let
 
   renderNovncCaddyAuth = pkgs.writeShellScript "hermes-novnc-caddy-auth" ''
     set -eu
+    export HOME=/root
+    export XDG_CONFIG_HOME=/root/.config
     secret=${lib.escapeShellArg config.sops.secrets."hermes-dashboard-password".path}
     if [ ! -s "$secret" ]; then
       echo "missing Hermes dashboard password for noVNC Caddy auth" >&2
       exit 1
     fi
-    hash=$(${pkgs.coreutils}/bin/tr -d '\r\n' < "$secret" | ${pkgs.caddy}/bin/caddy hash-password)
-    hash_escaped=$(printf '%s' "$hash" | ${pkgs.gnused}/bin/sed 's/\$/\$\$/g')
+    pass=$(${pkgs.coreutils}/bin/tr -d '\r\n' < "$secret")
+    if [ -z "$pass" ]; then
+      echo "Hermes dashboard password is empty" >&2
+      exit 1
+    fi
+    # systemd connects the unit's stdin to /dev/null, so piping the
+    # secret into hash-password yields EOF. --plaintext is required.
+    # Do not Caddyfile-escape `$` as `$$`: 2.11 then fails to parse the hash.
+    hash=$(${pkgs.caddy}/bin/caddy hash-password --plaintext "$pass")
     umask 077
     ${pkgs.coreutils}/bin/mkdir -p /data/apps/caddy
     tmp=$(${pkgs.coreutils}/bin/mktemp /data/apps/caddy/hermes-novnc-auth.caddy.XXXXXX)
-    printf 'basic_auth {\n  %s %s\n}\n' ${lib.escapeShellArg myvars.username} "$hash_escaped" > "$tmp"
+    printf 'basic_auth {\n  %s %s\n}\n' ${lib.escapeShellArg myvars.username} "$hash" > "$tmp"
     ${pkgs.coreutils}/bin/chown caddy:caddy "$tmp"
     ${pkgs.coreutils}/bin/chmod 0400 "$tmp"
     ${pkgs.coreutils}/bin/mv "$tmp" ${lib.escapeShellArg novncCaddyAuthFile}
@@ -343,6 +352,10 @@ in
         Type = "oneshot";
         RemainAfterExit = true;
         ExecStart = renderNovncCaddyAuth;
+        Environment = [
+          "HOME=/root"
+          "XDG_CONFIG_HOME=/root/.config"
+        ];
       };
     };
 

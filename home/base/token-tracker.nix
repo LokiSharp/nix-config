@@ -2,23 +2,23 @@
 let
   tokenTrackerCli = pkgs.buildNpmPackage rec {
     pname = "tokentracker-cli";
-    version = "0.93.4";
+    version = "0.96.1";
 
     src = pkgs.fetchurl {
       url = "https://registry.npmjs.org/${pname}/-/${pname}-${version}.tgz";
-      hash = "sha512-hS00xLjr+6J7Hz7JeC4wFr3ivy01T1HUC4Wede5DNzIDIkgfcek8bSYleEzpEhfCzJoAZW3//oNrp47D7Z2LeQ==";
+      hash = "sha512-9El/4yfvfSFSG4eVhltr+5r/CLNO6oWHccvFFojUsJaWjpWhPkICv68DrJ+YPxGUhz+di+DCItWZSauUzkmyog==";
     };
 
     postPatch = ''
       cp ${
         pkgs.fetchurl {
           url = "https://raw.githubusercontent.com/xiufengsun/TokenTracker/v${version}/package-lock.json";
-          hash = "sha256-LCD3Bhys+5aVBVu6bw7LKWEKGlLd1DeOPY0ylwucCEw=";
+          hash = "sha256-FZTOUTy9y+BKURRmmxCcYG8qiNpLp2S0jm3yTDnj7zo=";
         }
       } package-lock.json
     '';
 
-    npmDepsHash = "sha256-jJT3lBE5TWCMcWMxwxIVkvUCSYcp5BA8wEah95S6F8c=";
+    npmDepsHash = "sha256-E9r/+td0zkxBIrmi0hnovlKuK+qkUXi+obyF9bKdUho=";
     npmFlags = [ "--ignore-scripts" ];
     dontNpmBuild = true;
 

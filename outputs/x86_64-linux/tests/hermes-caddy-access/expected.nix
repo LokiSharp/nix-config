@@ -37,4 +37,5 @@ _:
   qqbotReconnectLogsFiltered = true;
   sqliteNotNixpkgsVulnerable = true;
   sqliteUsesUnstable = true;
+  hermesStateDirGroupReadable = true;
 }

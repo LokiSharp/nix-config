@@ -65,4 +65,9 @@ in
   # the binary against pkgs-unstable's already-fixed SQLite instead.
   sqliteNotNixpkgsVulnerable = !(lib.hasInfix "-sqlite-3.51.2" config.services.hermes-agent.package.name);
   sqliteUsesUnstable = lib.hasInfix "-sqlite-3.53" config.services.hermes-agent.package.name;
+  hermesStateDirGroupReadable =
+    lib.hasInfix "chmod 0750" config.system.activationScripts.hermes-env-merge.text
+    && lib.hasInfix "hermes-state-group-readable" execStartPostText
+    && builtins.elem "z /data/apps/hermes/.hermes 0750 hermes hermes - -" config.systemd.tmpfiles.rules
+    && !(config.systemd.timers ? hermes-state-readable);
 }

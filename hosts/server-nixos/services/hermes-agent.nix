@@ -187,6 +187,26 @@ let
         "$@"
     '';
   };
+
+  # Hermes mkdir()s $HERMES_HOME as 0700, which hides state.db from the
+  # hermes group even though the DB files themselves are 0664. Token Tracker
+  # only needs directory traverse + the already group-readable SQLite files.
+  hermesStateGroupReadable = pkgs.writeShellScript "hermes-state-group-readable" ''
+    set -eu
+    dir=${lib.escapeShellArg "${stateDir}/.hermes"}
+    if [ ! -d "$dir" ]; then
+      exit 0
+    fi
+    ${pkgs.coreutils}/bin/chown hermes:hermes "$dir"
+    ${pkgs.coreutils}/bin/chmod 0750 "$dir"
+    if [ -d "$dir/profiles" ]; then
+      ${pkgs.coreutils}/bin/chown hermes:hermes "$dir/profiles"
+      ${pkgs.coreutils}/bin/chmod 0750 "$dir/profiles"
+      ${pkgs.findutils}/bin/find "$dir/profiles" -mindepth 1 -maxdepth 1 -type d \
+        -exec ${pkgs.coreutils}/bin/chown hermes:hermes {} + \
+        -exec ${pkgs.coreutils}/bin/chmod 0750 {} +
+    fi
+  '';
 in
 {
   imports = [
@@ -314,6 +334,8 @@ in
 
     chown hermes:hermes "$env_file"
     chmod 0660 "$env_file"
+    chown hermes:hermes "$(dirname "$env_file")"
+    chmod 0750 "$(dirname "$env_file")"
 
     # The upstream module drops a write-lock so the dashboard refuses to
     # edit .env. Remove it after setup so Channels/API Keys can persist
@@ -374,7 +396,10 @@ in
         LogFilterPatterns = [
           "~WebSocket closed: code=4009 reason=Session timed out"
         ];
-        ExecStartPost = startCuaWatchdog;
+        ExecStartPost = [
+          startCuaWatchdog
+          hermesStateGroupReadable
+        ];
         TimeoutStartSec = 300;
       };
 
@@ -476,6 +501,10 @@ in
       };
     };
   };
+
+  systemd.tmpfiles.rules = [
+    "z ${stateDir}/.hermes 0750 hermes hermes - -"
+  ];
 
   environment.systemPackages = [ hermesCli ];
 

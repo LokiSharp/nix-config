@@ -15,6 +15,7 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (
     service = user.systemd.user.services.token-tracker or { };
     timer = user.systemd.user.timers.token-tracker or { };
     execStart = lib.concatStringsSep " " (lib.toList (service.Service.ExecStart or ""));
+    serviceEnvironment = lib.concatStringsSep " " (lib.toList (service.Service.Environment or [ ]));
     serviceWantedBy = lib.toList (service.Install.WantedBy or [ ]);
     timerWantedBy = lib.toList (timer.Install.WantedBy or [ ]);
     persistedDirs = config.environment.persistence."/persistent".users.${username}.directories;
@@ -35,5 +36,8 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (
       !(lib.hasInfix " serve " execStart)
       && !(builtins.elem 7680 config.networking.firewall.allowedTCPPorts)
       && !(lib.hasInfix "7680" config.networking.nftables.extraInputRules);
+    hermesStateReadable =
+      lib.hasInfix "TOKENTRACKER_HERMES_HOME=/data/apps/hermes/.hermes" serviceEnvironment
+      && builtins.elem "hermes" (config.users.users.${username}.extraGroups or [ ]);
   }
 )

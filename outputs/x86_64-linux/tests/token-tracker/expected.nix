@@ -17,5 +17,6 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (
     lingerEnabled = enabled;
     statePersisted = enabled;
     dashboardNotServed = true;
+    hermesStateReadable = name == "Server-NixOS";
   }
 )

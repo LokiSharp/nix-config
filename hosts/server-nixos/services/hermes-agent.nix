@@ -200,6 +200,11 @@ in
     }
   ];
 
+  # Token Tracker runs as the interactive user and needs group read on
+  # /data/apps/hermes/.hermes/state.db. Do not use container.hostUsers: that
+  # also plants ~/.hermes and would make a host CLI share the service state.
+  users.users.${myvars.username}.extraGroups = [ "hermes" ];
+
   services.hermes-agent = {
     enable = true;
 

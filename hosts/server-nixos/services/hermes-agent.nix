@@ -207,6 +207,18 @@ let
         -exec ${pkgs.coreutils}/bin/chmod 0750 {} +
     fi
   '';
+
+  # Gateway chmod 0700 happens after systemd already considers the unit
+  # started. Re-apply in that start window only — not on a timer.
+  hermesStateGroupReadableAfterStart = pkgs.writeShellScript "hermes-state-group-readable-after-start" ''
+    set -eu
+    i=0
+    while [ "$i" -lt 10 ]; do
+      ${hermesStateGroupReadable}
+      i=$((i + 1))
+      ${pkgs.coreutils}/bin/sleep 2
+    done
+  '';
 in
 {
   imports = [
@@ -498,6 +510,19 @@ in
         # Unset HERMES_MANAGED so the dashboard can write .env. The gateway
         # container still has the lock, so `hermes config set` stays blocked.
         ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent env -u HERMES_MANAGED /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
+      };
+    };
+
+    # Do not block hermes-agent's ExecStartPost: the gateway chmod 0700
+    # lands a few seconds after the unit is already active.
+    hermes-state-readable = {
+      description = "Make Hermes state directory group-traversable for Token Tracker";
+      after = [ "hermes-agent.service" ];
+      wantedBy = [ "hermes-agent.service" ];
+      partOf = [ "hermes-agent.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = hermesStateGroupReadableAfterStart;
       };
     };
   };

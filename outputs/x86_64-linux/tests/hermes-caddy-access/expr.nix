@@ -69,5 +69,11 @@ in
     lib.hasInfix "chmod 0750" config.system.activationScripts.hermes-env-merge.text
     && lib.hasInfix "hermes-state-group-readable" execStartPostText
     && builtins.elem "z /data/apps/hermes/.hermes 0750 hermes hermes - -" config.systemd.tmpfiles.rules
+    && lib.hasInfix "hermes-state-group-readable-after-start" (
+      toString (config.systemd.services.hermes-state-readable.serviceConfig.ExecStart or "")
+    )
+    && builtins.elem "hermes-agent.service" (
+      config.systemd.services.hermes-state-readable.wantedBy or [ ]
+    )
     && !(config.systemd.timers ? hermes-state-readable);
 }

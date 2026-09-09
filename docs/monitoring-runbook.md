@@ -175,6 +175,24 @@ readlink -f /nix/var/nix/profiles/system
 revision 不同不一定表示故障：分批部署期间属于正常状态，因此规则保留 6 小时窗口。如果窗口后
 仍不一致，应通过 `just deploy-health <HostName>` 检查遗漏或失败的节点；不要手工修改指标文件。
 
+## Token Tracker 无法读取 Hermes 状态
+
+对应告警：`HostTokenTrackerHermesUnreadable`、`HostTokenTrackerHermesMetricsMissing`
+
+这两条只针对 `Server-NixOS`。前者在 `state.db` 对 Token Tracker 用户不可读并持续 20
+分钟后触发；后者在节点可达但缺少该 textfile 指标并持续 30 分钟后触发。目录变成
+`0700` 时，sync 仍会成功退出，但 Hermes 用量不会再上报。
+
+```console
+stat -c '%A %U %G %n' /data/apps/hermes/.hermes /data/apps/hermes/.hermes/state.db
+runuser -u loki-sharp -- test -r /data/apps/hermes/.hermes/state.db && echo readable
+cat /var/lib/prometheus-node-exporter/textfile/token-tracker-hermes.prom
+journalctl --user-unit token-tracker.service --since "-1 hour"
+```
+
+先恢复目录组可遍历（`HERMES_HOME_MODE=0750`），再确认下一次 sync 能解析 Hermes
+会话。不要删除指标来制造 resolved。
+
 ## systemd 服务失败
 
 对应告警：`HostSystemdServiceCrashed`

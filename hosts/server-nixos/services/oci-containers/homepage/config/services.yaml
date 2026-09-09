@@ -45,3 +45,7 @@
         href: "https://sub2api.slk.moe/"
         description: Personal AI subscription API gateway
         siteMonitor: "https://sub2api.slk.moe/health"
+    - Hermes:
+        icon: mdi-robot-outline
+        href: "https://hermes.slk.moe/"
+        description: Hermes Agent dashboard

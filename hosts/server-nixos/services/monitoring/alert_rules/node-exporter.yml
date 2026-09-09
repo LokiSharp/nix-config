@@ -644,3 +644,30 @@ groups:
             {{ end }}
             VALUE = {{ $value }}
             LABELS = {{ $labels }}
+
+      - alert: HostTokenTrackerHermesUnreadable
+        expr:
+          '(token_tracker_hermes_state_readable == 0) * on(instance) group_left (nodename)
+          node_uname_info{nodename=~".+"}'
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: Token Tracker cannot read Hermes state (instance {{ $labels.instance }})
+          description:
+            "Hermes state.db is missing or not readable by the Token Tracker user, so usage
+            sync will skip Hermes sessions.\n  REASON = {{ $labels.reason }}\n  VALUE = {{ $value
+            }}\n  LABELS = {{ $labels }}"
+
+      - alert: HostTokenTrackerHermesMetricsMissing
+        expr:
+          'up{job=~"node-exporter-.+",host="Server-NixOS"} == 1 unless on(instance)
+          token_tracker_hermes_state_readable'
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: Token Tracker Hermes metrics missing (instance {{ $labels.instance }})
+          description:
+            "Server-NixOS is reachable but does not expose Token Tracker Hermes readability
+            metrics.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"

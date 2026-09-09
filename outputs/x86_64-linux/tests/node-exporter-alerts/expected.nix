@@ -7,4 +7,6 @@ _:
   sustainedReadLatencyRuleConfigured = true;
   sustainedWriteLatencyRuleConfigured = true;
   targetDownRuleConfigured = true;
+  tokenTrackerHermesUnreadableRuleConfigured = true;
+  tokenTrackerHermesMetricsMissingRuleConfigured = true;
 }

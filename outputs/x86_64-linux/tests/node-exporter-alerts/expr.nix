@@ -54,6 +54,22 @@ let
     "            {{ else if eq $labels.reason \"initrd_mismatch\" -}}"
     "            Reason: the deployed initrd differs from the one used at boot; this can include early-boot or CPU microcode changes."
   ];
+  tokenTrackerHermesUnreadableRule = builtins.concatStringsSep "\n" [
+    "      - alert: HostTokenTrackerHermesUnreadable"
+    "        expr:"
+    "          '(token_tracker_hermes_state_readable == 0) * on(instance) group_left (nodename)"
+    "          node_uname_info{nodename=~\".+\"}'"
+    "        for: 20m"
+    "        labels:"
+    "          severity: warning"
+  ];
+  tokenTrackerHermesMetricsMissingRule = builtins.concatStringsSep "\n" [
+    "      - alert: HostTokenTrackerHermesMetricsMissing"
+    "        expr:"
+    "          'up{job=~\"node-exporter-.+\",host=\"Server-NixOS\"} == 1 unless on(instance)"
+    "          token_tracker_hermes_state_readable'"
+    "        for: 30m"
+  ];
 in
 {
   nodeExporterRulesEnabled = lib.any
@@ -67,4 +83,6 @@ in
   sustainedWriteLatencyRuleConfigured = lib.hasInfix sustainedWriteLatencyRule nodeExporterRules;
   rebootRequiredRuleConfigured = lib.hasInfix rebootRequiredRule nodeExporterRules;
   rebootRequiredReasonConfigured = lib.hasInfix rebootRequiredReason nodeExporterRules;
+  tokenTrackerHermesUnreadableRuleConfigured = lib.hasInfix tokenTrackerHermesUnreadableRule nodeExporterRules;
+  tokenTrackerHermesMetricsMissingRuleConfigured = lib.hasInfix tokenTrackerHermesMetricsMissingRule nodeExporterRules;
 }

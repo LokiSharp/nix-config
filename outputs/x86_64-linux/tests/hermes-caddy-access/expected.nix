@@ -22,6 +22,9 @@ _:
   portsPublishedOnLoopback = true;
   displayEnvForGateway = true;
   cuaWatchdogExecStartPost = true;
+  cuaWatchdogNotDetached = true;
+  cuaWatchdogWaitsForNovnc = true;
+  cuaWatchdogPyWaitsForVnc = true;
   noKeepId = true;
   noUserns = true;
   vncNotGloballyOpened = true;

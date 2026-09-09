@@ -95,19 +95,40 @@ let
     done
   '';
 
+  cuaWatchdogPy = pkgs.writeText "cua-desktop-watchdog.py" (
+    builtins.readFile ./cua-desktop-watchdog.py
+  );
+  # Wait for :5900 before starting websockify. The previous one-shot
+  # `podman exec -d` returned before x11vnc bound, so :6080 stayed down
+  # and Caddy served 502 on hermes-vnc until a manual rerun.
   startCuaWatchdog = pkgs.writeShellScript "hermes-cua-watchdog" ''
     set -eu
     inspect=${pkgs.podman}/bin/podman
     i=0
     while [ "$i" -lt 120 ]; do
       if $inspect exec ${containerName} true; then
-        exec $inspect exec -d -u hermes ${containerName} \
-          python3 /data/.hermes/scripts/cua-desktop-watchdog.py
+        break
       fi
       i=$((i + 1))
       ${pkgs.coreutils}/bin/sleep 1
     done
-    echo "hermes-agent container is not ready for CUA watchdog" >&2
+    if [ "$i" -ge 120 ]; then
+      echo "hermes-agent container is not ready for CUA watchdog" >&2
+      exit 1
+    fi
+
+    script=${lib.escapeShellArg cuaWatchdogPy}
+    j=0
+    while [ "$j" -lt 30 ]; do
+      $inspect exec -u hermes ${containerName} python3 "$script" || true
+      if ${pkgs.curl}/bin/curl -sf --max-time 1 -o /dev/null \
+        http://127.0.0.1:${toString novncPort}/; then
+        exit 0
+      fi
+      j=$((j + 1))
+      ${pkgs.coreutils}/bin/sleep 1
+    done
+    echo "CUA noVNC :${toString novncPort} is not listening" >&2
     exit 1
   '';
 

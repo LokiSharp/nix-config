@@ -14,6 +14,8 @@ let
   execStartPostText =
     if builtins.isList execStartPost then lib.concatStringsSep " " (map toString execStartPost)
     else toString execStartPost;
+  cuaWatchdogWrapperText = builtins.readFile (lib.removePrefix "-" execStartPostText);
+  cuaWatchdogPyText = builtins.readFile ../../../../hosts/server-nixos/services/cua-desktop-watchdog.py;
 in
 {
   apiEnabled = lib.hasInfix "API_SERVER_ENABLED=true" hermesEnv;
@@ -42,6 +44,17 @@ in
     && lib.hasInfix "--publish=127.0.0.1:6080:6080" preStart;
   displayEnvForGateway = lib.hasInfix "--env DISPLAY=:99" preStart;
   cuaWatchdogExecStartPost = lib.hasInfix "hermes-cua-watchdog" execStartPostText;
+  cuaWatchdogNotDetached =
+    !(lib.hasInfix "exec -d" cuaWatchdogWrapperText)
+    && lib.hasInfix "python3" cuaWatchdogWrapperText
+    && lib.hasInfix "cua-desktop-watchdog.py" cuaWatchdogWrapperText;
+  cuaWatchdogWaitsForNovnc =
+    lib.hasInfix "http://127.0.0.1:6080/" cuaWatchdogWrapperText
+    && lib.hasInfix "while" cuaWatchdogWrapperText;
+  cuaWatchdogPyWaitsForVnc =
+    lib.hasInfix "wait_port(5900)" cuaWatchdogPyText
+    && lib.hasInfix "wait_port(6080)" cuaWatchdogPyText
+    && lib.hasInfix "noVNC :6080 not listening" cuaWatchdogPyText;
   noKeepId = !(lib.hasInfix "keep-id" preStart);
   noUserns = !(lib.hasInfix "userns" preStart);
   vncNotGloballyOpened = !(builtins.elem 5900 allowedTCPPorts);

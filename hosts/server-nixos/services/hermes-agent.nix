@@ -208,8 +208,9 @@ let
     fi
   '';
 
-  # Gateway chmod 0700 happens after systemd already considers the unit
-  # started. Re-apply in that start window only — not on a timer.
+  # Unmanaged dashboard `_secure_dir()` and auth.json `secure_parent_dir()`
+  # chmod $HERMES_HOME after the gateway is already active. Re-apply in
+  # that start window only — not on a timer.
   hermesStateGroupReadableAfterStart = pkgs.writeShellScript "hermes-state-group-readable-after-start" ''
     set -eu
     i=0
@@ -435,6 +436,7 @@ in
             && echo "$ports" | grep -q '"${toString vncPort}/tcp"' \
             && echo "$ports" | grep -q '"${toString novncPort}/tcp"' \
             && echo "$envs" | grep -qx 'DISPLAY=:99' \
+            && echo "$envs" | grep -qx 'HERMES_HOME_MODE=0750' \
             && echo "$entry" | grep -q '${containerDataDir}/current-entrypoint'; then
             exit 0
           fi
@@ -466,6 +468,7 @@ in
           --env HERMES_UID="$HERMES_UID" \
           --env HERMES_GID="$HERMES_GID" \
           --env HERMES_HOME=${containerDataDir}/.hermes \
+          --env HERMES_HOME_MODE=0750 \
           --env HERMES_MANAGED=true \
           --env HOME=${containerHomeDir} \
           --env DISPLAY=:99 \
@@ -509,16 +512,25 @@ in
         '';
         # Unset HERMES_MANAGED so the dashboard can write .env. The gateway
         # container still has the lock, so `hermes config set` stays blocked.
-        ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent env -u HERMES_MANAGED /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
+        # HERMES_HOME_MODE keeps $HERMES_HOME at 0750 when unmanaged
+        # `_secure_dir()` would otherwise chmod 0700.
+        ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent env -u HERMES_MANAGED HERMES_HOME_MODE=0750 /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
+        ExecStartPost = hermesStateGroupReadable;
       };
     };
 
-    # Do not block hermes-agent's ExecStartPost: the gateway chmod 0700
-    # lands a few seconds after the unit is already active.
+    # Dashboard `ensure_hermes_home()` and auth.json `secure_parent_dir()`
+    # chmod $HERMES_HOME after the gateway is already active.
     hermes-state-readable = {
       description = "Make Hermes state directory group-traversable for Token Tracker";
-      after = [ "hermes-agent.service" ];
-      wantedBy = [ "hermes-agent.service" ];
+      after = [
+        "hermes-agent.service"
+        "hermes-dashboard.service"
+      ];
+      wantedBy = [
+        "hermes-agent.service"
+        "hermes-dashboard.service"
+      ];
       partOf = [ "hermes-agent.service" ];
       serviceConfig = {
         Type = "oneshot";

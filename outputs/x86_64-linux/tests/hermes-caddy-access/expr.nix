@@ -75,5 +75,11 @@ in
     && builtins.elem "hermes-agent.service" (
       config.systemd.services.hermes-state-readable.wantedBy or [ ]
     )
+    && builtins.elem "hermes-dashboard.service" (
+      config.systemd.services.hermes-state-readable.wantedBy or [ ]
+    )
     && !(config.systemd.timers ? hermes-state-readable);
+  hermesHomeModeGroupReadable =
+    lib.hasInfix "--env HERMES_HOME_MODE=0750" preStart
+    && lib.hasInfix "HERMES_HOME_MODE=0750" config.systemd.services.hermes-dashboard.serviceConfig.ExecStart;
 }

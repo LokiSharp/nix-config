@@ -38,4 +38,5 @@ _:
   sqliteNotNixpkgsVulnerable = true;
   sqliteUsesUnstable = true;
   hermesStateDirGroupReadable = true;
+  hermesHomeModeGroupReadable = true;
 }

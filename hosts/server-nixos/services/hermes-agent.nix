@@ -187,39 +187,6 @@ let
         "$@"
     '';
   };
-
-  # Hermes mkdir()s $HERMES_HOME as 0700, which hides state.db from the
-  # hermes group even though the DB files themselves are 0664. Token Tracker
-  # only needs directory traverse + the already group-readable SQLite files.
-  hermesStateGroupReadable = pkgs.writeShellScript "hermes-state-group-readable" ''
-    set -eu
-    dir=${lib.escapeShellArg "${stateDir}/.hermes"}
-    if [ ! -d "$dir" ]; then
-      exit 0
-    fi
-    ${pkgs.coreutils}/bin/chown hermes:hermes "$dir"
-    ${pkgs.coreutils}/bin/chmod 0750 "$dir"
-    if [ -d "$dir/profiles" ]; then
-      ${pkgs.coreutils}/bin/chown hermes:hermes "$dir/profiles"
-      ${pkgs.coreutils}/bin/chmod 0750 "$dir/profiles"
-      ${pkgs.findutils}/bin/find "$dir/profiles" -mindepth 1 -maxdepth 1 -type d \
-        -exec ${pkgs.coreutils}/bin/chown hermes:hermes {} + \
-        -exec ${pkgs.coreutils}/bin/chmod 0750 {} +
-    fi
-  '';
-
-  # Unmanaged dashboard `_secure_dir()` and auth.json `secure_parent_dir()`
-  # chmod $HERMES_HOME after the gateway is already active. Re-apply in
-  # that start window only — not on a timer.
-  hermesStateGroupReadableAfterStart = pkgs.writeShellScript "hermes-state-group-readable-after-start" ''
-    set -eu
-    i=0
-    while [ "$i" -lt 10 ]; do
-      ${hermesStateGroupReadable}
-      i=$((i + 1))
-      ${pkgs.coreutils}/bin/sleep 2
-    done
-  '';
 in
 {
   imports = [
@@ -347,8 +314,6 @@ in
 
     chown hermes:hermes "$env_file"
     chmod 0660 "$env_file"
-    chown hermes:hermes "$(dirname "$env_file")"
-    chmod 0750 "$(dirname "$env_file")"
 
     # The upstream module drops a write-lock so the dashboard refuses to
     # edit .env. Remove it after setup so Channels/API Keys can persist
@@ -409,10 +374,7 @@ in
         LogFilterPatterns = [
           "~WebSocket closed: code=4009 reason=Session timed out"
         ];
-        ExecStartPost = [
-          startCuaWatchdog
-          hermesStateGroupReadable
-        ];
+        ExecStartPost = startCuaWatchdog;
         TimeoutStartSec = 300;
       };
 
@@ -515,26 +477,6 @@ in
         # HERMES_HOME_MODE keeps $HERMES_HOME at 0750 when unmanaged
         # `_secure_dir()` would otherwise chmod 0700.
         ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent env -u HERMES_MANAGED HERMES_HOME_MODE=0750 /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
-        ExecStartPost = hermesStateGroupReadable;
-      };
-    };
-
-    # Dashboard `ensure_hermes_home()` and auth.json `secure_parent_dir()`
-    # chmod $HERMES_HOME after the gateway is already active.
-    hermes-state-readable = {
-      description = "Make Hermes state directory group-traversable for Token Tracker";
-      after = [
-        "hermes-agent.service"
-        "hermes-dashboard.service"
-      ];
-      wantedBy = [
-        "hermes-agent.service"
-        "hermes-dashboard.service"
-      ];
-      partOf = [ "hermes-agent.service" ];
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = hermesStateGroupReadableAfterStart;
       };
     };
   };

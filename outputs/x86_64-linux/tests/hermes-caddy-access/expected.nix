@@ -1,5 +1,4 @@
-_:
-{
+_: {
   apiEnabled = true;
   apiBindsAllInterfaces = true;
   dashboardBindsAllInterfaces = true;
@@ -25,6 +24,8 @@ _:
   cuaWatchdogNotDetached = true;
   cuaWatchdogWaitsForNovnc = true;
   cuaWatchdogPyWaitsForVnc = true;
+  cuaWatchdogPreparesX11Dir = true;
+  cuaWatchdogClearsStaleXLock = true;
   noKeepId = true;
   noUserns = true;
   vncNotGloballyOpened = true;

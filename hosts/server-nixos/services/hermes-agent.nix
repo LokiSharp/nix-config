@@ -97,9 +97,11 @@ let
   cuaWatchdogPy = pkgs.writeText "cua-desktop-watchdog.py" (
     builtins.readFile ./cua-desktop-watchdog.py
   );
-  # Wait for :5900 before starting websockify. The previous one-shot
-  # `podman exec -d` returned before x11vnc bound, so :6080 stayed down
-  # and Caddy served 502 on hermes-vnc until a manual rerun.
+  # Stay in the foreground until noVNC answers. A detached
+  # `podman exec -d` used to return before x11vnc bound, so :6080 stayed
+  # down and Caddy served 502 on hermes-vnc.
+  # Xvfb runs as hermes and cannot create /tmp/.X11-unix (euid != 0).
+  # Prepare that directory as root before the watchdog.
   startCuaWatchdog = pkgs.writeShellScript "hermes-cua-watchdog" ''
     set -eu
     inspect=${pkgs.podman}/bin/podman
@@ -115,6 +117,10 @@ let
       echo "hermes-agent container is not ready for CUA watchdog" >&2
       exit 1
     fi
+
+    $inspect exec ${containerName} mkdir -p /tmp/.X11-unix
+    $inspect exec ${containerName} chown root:root /tmp/.X11-unix
+    $inspect exec ${containerName} chmod 1777 /tmp/.X11-unix
 
     script=${lib.escapeShellArg cuaWatchdogPy}
     j=0

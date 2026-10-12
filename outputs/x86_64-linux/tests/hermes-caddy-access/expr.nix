@@ -12,8 +12,10 @@ let
   preStart = config.systemd.services.hermes-agent.preStart;
   execStartPost = config.systemd.services.hermes-agent.serviceConfig.ExecStartPost or "";
   execStartPostText =
-    if builtins.isList execStartPost then lib.concatStringsSep " " (map toString execStartPost)
-    else toString execStartPost;
+    if builtins.isList execStartPost then
+      lib.concatStringsSep " " (map toString execStartPost)
+    else
+      toString execStartPost;
   cuaWatchdogWrapperText = builtins.readFile (lib.removePrefix "-" execStartPostText);
   cuaWatchdogPyText = builtins.readFile ../../../../hosts/server-nixos/services/cua-desktop-watchdog.py;
 in
@@ -55,6 +57,10 @@ in
     lib.hasInfix "wait_port(5900)" cuaWatchdogPyText
     && lib.hasInfix "wait_port(6080)" cuaWatchdogPyText
     && lib.hasInfix "noVNC :6080 not listening" cuaWatchdogPyText;
+  cuaWatchdogPreparesX11Dir =
+    lib.hasInfix "mkdir -p /tmp/.X11-unix" cuaWatchdogWrapperText
+    && lib.hasInfix "chmod 1777 /tmp/.X11-unix" cuaWatchdogWrapperText;
+  cuaWatchdogClearsStaleXLock = lib.hasInfix "clear_stale_x_lock" cuaWatchdogPyText;
   noKeepId = !(lib.hasInfix "keep-id" preStart);
   noUserns = !(lib.hasInfix "userns" preStart);
   vncNotGloballyOpened = !(builtins.elem 5900 allowedTCPPorts);
@@ -71,9 +77,9 @@ in
   emailPlatformEnabled =
     (config.services.hermes-agent.settings.platforms.email.enabled or false) == true;
   emailImapPortIs993 = lib.hasInfix "EMAIL_IMAP_PORT=993" hermesEnv;
-  qqbotReconnectLogsFiltered = builtins.elem
-    "~WebSocket closed: code=4009 reason=Session timed out"
-    (config.systemd.services.hermes-agent.serviceConfig.LogFilterPatterns or [ ]);
+  qqbotReconnectLogsFiltered = builtins.elem "~WebSocket closed: code=4009 reason=Session timed out" (
+    config.systemd.services.hermes-agent.serviceConfig.LogFilterPatterns or [ ]
+  );
   hermesHomeModeGroupReadable =
     lib.hasInfix "--env HERMES_HOME_MODE=0750" preStart
     && lib.hasInfix "HERMES_HOME_MODE=0750" config.systemd.services.hermes-dashboard.serviceConfig.ExecStart

@@ -3,10 +3,15 @@
 
 Hermes cron runs this as no_agent. Empty stdout = silent.
 Processes are started in a new session so they survive the cron tick.
+
+/tmp lives on the container overlay. A killed Xvfb leaves /tmp/.X99-lock,
+and after a restart that PID is often a different process. Xvfb then
+refuses the display. Drop the lock when no Xvfb for this display is alive.
 """
 from __future__ import annotations
 
 import os
+import signal
 import socket
 import subprocess
 import sys
@@ -27,27 +32,96 @@ except OSError:
     pass
 
 
+def display_num() -> str | None:
+    num = DISPLAY.rsplit(":", 1)[-1].split(".", 1)[0]
+    if num.isdigit():
+        return num
+    return None
+
+
+def cmdline(pid: int) -> list[str]:
+    try:
+        raw = Path(f"/proc/{pid}/cmdline").read_bytes().split(b"\x00")
+    except OSError:
+        return []
+    return [part.decode(errors="replace") for part in raw if part]
+
+
 def proc_named(name: str) -> bool:
-    for d in Path("/proc").iterdir():
-        if not d.name.isdigit():
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
             continue
-        try:
-            raw = (d / "cmdline").read_bytes().split(b"\x00")
-            argv0 = (raw[0] if raw else b"").decode(errors="replace")
-        except OSError:
-            continue
-        if Path(argv0).name == name:
+        argv = cmdline(int(entry.name))
+        if argv and Path(argv[0]).name == name:
             return True
     return False
 
 
+def xvfb_pids() -> list[int]:
+    num = display_num()
+    if num is None:
+        return []
+    needle = f":{num}"
+    found: list[int] = []
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        pid = int(entry.name)
+        argv = cmdline(pid)
+        if not argv or Path(argv[0]).name != "Xvfb":
+            continue
+        if any(arg == needle or arg.startswith(needle + ".") for arg in argv):
+            found.append(pid)
+    return found
+
+
+def clear_stale_x_lock() -> None:
+    """Remove an X lock whose PID is not an Xvfb for this display.
+
+    X only checks that the recorded PID exists. After a container restart
+    the PID namespace is reused, so a dead server looks active.
+    """
+    if xvfb_pids():
+        return
+    num = display_num()
+    if num is None:
+        return
+    for path in (Path(f"/tmp/.X{num}-lock"), Path(f"/tmp/.X11-unix/X{num}")):
+        try:
+            path.unlink()
+        except OSError:
+            pass
+
+
+def stop_xvfb() -> None:
+    def signal_all(sig: int) -> None:
+        for pid in xvfb_pids():
+            try:
+                os.kill(pid, sig)
+            except OSError:
+                pass
+
+    def wait_until_gone() -> bool:
+        for _ in range(20):
+            if not xvfb_pids():
+                return True
+            time.sleep(0.1)
+        return not xvfb_pids()
+
+    signal_all(signal.SIGTERM)
+    if wait_until_gone():
+        return
+    signal_all(signal.SIGKILL)
+    wait_until_gone()
+
+
 def listening(port: int) -> bool:
-    s = socket.socket()
-    s.settimeout(0.4)
+    probe = socket.socket()
+    probe.settimeout(0.4)
     try:
-        return s.connect_ex(("127.0.0.1", port)) == 0
+        return probe.connect_ex(("127.0.0.1", port)) == 0
     finally:
-        s.close()
+        probe.close()
 
 
 def wait_port(port: int, ticks: int = 40) -> bool:
@@ -79,37 +153,48 @@ def x11_up() -> bool:
     ) == 0
 
 
+def wait_x11(ticks: int = 50) -> bool:
+    for _ in range(ticks):
+        if x11_up():
+            return True
+        time.sleep(0.1)
+    return x11_up()
+
+
 started: list[str] = []
 
 if not x11_up():
-    spawn(
-        [
-            "Xvfb",
-            DISPLAY,
-            "-screen",
-            "0",
-            "1600x900x24",
-            "-ac",
-            "+extension",
-            "RENDER",
-            "+extension",
-            "GLX",
-            "+extension",
-            "RANDR",
-        ],
-        "xvfb.log",
-    )
-    for _ in range(40):
-        if x11_up():
-            break
-        time.sleep(0.1)
-    started.append("Xvfb")
+    # A live Xvfb that never bound the socket will not recover on its own.
+    if xvfb_pids():
+        wait_x11(20)
+    if not x11_up():
+        stop_xvfb()
+        clear_stale_x_lock()
+        spawn(
+            [
+                "Xvfb",
+                DISPLAY,
+                "-screen",
+                "0",
+                "1600x900x24",
+                "-ac",
+                "+extension",
+                "RENDER",
+                "+extension",
+                "GLX",
+                "+extension",
+                "RANDR",
+            ],
+            "xvfb.log",
+        )
+        started.append("Xvfb")
+        wait_x11()
 
-if not proc_named("fluxbox"):
+if x11_up() and not proc_named("fluxbox"):
     spawn(["fluxbox"], "fluxbox.log")
     started.append("fluxbox")
 
-if PASSFILE.exists() and not listening(5900):
+if x11_up() and PASSFILE.exists() and not listening(5900):
     spawn(
         [
             "x11vnc",

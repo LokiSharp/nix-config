@@ -6,163 +6,7 @@
 , ...
 }:
 let
-  apiPort = 8642;
-  dashboardPort = 9119;
-  vncPort = 5900;
-  novncPort = 6080;
-
-  # This host's IPv6 route resets some external TLS connections (including
-  # auth.x.ai). Prefer IPv4 inside Hermes without disabling IPv6 fallback.
-  gaiConf = pkgs.writeText "hermes-gai.conf" ''
-    precedence ::ffff:0:0/96  100
-  '';
-
-  stateDir = "/data/apps/hermes";
-  containerName = "hermes-agent";
-  containerDataDir = "/data";
-  containerHomeDir = "/home/hermes";
-  # Root is a 2G tmpfs. Podman image builds write blobs to $TMPDIR.
-  buildTmpDir = "${stateDir}/build-tmp";
-  novncCaddyAuthFile = "/data/apps/caddy/hermes-novnc-auth.caddy";
-  debianBaseImage = "m.daocloud.io/docker.io/library/debian:stable";
-
-  # extraPackages only lands on the host hermes user PATH. Computer Use
-  # binaries must live in the Debian image so overlay apt is not required.
-  desktopDockerfileText = ''
-    FROM ${debianBaseImage}
-    RUN printf 'precedence ::ffff:0:0/96  100\n' > /etc/gai.conf \
-     && apt-get update \
-     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-          xvfb \
-          x11vnc \
-          fluxbox \
-          novnc \
-          websockify \
-          at-spi2-core \
-          dbus \
-          dbus-x11 \
-          wmctrl \
-          xdotool \
-          x11-utils \
-          xterm \
-          firefox-esr \
-          fonts-noto-cjk \
-          libx11-6 \
-          libxtst6 \
-          libgtk-3-0 \
-          python3 \
-          ca-certificates \
-     && rm -rf /var/lib/apt/lists/*
-  '';
-  desktopDockerfile = pkgs.writeText "hermes-agent-cua.Dockerfile" desktopDockerfileText;
-  desktopImageHash = builtins.hashString "sha256" desktopDockerfileText;
-  desktopImageTag = "localhost/hermes-agent-cua:${builtins.substring 0 12 desktopImageHash}";
-  desktopImageSrc = pkgs.runCommand "hermes-agent-cua-image-src" { } ''
-    mkdir -p $out
-    cp ${desktopDockerfile} $out/Dockerfile
-  '';
-
-  buildDesktopImage = pkgs.writeShellScript "hermes-agent-build-cua-image" ''
-    set -eu
-    inspect=${pkgs.podman}/bin/podman
-    if $inspect image exists ${lib.escapeShellArg desktopImageTag}; then
-      exit 0
-    fi
-
-    export TMPDIR=${lib.escapeShellArg buildTmpDir}
-    export TMP="$TMPDIR"
-    export TEMP="$TMPDIR"
-    ${pkgs.coreutils}/bin/mkdir -p "$TMPDIR"
-
-    echo "Building ${desktopImageTag} for Hermes Computer Use"
-    attempt=1
-    max_attempts=5
-    while true; do
-      if $inspect build \
-        --network=host \
-        --tag ${lib.escapeShellArg desktopImageTag} \
-        ${lib.escapeShellArg desktopImageSrc}; then
-        exit 0
-      fi
-      if [ "$attempt" -ge "$max_attempts" ]; then
-        echo "Hermes Computer Use image build failed after $max_attempts attempts" >&2
-        exit 1
-      fi
-      attempt=$((attempt + 1))
-      echo "Retrying image build ($attempt/$max_attempts) in 20s"
-      ${pkgs.coreutils}/bin/sleep 20
-    done
-  '';
-
-  cuaWatchdogPy = pkgs.writeText "cua-desktop-watchdog.py" (
-    builtins.readFile ./cua-desktop-watchdog.py
-  );
-  # Stay in the foreground until noVNC answers. A detached
-  # `podman exec -d` used to return before x11vnc bound, so :6080 stayed
-  # down and Caddy served 502 on hermes-vnc.
-  # Xvfb runs as hermes and cannot create /tmp/.X11-unix (euid != 0).
-  # Prepare that directory as root before the watchdog.
-  startCuaWatchdog = pkgs.writeShellScript "hermes-cua-watchdog" ''
-    set -eu
-    inspect=${pkgs.podman}/bin/podman
-    i=0
-    while [ "$i" -lt 120 ]; do
-      if $inspect exec ${containerName} true; then
-        break
-      fi
-      i=$((i + 1))
-      ${pkgs.coreutils}/bin/sleep 1
-    done
-    if [ "$i" -ge 120 ]; then
-      echo "hermes-agent container is not ready for CUA watchdog" >&2
-      exit 1
-    fi
-
-    $inspect exec ${containerName} mkdir -p /tmp/.X11-unix
-    $inspect exec ${containerName} chown root:root /tmp/.X11-unix
-    $inspect exec ${containerName} chmod 1777 /tmp/.X11-unix
-
-    script=${lib.escapeShellArg cuaWatchdogPy}
-    j=0
-    while [ "$j" -lt 30 ]; do
-      $inspect exec -u hermes ${containerName} python3 "$script" || true
-      if ${pkgs.curl}/bin/curl -sf --max-time 1 -o /dev/null \
-        http://127.0.0.1:${toString novncPort}/; then
-        exit 0
-      fi
-      j=$((j + 1))
-      ${pkgs.coreutils}/bin/sleep 1
-    done
-    echo "CUA noVNC :${toString novncPort} is not listening" >&2
-    exit 1
-  '';
-
-  renderNovncCaddyAuth = pkgs.writeShellScript "hermes-novnc-caddy-auth" ''
-    set -eu
-    export HOME=/root
-    export XDG_CONFIG_HOME=/root/.config
-    secret=${lib.escapeShellArg config.sops.secrets."hermes-dashboard-password".path}
-    if [ ! -s "$secret" ]; then
-      echo "missing Hermes dashboard password for noVNC Caddy auth" >&2
-      exit 1
-    fi
-    pass=$(${pkgs.coreutils}/bin/tr -d '\r\n' < "$secret")
-    if [ -z "$pass" ]; then
-      echo "Hermes dashboard password is empty" >&2
-      exit 1
-    fi
-    # systemd connects the unit's stdin to /dev/null, so piping the
-    # secret into hash-password yields EOF. --plaintext is required.
-    # Do not Caddyfile-escape `$` as `$$`: 2.11 then fails to parse the hash.
-    hash=$(${pkgs.caddy}/bin/caddy hash-password --plaintext "$pass")
-    umask 077
-    ${pkgs.coreutils}/bin/mkdir -p /data/apps/caddy
-    tmp=$(${pkgs.coreutils}/bin/mktemp /data/apps/caddy/hermes-novnc-auth.caddy.XXXXXX)
-    printf 'basic_auth {\n  %s %s\n}\n' ${lib.escapeShellArg myvars.username} "$hash" > "$tmp"
-    ${pkgs.coreutils}/bin/chown caddy:caddy "$tmp"
-    ${pkgs.coreutils}/bin/chmod 0400 "$tmp"
-    ${pkgs.coreutils}/bin/mv "$tmp" ${lib.escapeShellArg novncCaddyAuthFile}
-  '';
+  layout = import ./layout.nix { inherit pkgs; };
 
   # Keep the privileged operation fixed: callers may pass Hermes arguments,
   # but cannot select another container or run an arbitrary command as root.
@@ -201,6 +45,8 @@ in
 {
   imports = [
     hermes-agent.nixosModules.default
+    ./config.nix
+    ./desktop.nix
   ];
 
   # Token Tracker runs as the interactive user and needs group read on
@@ -213,7 +59,7 @@ in
 
     # Application state lives on the /data/apps volume with the other
     # Server-NixOS services so it is snapshotted independently of /persistent.
-    inherit stateDir;
+    inherit (layout) stateDir;
     package = hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
     # Keep the agent's mutable tools isolated from the host. Podman storage
@@ -221,10 +67,6 @@ in
     container = {
       enable = true;
       backend = "podman";
-      # Local image derived from Debian stable (DaoCloud pull-through). The
-      # Computer Use desktop stack is baked in so overlay apt is not required.
-      image = desktopImageTag;
-      extraVolumes = [ "${gaiConf}:/etc/gai.conf:ro" ];
       hostUsers = [ ];
     };
 
@@ -232,153 +74,20 @@ in
     # rootful container. Do not expose the host CLI: it cannot read the private
     # state directory and unrestricted Podman access would be equivalent to root.
     addToSystemPackages = false;
-
-    settings = {
-      # Authentication is completed after deployment with:
-      #   hermes auth add xai-oauth --no-browser
-      # Leave model.default unset. The activation merge overwrites keys
-      # that Nix sets, and the chosen model lives in config.yaml.
-      model.provider = "xai-oauth";
-
-      toolsets = [ "all" ];
-      terminal = {
-        backend = "local";
-        timeout = 180;
-      };
-      memory = {
-        memory_enabled = true;
-        user_profile_enabled = true;
-      };
-      dashboard = {
-        # Local token/cost figures only. They omit auxiliary calls and
-        # retries, so they are a lower bound, not the provider bill.
-        show_token_analytics = true;
-      };
-      platforms.email.enabled = true;
-    };
-
-    # Do not set environment/environmentFiles here. The upstream module
-    # rewrites $HERMES_HOME/.env from those options on every activation and
-    # would wipe Telegram tokens and other keys added in the dashboard.
   };
-
-  sops.templates."hermes-env" = {
-    content = ''
-      API_SERVER_ENABLED=true
-      API_SERVER_HOST=0.0.0.0
-      API_SERVER_PORT=${toString apiPort}
-      API_SERVER_CORS_ORIGINS=https://hermes.slk.moe
-      API_SERVER_KEY=${config.sops.placeholder."hermes-api-server-key"}
-      HERMES_DASHBOARD_HOST=0.0.0.0
-      HERMES_DASHBOARD_PORT=${toString dashboardPort}
-      HERMES_DASHBOARD_BASIC_AUTH_USERNAME=${myvars.username}
-      HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${config.sops.placeholder."hermes-dashboard-password"}
-      HERMES_DASHBOARD_BASIC_AUTH_SECRET=${config.sops.placeholder."hermes-dashboard-secret"}
-      EMAIL_IMAP_PORT=993
-    '';
-    mode = "0400";
-    restartUnits = [
-      "hermes-agent.service"
-      "hermes-dashboard.service"
-      "hermes-novnc-caddy-auth.service"
-      "caddy.service"
-    ];
-  };
-
-  # Upsert only Nix-managed keys. Any other KEY=value (Telegram, provider
-  # keys, allowlists) already in .env is left untouched.
-  system.activationScripts.hermes-env-merge = lib.stringAfter [ "hermes-agent-setup" ] ''
-    env_file=${lib.escapeShellArg "${config.services.hermes-agent.stateDir}/.hermes/.env"}
-    nix_file=${lib.escapeShellArg config.sops.templates."hermes-env".path}
-    mkdir -p "$(dirname "$env_file")"
-    touch "$env_file"
-
-    upsert() {
-      local key="$1"
-      local value="$2"
-      local tmp
-      tmp="$(mktemp)"
-      grep -v "^''${key}=" "$env_file" > "$tmp" || true
-      printf '%s=%s\n' "$key" "$value" >> "$tmp"
-      mv "$tmp" "$env_file"
-    }
-
-    if [ -f "$nix_file" ]; then
-      while IFS= read -r line || [ -n "$line" ]; do
-        case "$line" in
-          ""|\#*) continue ;;
-          *=*)
-            upsert "''${line%%=*}" "''${line#*=}"
-            ;;
-        esac
-      done < "$nix_file"
-    fi
-
-    chown hermes:hermes "$env_file"
-    chmod 0660 "$env_file"
-
-    # The upstream module drops a write-lock so the dashboard refuses to
-    # edit .env. Remove it after setup so Channels/API Keys can persist
-    # Telegram tokens; Nix still upserts the keys it owns above.
-    rm -f ${lib.escapeShellArg "${config.services.hermes-agent.stateDir}/.hermes/.managed"}
-  '';
 
   # The NixOS module only starts `hermes gateway`. Dashboard is a separate
   # process; official Docker's HERMES_DASHBOARD=1 is an s6 hook we do not have.
   systemd.services = {
-    hermes-agent-image = {
-      description = "Build the Hermes Computer Use container image";
-      wantedBy = [ "multi-user.target" ];
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
-      unitConfig.RequiresMountsFor = [
-        "/var/lib/containers"
-        "/data/apps"
-      ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        TimeoutStartSec = "2h";
-        PrivateTmp = false;
-        ExecStart = buildDesktopImage;
-        Environment = [
-          "TMPDIR=${buildTmpDir}"
-          "TMP=${buildTmpDir}"
-          "TEMP=${buildTmpDir}"
-        ];
-      };
-    };
-
-    hermes-novnc-caddy-auth = {
-      description = "Render Caddy basic_auth snippet for Hermes noVNC";
-      wantedBy = [ "multi-user.target" ];
-      before = [ "caddy.service" ];
-      after = [ "sops-install-secrets.service" ];
-      unitConfig.RequiresMountsFor = [ "/data/apps" ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = renderNovncCaddyAuth;
-        Environment = [
-          "HOME=/root"
-          "XDG_CONFIG_HOME=/root/.config"
-        ];
-      };
-    };
-
     hermes-agent = {
       after = [ "hermes-agent-image.service" ];
       requires = [ "hermes-agent-image.service" ];
       unitConfig.RequiresMountsFor = [ "/data/apps" ];
       # QQ session timeouts are expected reconnects. systemd filters the
       # unit's own stream; health checks also ignore the conmon copy.
-      serviceConfig = {
-        LogFilterPatterns = [
-          "~WebSocket closed: code=4009 reason=Session timed out"
-        ];
-        ExecStartPost = startCuaWatchdog;
-        TimeoutStartSec = 300;
-      };
+      serviceConfig.LogFilterPatterns = [
+        "~WebSocket closed: code=4009 reason=Session timed out"
+      ];
 
       # Keep the custom preStart (bridge + loopback publish). Upstream still
       # hardcodes --network=host; combining that with --network=bridge fails,
@@ -386,26 +95,26 @@ in
       # net or missing Computer Use ports/env.
       preStart = lib.mkAfter ''
         inspect=${pkgs.podman}/bin/podman
-        if $inspect inspect ${containerName} >/dev/null 2>&1; then
-          mode="$($inspect inspect --format '{{.HostConfig.NetworkMode}}' ${containerName})"
-          ports="$($inspect inspect --format '{{json .HostConfig.PortBindings}}' ${containerName})"
-          entry="$($inspect inspect --format '{{join .Config.Entrypoint " "}}' ${containerName})"
-          image="$($inspect inspect --format '{{.Config.Image}}' ${containerName})"
-          envs="$($inspect inspect --format '{{range .Config.Env}}{{println .}}{{end}}' ${containerName})"
+        if $inspect inspect ${layout.containerName} >/dev/null 2>&1; then
+          mode="$($inspect inspect --format '{{.HostConfig.NetworkMode}}' ${layout.containerName})"
+          ports="$($inspect inspect --format '{{json .HostConfig.PortBindings}}' ${layout.containerName})"
+          entry="$($inspect inspect --format '{{join .Config.Entrypoint " "}}' ${layout.containerName})"
+          image="$($inspect inspect --format '{{.Config.Image}}' ${layout.containerName})"
+          envs="$($inspect inspect --format '{{range .Config.Env}}{{println .}}{{end}}' ${layout.containerName})"
           if [ "$mode" != "host" ] \
-            && [ "$image" = ${lib.escapeShellArg desktopImageTag} ] \
+            && [ "$image" = ${lib.escapeShellArg config.services.hermes-agent.container.image} ] \
             && echo "$ports" | grep -q '127.0.0.1' \
-            && echo "$ports" | grep -q '"${toString apiPort}/tcp"' \
-            && echo "$ports" | grep -q '"${toString dashboardPort}/tcp"' \
-            && echo "$ports" | grep -q '"${toString vncPort}/tcp"' \
-            && echo "$ports" | grep -q '"${toString novncPort}/tcp"' \
+            && echo "$ports" | grep -q '"${toString layout.apiPort}/tcp"' \
+            && echo "$ports" | grep -q '"${toString layout.dashboardPort}/tcp"' \
+            && echo "$ports" | grep -q '"${toString layout.vncPort}/tcp"' \
+            && echo "$ports" | grep -q '"${toString layout.novncPort}/tcp"' \
             && echo "$envs" | grep -qx 'DISPLAY=:99' \
             && echo "$envs" | grep -qx 'HERMES_HOME_MODE=0750' \
-            && echo "$entry" | grep -q '${containerDataDir}/current-entrypoint'; then
+            && echo "$entry" | grep -q '${layout.containerDataDir}/current-entrypoint'; then
             exit 0
           fi
           echo "Replacing Hermes container so Computer Use desktop ports stay on loopback"
-          $inspect rm -f ${containerName} || true
+          $inspect rm -f ${layout.containerName} || true
         fi
 
         HERMES_UID=$(${pkgs.coreutils}/bin/id -u hermes)
@@ -417,33 +126,28 @@ in
         # host hermes uid.
 
         $inspect create \
-          --name ${containerName} \
+          --name ${layout.containerName} \
           --pull=never \
           --network=bridge \
-          --publish=127.0.0.1:${toString apiPort}:${toString apiPort} \
-          --publish=127.0.0.1:${toString dashboardPort}:${toString dashboardPort} \
-          --publish=127.0.0.1:${toString vncPort}:${toString vncPort} \
-          --publish=127.0.0.1:${toString novncPort}:${toString novncPort} \
-          --entrypoint ${containerDataDir}/current-entrypoint \
+          --publish=127.0.0.1:${toString layout.apiPort}:${toString layout.apiPort} \
+          --publish=127.0.0.1:${toString layout.dashboardPort}:${toString layout.dashboardPort} \
+          --publish=127.0.0.1:${toString layout.vncPort}:${toString layout.vncPort} \
+          --publish=127.0.0.1:${toString layout.novncPort}:${toString layout.novncPort} \
+          --entrypoint ${layout.containerDataDir}/current-entrypoint \
           --volume /nix/store:/nix/store:ro \
-          --volume ${stateDir}:${containerDataDir} \
-          --volume ${stateDir}/home:${containerHomeDir} \
-          --volume ${gaiConf}:/etc/gai.conf:ro \
+          --volume ${layout.stateDir}:${layout.containerDataDir} \
+          --volume ${layout.stateDir}/home:${layout.containerHomeDir} \
+          --volume ${layout.gaiConf}:/etc/gai.conf:ro \
           --env HERMES_UID="$HERMES_UID" \
           --env HERMES_GID="$HERMES_GID" \
-          --env HERMES_HOME=${containerDataDir}/.hermes \
+          --env HERMES_HOME=${layout.containerDataDir}/.hermes \
           --env HERMES_HOME_MODE=0750 \
           --env HERMES_MANAGED=true \
-          --env HOME=${containerHomeDir} \
+          --env HOME=${layout.containerHomeDir} \
           --env DISPLAY=:99 \
           ${lib.escapeShellArg config.services.hermes-agent.container.image} \
-          ${containerDataDir}/current-package/bin/hermes gateway run --replace
+          ${layout.containerDataDir}/current-package/bin/hermes gateway run --replace
       '';
-    };
-
-    caddy = {
-      after = [ "hermes-novnc-caddy-auth.service" ];
-      requires = [ "hermes-novnc-caddy-auth.service" ];
     };
 
     hermes-dashboard = {
@@ -478,13 +182,13 @@ in
         # container still has the lock, so `hermes config set` stays blocked.
         # HERMES_HOME_MODE keeps $HERMES_HOME at 0750 when unmanaged
         # `_secure_dir()` would otherwise chmod 0700.
-        ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent env -u HERMES_MANAGED HERMES_HOME_MODE=0750 /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString dashboardPort} --no-open";
+        ExecStart = "${pkgs.podman}/bin/podman exec --user hermes hermes-agent env -u HERMES_MANAGED HERMES_HOME_MODE=0750 /data/current-package/bin/hermes dashboard --host 0.0.0.0 --port ${toString layout.dashboardPort} --no-open";
       };
     };
   };
 
   systemd.tmpfiles.rules = [
-    "z ${stateDir}/.hermes 0750 hermes hermes - -"
+    "z ${layout.stateDir}/.hermes 0750 hermes hermes - -"
   ];
 
   environment.systemPackages = [ hermesCli ];
@@ -506,6 +210,6 @@ in
       "hermes-agent"
       "hermes-dashboard"
     ];
-    httpProbes.hermes-dashboard = "http://127.0.0.1:${toString dashboardPort}/api/status";
+    httpProbes.hermes-dashboard = "http://127.0.0.1:${toString layout.dashboardPort}/api/status";
   };
 }

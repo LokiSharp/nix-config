@@ -3,7 +3,6 @@
 , lib
 , myvars
 , pkgs
-, pkgs-unstable
 , ...
 }:
 let
@@ -159,22 +158,6 @@ let
     ${pkgs.coreutils}/bin/mv "$tmp" ${lib.escapeShellArg novncCaddyAuthFile}
   '';
 
-  # nixpkgs 26.05 still ships 3.51.2, which hits the WAL-reset bug
-  # (3.7.0–3.51.2). Unstable already has a fixed SQLite; preload it
-  # instead of rebuilding 3.51.3. The flake package ignores an
-  # overridden python312, and _sqlite3.so is dynamically linked.
-  sqliteFixed = pkgs-unstable.sqlite;
-  sqliteMinFixed = "3.51.3";
-  upstreamHermes = hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
-  hermesPackage = pkgs.symlinkJoin {
-    name = "${upstreamHermes.name}-sqlite-${sqliteFixed.version}";
-    paths = [ upstreamHermes ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      wrapProgram $out/bin/hermes \
-        --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ sqliteFixed ]}
-    '';
-  };
   # Keep the privileged operation fixed: callers may pass Hermes arguments,
   # but cannot select another container or run an arbitrary command as root.
   hermesContainerExec = pkgs.writeShellApplication {
@@ -214,13 +197,6 @@ in
     hermes-agent.nixosModules.default
   ];
 
-  assertions = [
-    {
-      assertion = lib.versionAtLeast sqliteFixed.version sqliteMinFixed;
-      message = "Hermes requires SQLite ${sqliteMinFixed}+ to avoid the WAL-reset bug; pkgs-unstable.sqlite is ${sqliteFixed.version}.";
-    }
-  ];
-
   # Token Tracker runs as the interactive user and needs group read on
   # /data/apps/hermes/.hermes/state.db. Do not use container.hostUsers: that
   # also plants ~/.hermes and would make a host CLI share the service state.
@@ -232,7 +208,7 @@ in
     # Application state lives on the /data/apps volume with the other
     # Server-NixOS services so it is snapshotted independently of /persistent.
     inherit stateDir;
-    package = hermesPackage;
+    package = hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
     # Keep the agent's mutable tools isolated from the host. Podman storage
     # stays under /var/lib/containers; only Hermes state is on /data/apps.

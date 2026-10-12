@@ -17,7 +17,7 @@ let
     else
       toString execStartPost;
   cuaWatchdogWrapperText = builtins.readFile (lib.removePrefix "-" execStartPostText);
-  cuaWatchdogPyText = builtins.readFile ../../../../hosts/server-nixos/services/cua-desktop-watchdog.py;
+  cuaWatchdogPyText = builtins.readFile ../../../../hosts/server-nixos/services/hermes/cua-desktop-watchdog.py;
 in
 {
   apiEnabled = lib.hasInfix "API_SERVER_ENABLED=true" hermesEnv;

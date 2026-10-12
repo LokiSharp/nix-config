@@ -236,10 +236,9 @@ in
     settings = {
       # Authentication is completed after deployment with:
       #   hermes auth add xai-oauth --no-browser
-      model = {
-        provider = "xai-oauth";
-        default = "grok-4.6";
-      };
+      # Leave model.default unset. The activation merge overwrites keys
+      # that Nix sets, and the chosen model lives in config.yaml.
+      model.provider = "xai-oauth";
 
       toolsets = [ "all" ];
       terminal = {

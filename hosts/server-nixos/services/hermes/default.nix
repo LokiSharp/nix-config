@@ -2,11 +2,62 @@
 , hermes-agent
 , lib
 , myvars
+, nixpkgs
 , pkgs
 , ...
 }:
 let
   layout = import ./layout.nix { inherit pkgs; };
+
+  # uv 0.11 treats the stdenv placeholder SSL_CERT_FILE=/no-cert-file.crt as
+  # the only trust store. The sandbox has no other CA bundle, so the Python
+  # build aborts. Point that placeholder at the Nix cacert bundle.
+  hermesPkgs = import nixpkgs {
+    localSystem = pkgs.stdenv.hostPlatform.system;
+    config.allowUnfree = true;
+    overlays = [
+      (final: prev: {
+        uv = final.symlinkJoin {
+          name = "uv-with-nix-cacert";
+          paths = [ prev.uv ];
+          nativeBuildInputs = [ prev.makeWrapper ];
+          # uv-build reads pkgs.uv.meta.license. A bare wrapper drops it.
+          meta = prev.uv.meta;
+          postBuild = ''
+            wrapProgram $out/bin/uv --run 'if [ "''${SSL_CERT_FILE-}" = /no-cert-file.crt ]; then export SSL_CERT_FILE=${prev.cacert}/etc/ssl/certs/ca-bundle.crt; fi'
+          '';
+        };
+      })
+    ];
+  };
+  hermesSource = hermes-agent.sourceInfo;
+  hermesMinimal = hermesPkgs.callPackage (hermes-agent + "/nix/hermes-agent.nix") {
+    inherit (hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
+    npm-lockfile-fix = hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    rev = hermesSource.rev or null;
+    lastModified = hermesSource.lastModified or null;
+  };
+  hermesPackage = hermesMinimal.override {
+    extraDependencyGroups = [
+      "anthropic"
+      "azure-identity"
+      "bedrock"
+      "daytona"
+      "dingtalk"
+      "edge-tts"
+      "exa"
+      "fal"
+      "feishu"
+      "firecrawl"
+      "messaging"
+      "modal"
+      "parallel-web"
+      "tts-premium"
+      "vercel"
+      "voice"
+    ]
+    ++ lib.optionals pkgs.stdenv.isLinux [ "matrix" ];
+  };
 
   # Keep the privileged operation fixed: callers may pass Hermes arguments,
   # but cannot select another container or run an arbitrary command as root.
@@ -60,7 +111,7 @@ in
     # Application state lives on the /data/apps volume with the other
     # Server-NixOS services so it is snapshotted independently of /persistent.
     inherit (layout) stateDir;
-    package = hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    package = hermesPackage;
 
     # Keep the agent's mutable tools isolated from the host. Podman storage
     # stays under /var/lib/containers; only Hermes state is on /data/apps.

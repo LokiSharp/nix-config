@@ -8,6 +8,24 @@ let
   metricsFile = "${metricsDirectory}/token-tracker-hermes.prom";
   hermesStateDb = "/data/apps/hermes/.hermes/state.db";
 
+  # Hermes chmods state.db and its WAL sidecars to 0600 whenever it opens
+  # them. Token Tracker runs as the login user, which is in the hermes
+  # group, so restore group read before measuring and on a short timer.
+  restoreHermesStateGroupRead = pkgs.writeShellScript "hermes-state-group-read" ''
+    set -eu
+    dir=/data/apps/hermes/.hermes
+    for name in state.db state.db-wal; do
+      path="$dir/$name"
+      if [ -f "$path" ] && [ ! -L "$path" ]; then
+        chmod g+r -- "$path"
+      fi
+    done
+    shm="$dir/state.db-shm"
+    if [ -f "$shm" ] && [ ! -L "$shm" ]; then
+      chmod g+rw -- "$shm"
+    fi
+  '';
+
   tokenTrackerHermesMetrics = pkgs.writeShellApplication {
     name = "token-tracker-hermes-metrics";
     runtimeInputs = [
@@ -17,6 +35,7 @@ let
       pkgs.util-linux
     ];
     text = ''
+      ${restoreHermesStateGroupRead}
       readable=0
       reason="missing"
       if [ -e ${lib.escapeShellArg hermesStateDb} ]; then
@@ -66,6 +85,24 @@ in
       };
     };
 
+    services.hermes-state-group-read = {
+      description = "Restore group read on Hermes state.db";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = restoreHermesStateGroupRead;
+      };
+    };
+
+    timers.hermes-state-group-read = {
+      description = "Keep Hermes state.db group-readable";
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "1min";
+        OnUnitActiveSec = "1min";
+        Persistent = true;
+      };
+    };
+
     timers.token-tracker-hermes-metrics = {
       description = "Refresh Token Tracker Hermes readability metrics";
       wantedBy = [ "timers.target" ];
@@ -78,5 +115,8 @@ in
     };
   };
 
-  deployment.healthChecks.requiredUnits = [ "token-tracker-hermes-metrics.timer" ];
+  deployment.healthChecks.requiredUnits = [
+    "hermes-state-group-read.timer"
+    "token-tracker-hermes-metrics.timer"
+  ];
 }

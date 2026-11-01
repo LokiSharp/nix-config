@@ -196,8 +196,9 @@ cat /var/lib/prometheus-node-exporter/textfile/token-tracker-hermes.prom
 journalctl --user-unit token-tracker.service --since "-1 hour"
 ```
 
-先恢复目录组可遍历（`HERMES_HOME_MODE=0750`），再确认下一次 sync 能解析 Hermes
-会话。不要删除指标来制造 resolved。
+先恢复目录组可遍历（`HERMES_HOME_MODE=0750`）。Hermes 打开数据库时会把
+`state.db`、`-wal`、`-shm` 收成 `0600`；`hermes-state-group-read.timer` 每分钟把
+组读权限加回去。确认下一次 sync 能解析 Hermes 会话。不要删除指标来制造 resolved。
 
 ## systemd 服务失败
 

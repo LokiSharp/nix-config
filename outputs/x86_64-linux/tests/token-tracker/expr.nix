@@ -40,7 +40,9 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (
       lib.hasInfix "TOKENTRACKER_HERMES_HOME=/data/apps/hermes/.hermes" serviceEnvironment
       && builtins.elem "hermes" (config.users.users.${username}.extraGroups or [ ]);
     hermesCollectionMetrics =
-      builtins.hasAttr "token-tracker-hermes-metrics" config.systemd.services
+      builtins.hasAttr "hermes-state-group-read" config.systemd.services
+      && (config.systemd.timers.hermes-state-group-read.timerConfig.OnUnitActiveSec or "") == "1min"
+      && builtins.hasAttr "token-tracker-hermes-metrics" config.systemd.services
       && (config.systemd.timers.token-tracker-hermes-metrics.timerConfig.OnUnitActiveSec or "") == "5m"
       && builtins.elem "token-tracker-hermes-metrics.timer" config.deployment.healthChecks.requiredUnits;
   }

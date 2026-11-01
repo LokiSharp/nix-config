@@ -62,7 +62,7 @@ let
           restore
           # attrib covers chmod. create and moved_to cover a new WAL sidecar.
           # Do not watch close_write: the WAL would wake this every commit.
-          inotifywait -q -t 30 -e attrib,create,moved_to -- "$dir" || true
+          inotifywait -qq -t 30 -e attrib,create,moved_to -- "$dir" || true
         else
           sleep 5
         fi

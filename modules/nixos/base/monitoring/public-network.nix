@@ -163,11 +163,13 @@ let
               else
                 match=(iifname @pubacct_uplink ip6 saddr "!=" @pubacct_private6)
               fi
+              # nft re-parses the command line, so quotes have to be part of
+              # the arguments. @ and | are otherwise syntax.
               nft insert rule inet filter "$chain" \
                 "''${match[@]}" \
-                socket cgroupv2 level "$level" "$base" \
-                counter name "$counter" \
-                comment "$comment"
+                socket cgroupv2 level "$level" "\"$base\"" \
+                counter name "\"$counter\"" \
+                comment "\"$comment\""
             done
           done
         done

@@ -31,9 +31,15 @@ let
     ];
   };
   hermesSource = hermes-agent.sourceInfo;
+  # v0.22 builds the pinned tool set from pm/lock.json. callPackage adds
+  # override attrs to that set; keep only the derivations.
+  pmPackages = lib.filterAttrs (_: lib.isDerivation) (
+    hermesPkgs.callPackage (hermes-agent + "/nix/pm-packages.nix") { }
+  );
   hermesMinimal = hermesPkgs.callPackage (hermes-agent + "/nix/hermes-agent.nix") {
     inherit (hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
     npm-lockfile-fix = hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    inherit pmPackages;
     rev = hermesSource.rev or null;
     lastModified = hermesSource.lastModified or null;
   };

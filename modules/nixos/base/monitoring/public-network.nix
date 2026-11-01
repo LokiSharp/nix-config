@@ -21,6 +21,48 @@ let
       set -euo pipefail
 
       metrics_file=${metricsFile}
+      names_file=/var/lib/public-network-accounting/units.tsv
+      declare -A unit_by_safe=()
+
+      # nft object names are identifiers. Instantiated units contain @, which
+      # the nft lexer rejects. Encode those names and keep the real unit in
+      # the Prometheus label.
+      safe_id() {
+        local s="$1" i c hex out=""
+        for ((i = 0; i < ''${#s}; i++)); do
+          c="''${s:i:1}"
+          case "$c" in
+            [A-Za-z0-9.-])
+              out+="$c"
+              ;;
+            *)
+              printf -v hex '%02x' "'$c"
+              out+="_''${hex}_"
+              ;;
+          esac
+        done
+        printf '%s\n' "$out"
+      }
+
+      load_names() {
+        local safe unit
+        unit_by_safe=()
+        [ -f "$names_file" ] || return 0
+        while IFS=$'\t' read -r safe unit; do
+          [ -n "$safe" ] || continue
+          unit_by_safe["$safe"]="$unit"
+        done < "$names_file"
+      }
+
+      save_names() {
+        local tmp safe
+        mkdir -p "$(dirname "$names_file")"
+        tmp="$(mktemp "$(dirname "$names_file")/.units.XXXXXX")"
+        for safe in "''${!unit_by_safe[@]}"; do
+          printf '%s\t%s\n' "$safe" "''${unit_by_safe[$safe]}"
+        done | sort > "$tmp"
+        mv "$tmp" "$names_file"
+      }
 
       is_overlay() {
         case "$1" in
@@ -95,7 +137,7 @@ let
       }
 
       sync_rules() {
-        local unit cgroup level base counter comment family dir chain
+        local unit cgroup level base counter comment family dir chain safe
         local -a units=()
         local -a match=()
         declare -A want=()
@@ -110,8 +152,10 @@ let
           [ -n "$cgroup" ] || continue
           level="$(printf '%s\n' "$cgroup" | awk -F/ '{print NF-1}')"
           [ "$level" -ge 1 ] || continue
+          safe="$(safe_id "$unit")"
+          unit_by_safe["$safe"]="$unit"
           for dir in tx rx; do
-            counter="''${dir}-''${unit}"
+            counter="''${dir}-''${safe}"
             if ! nft list counter inet filter "$counter" >/dev/null 2>&1; then
               nft add counter inet filter "$counter" >/dev/null
             fi
@@ -141,6 +185,7 @@ let
           level="$(printf '%s\n' "$cgroup" | awk -F/ '{print NF-1}')"
           # nft looks up the cgroup path. The level is the component count.
           base="''${cgroup#/}"
+          safe="$(safe_id "$unit")"
           [ "$level" -ge 1 ] || continue
           for dir in tx rx; do
             if [ "$dir" = tx ]; then
@@ -148,7 +193,7 @@ let
             else
               chain=input
             fi
-            counter="''${dir}-''${unit}"
+            counter="''${dir}-''${safe}"
             for family in 4 6; do
               comment="pubacct-v1|''${dir}|''${level}|''${unit}|''${family}"
               if list_rule_comments | awk -v want="$comment" '$3 == want { found = 1 } END { exit !found }'; then
@@ -173,10 +218,11 @@ let
             done
           done
         done
+        save_names
       }
 
       write_metrics() {
-        local tmp name direction unit bytes dev
+        local tmp name direction unit bytes dev safe
         tmp="$(mktemp ${metricsDirectory}/.public-network.XXXXXX)"
         {
           echo "# HELP node_public_network_uplink_present Whether a non-overlay default route is being accounted."
@@ -201,7 +247,12 @@ let
               *) continue ;;
             esac
             direction="''${name%%-*}"
-            unit="''${name#*-}"
+            safe="''${name#*-}"
+            if [ -n "''${unit_by_safe[$safe]+x}" ]; then
+              unit="''${unit_by_safe[$safe]}"
+            else
+              unit="$safe"
+            fi
             unit="''${unit//\\/\\\\}"
             unit="''${unit//\"/\\\"}"
             printf 'node_public_network_bytes_total{unit="%s",direction="%s"} %s\n' \
@@ -218,6 +269,8 @@ let
         chmod 0644 "$tmp"
         mv "$tmp" "$metrics_file"
       }
+
+      load_names || true
 
       while true; do
         if ensure_sets; then
@@ -247,6 +300,7 @@ in
       ExecStart = "${publicNetworkAccounting}/bin/public-network-accounting";
       Restart = "always";
       RestartSec = "10s";
+      StateDirectory = "public-network-accounting";
     };
   };
 

@@ -30,6 +30,12 @@ Alertmanager :9093
 节点和 SMART 指标通过 Loki-Net 地址采集，默认间隔 30 秒。node-exporter 在全部 NixOS
 节点启用；SMART 目前只在 `Server-NixOS` 和 `OVH-CA-EAST-BHS` 启用。
 
+每个节点还有一个 `public-network-accounting.service`。它把默认路由网卡上、对端不属于
+局域网、SLK、Tailscale、DN42 或 ULA 的流量，按 systemd 服务记到
+`node_public_network_bytes_total`。ZeroTier、Tailscale、dummy 和回环接口不计入。内核转发的
+报文没有套接字 cgroup，也不会记到某个服务上。Grafana 面板是 “Public network by service”。
+单个服务的公网收发持续超过 10 MB/s 会触发 `HostPublicNetworkServiceHigh`。
+
 内部入口：
 
 - Grafana：`http://grafana.slk.moe`

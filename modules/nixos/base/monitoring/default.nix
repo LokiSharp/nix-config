@@ -10,6 +10,7 @@ in
     ./coredumps.nix
     ./deployment-state.nix
     ./external-server.nix
+    ./public-network.nix
     ./reboot-required.nix
   ];
 

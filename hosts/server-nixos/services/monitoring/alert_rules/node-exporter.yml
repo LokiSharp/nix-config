@@ -79,6 +79,19 @@ groups:
             "Host network interfaces are probably sending too much data (> 100 MB/s)\n  VALUE = {{
             $value }}\n  LABELS = {{ $labels }}"
 
+      - alert: HostPublicNetworkServiceHigh
+        expr:
+          '(sum by (instance, unit) (rate(node_public_network_bytes_total[5m])) > 10 * 1024 *
+          1024) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Public network use by {{ $labels.unit }} is high (instance {{ $labels.instance }})
+          description:
+            "One systemd service has sent or received public traffic faster than 10 MB/s for 15
+            minutes.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
       - alert: HostUnusualDiskReadRate
         expr:
           '(sum by (instance) (rate(node_disk_read_bytes_total[2m])) / 1024 / 1024 > 50) *

@@ -196,9 +196,11 @@ cat /var/lib/prometheus-node-exporter/textfile/token-tracker-hermes.prom
 journalctl --user-unit token-tracker.service --since "-1 hour"
 ```
 
-先恢复目录组可遍历（`HERMES_HOME_MODE=0750`）。Hermes 打开数据库时会把
-`state.db`、`-wal`、`-shm` 收成 `0600`；`hermes-state-group-read.timer` 每分钟把
-组读权限加回去。确认下一次 sync 能解析 Hermes 会话。不要删除指标来制造 resolved。
+`hermes-state-group-read.service` 盯着这个目录的权限变化。目录不是 `2750` 时
+改回 `2750`（组可进入，保留 setgid）；`state.db` 和 `-wal` 缺组读、`-shm` 缺组写时
+立刻加回去。Hermes 每次打开数据库都会把这三个文件收成 `0600`，一分钟定时器
+来不及，所以不要改回 timer。指标本身不再改权限，它只反映当前能不能读。
+确认服务在跑，并且下一次 sync 能解析 Hermes 会话。不要删除指标来制造 resolved。
 
 ## systemd 服务失败
 

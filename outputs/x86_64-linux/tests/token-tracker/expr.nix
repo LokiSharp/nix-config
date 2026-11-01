@@ -41,9 +41,11 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (
       && builtins.elem "hermes" (config.users.users.${username}.extraGroups or [ ]);
     hermesCollectionMetrics =
       builtins.hasAttr "hermes-state-group-read" config.systemd.services
-      && (config.systemd.timers.hermes-state-group-read.timerConfig.OnUnitActiveSec or "") == "1min"
+      && (config.systemd.services.hermes-state-group-read.serviceConfig.Restart or "") == "always"
+      && !(builtins.hasAttr "hermes-state-group-read" config.systemd.timers)
       && builtins.hasAttr "token-tracker-hermes-metrics" config.systemd.services
       && (config.systemd.timers.token-tracker-hermes-metrics.timerConfig.OnUnitActiveSec or "") == "5m"
+      && builtins.elem "hermes-state-group-read.service" config.deployment.healthChecks.requiredUnits
       && builtins.elem "token-tracker-hermes-metrics.timer" config.deployment.healthChecks.requiredUnits;
   }
 )

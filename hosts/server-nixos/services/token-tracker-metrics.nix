@@ -8,23 +8,67 @@ let
   metricsFile = "${metricsDirectory}/token-tracker-hermes.prom";
   hermesStateDb = "/data/apps/hermes/.hermes/state.db";
 
-  # Hermes chmods state.db and its WAL sidecars to 0600 whenever it opens
-  # them. Token Tracker runs as the login user, which is in the hermes
-  # group, so restore group read before measuring and on a short timer.
-  restoreHermesStateGroupRead = pkgs.writeShellScript "hermes-state-group-read" ''
-    set -eu
-    dir=/data/apps/hermes/.hermes
-    for name in state.db state.db-wal; do
-      path="$dir/$name"
-      if [ -f "$path" ] && [ ! -L "$path" ]; then
-        chmod g+r -- "$path"
-      fi
-    done
-    shm="$dir/state.db-shm"
-    if [ -f "$shm" ] && [ ! -L "$shm" ]; then
-      chmod g+rw -- "$shm"
-    fi
-  '';
+  # Hermes chmods state.db, its WAL sidecars, and sometimes .hermes itself
+  # back to owner-only within seconds of a timer. Token Tracker runs as the
+  # login user, which is in the hermes group. A daemon restores directory
+  # 2750 and group read as soon as the mode changes. Skip chmod when the
+  # mode is already right so the watch does not retrigger itself.
+  hermesStateGroupRead = pkgs.writeShellApplication {
+    name = "hermes-state-group-read";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.inotify-tools
+    ];
+    text = ''
+      dir=/data/apps/hermes/.hermes
+
+      group_digit() {
+        local mode perm
+        mode="$(stat -c %a -- "$1")"
+        perm="''${mode: -3}"
+        printf '%s' "''${perm:1:1}"
+      }
+
+      restore() {
+        local path digit mode
+        if [ -d "$dir" ] && [ ! -L "$dir" ]; then
+          mode="$(stat -c %a -- "$dir")"
+          if [ "$mode" != "2750" ]; then
+            chmod 2750 -- "$dir"
+          fi
+        fi
+        for name in state.db state.db-wal; do
+          path="$dir/$name"
+          if [ -f "$path" ] && [ ! -L "$path" ]; then
+            digit="$(group_digit "$path")"
+            case "$digit" in
+              4|5|6|7) ;;
+              *) chmod g+r -- "$path" ;;
+            esac
+          fi
+        done
+        path="$dir/state.db-shm"
+        if [ -f "$path" ] && [ ! -L "$path" ]; then
+          digit="$(group_digit "$path")"
+          case "$digit" in
+            2|3|6|7) ;;
+            *) chmod g+rw -- "$path" ;;
+          esac
+        fi
+      }
+
+      while true; do
+        if [ -d "$dir" ] && [ ! -L "$dir" ]; then
+          restore
+          # attrib covers chmod. create and moved_to cover a new WAL sidecar.
+          # Do not watch close_write: the WAL would wake this every commit.
+          inotifywait -q -t 30 -e attrib,create,moved_to -- "$dir" || true
+        else
+          sleep 5
+        fi
+      done
+    '';
+  };
 
   tokenTrackerHermesMetrics = pkgs.writeShellApplication {
     name = "token-tracker-hermes-metrics";
@@ -35,7 +79,6 @@ let
       pkgs.util-linux
     ];
     text = ''
-      ${restoreHermesStateGroupRead}
       readable=0
       reason="missing"
       if [ -e ${lib.escapeShellArg hermesStateDb} ]; then
@@ -86,20 +129,14 @@ in
     };
 
     services.hermes-state-group-read = {
-      description = "Restore group read on Hermes state.db";
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = restoreHermesStateGroupRead;
-      };
-    };
-
-    timers.hermes-state-group-read = {
       description = "Keep Hermes state.db group-readable";
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnBootSec = "1min";
-        OnUnitActiveSec = "1min";
-        Persistent = true;
+      wantedBy = [ "multi-user.target" ];
+      after = [ "local-fs.target" ];
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = "${hermesStateGroupRead}/bin/hermes-state-group-read";
+        Restart = "always";
+        RestartSec = "2s";
       };
     };
 
@@ -116,7 +153,7 @@ in
   };
 
   deployment.healthChecks.requiredUnits = [
-    "hermes-state-group-read.timer"
+    "hermes-state-group-read.service"
     "token-tracker-hermes-metrics.timer"
   ];
 }

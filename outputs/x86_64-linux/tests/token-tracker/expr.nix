@@ -42,10 +42,20 @@ lib.genAttrs (builtins.attrNames outputs.nixosConfigurations) (
     hermesCollectionMetrics =
       builtins.hasAttr "hermes-state-group-read" config.systemd.services
       && (config.systemd.services.hermes-state-group-read.serviceConfig.Restart or "") == "always"
+      && (config.systemd.services.hermes-state-group-read.serviceConfig.Type or "") == "simple"
       && !(builtins.hasAttr "hermes-state-group-read" config.systemd.timers)
       && builtins.hasAttr "token-tracker-hermes-metrics" config.systemd.services
       && (config.systemd.timers.token-tracker-hermes-metrics.timerConfig.OnUnitActiveSec or "") == "5m"
       && builtins.elem "hermes-state-group-read.service" config.deployment.healthChecks.requiredUnits
-      && builtins.elem "token-tracker-hermes-metrics.timer" config.deployment.healthChecks.requiredUnits;
+      && builtins.elem "token-tracker-hermes-metrics.timer" config.deployment.healthChecks.requiredUnits
+      && builtins.elem "/data/apps" (
+        lib.toList (config.systemd.services.hermes-state-group-read.unitConfig.RequiresMountsFor or [ ])
+      )
+      && lib.hasInfix "chgrp hermes" (
+        builtins.readFile config.systemd.services.hermes-state-group-read.serviceConfig.ExecStart
+      )
+      && lib.hasInfix "RequiresMountsFor" (
+        builtins.readFile ../../../../hosts/server-nixos/services/token-tracker-metrics.nix
+      );
   }
 )

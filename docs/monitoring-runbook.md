@@ -31,10 +31,30 @@ Alertmanager :9093
 节点启用；SMART 目前只在 `Server-NixOS` 和 `OVH-CA-EAST-BHS` 启用。
 
 每个节点还有一个 `public-network-accounting.service`。它把默认路由网卡上、对端不属于
-局域网、SLK、Tailscale、DN42 或 ULA 的流量，按 systemd 服务记到
-`node_public_network_bytes_total`。ZeroTier、Tailscale、dummy 和回环接口不计入。内核转发的
-报文没有套接字 cgroup，也不会记到某个服务上。Grafana 面板是 “Public network by service”。
-单个服务的公网收发持续超过 10 MB/s 会触发 `HostPublicNetworkServiceHigh`。
+局域网、SLK（198.18.0.0/15，以及已经包含在 `fc00::/7` 里的 `fdbc:f9dc:67ad::/48`）、Tailscale、
+DN42 或 ULA 的流量，按 systemd 服务记到 `node_public_network_bytes_total`。ZeroTier、Tailscale、
+dummy 和回环接口不计入。
+
+宿主机套接字记在 inet filter 的 input/output 上。rootful Podman bridge 的套接字在容器网络
+命名空间里，宿主机看到的是网桥和 NAT，inet forward 的接口名是 `podman*` 而不是 veth。
+collector 在 bridge input 上给容器 veth 打 skb mark 的低 8 位（策略路由只用 `0xff0000`，
+不会撞上 Tailscale），再在 inet filter forward 里只有该 mark 从公网上行口进出、且对端不在
+排除地址里时才计数，并把同一个 id 写进 ct mark，回包归到同一服务。现场 bridge 容器分别记到
+`hermes-agent.service`、`podman-homepage.service`、`podman-sub2api.service`、
+`podman-sub2api-postgres.service`、`podman-sub2api-redis.service` 和
+`podman-vibe-trading.service`。`hermes-dashboard.service` 跟 Hermes 容器共用网络命名空间，
+不再单独记一份。同一报文只走 input、output、forward 之一。没有所属服务的内核转发仍然不记。
+
+停掉的服务会删掉规则、`tx-*`/`rx-*` counter，以及 `/var/lib/public-network-accounting/units.tsv`
+里的那一行。指标只保留还存在的 counter。
+
+NixOS 防火墙或 nftables 重载会清掉插在 inet filter 里的动态 set、counter 和规则。
+`nftables.service` 的 ExecStart 和 ExecReload 在 `nft -f` 之后向
+`public-network-accounting.service` 的主进程发 SIGUSR1，由它马上重建。计数器归零是
+Prometheus 的 counter reset。不要等下一个 30 秒周期。
+
+Grafana 面板是 “Public network by service”。单个服务的公网发送或接收，任一方向持续超过
+10 MB/s，会触发 `HostPublicNetworkServiceHigh`。两个方向不会加在一起。
 
 内部入口：
 
@@ -196,10 +216,13 @@ cat /var/lib/prometheus-node-exporter/textfile/token-tracker-hermes.prom
 journalctl --user-unit token-tracker.service --since "-1 hour"
 ```
 
-`hermes-state-group-read.service` 盯着这个目录的权限变化。目录不是 `2750` 时
-改回 `2750`（组可进入，保留 setgid）；`state.db` 和 `-wal` 缺组读、`-shm` 缺组写时
-立刻加回去。Hermes 每次打开数据库都会把这三个文件收成 `0600`，一分钟定时器
-来不及，所以不要改回 timer。指标本身不再改权限，它只反映当前能不能读。
+`hermes-state-group-read.service` 盯着这个目录的权限和属组。目录不是 `2750` 时
+改回 `2750`（组可进入，保留 setgid，不加组写）；属组不是 `hermes` 时把目录、`state.db`、
+`state.db-wal`、`state.db-shm` 改成 `hermes`。`state.db` 和 `-wal` 缺组读、`-shm` 缺组读写时
+立刻补上，shm 一创建就补。权限位已经正确且属组已经是 `hermes` 时不再 chmod/chgrp，
+避免 inotify 自己触发自己。不要放宽 `.env`。这个 unit 有 `RequiresMountsFor=/data/apps`。
+Hermes 每次打开数据库都会把这三个文件收成 `0600`，一分钟定时器来不及，所以不要改回 timer。
+指标本身不再改权限，它只反映当前能不能读。
 确认服务在跑，并且下一次 sync 能解析 Hermes 会话。不要删除指标来制造 resolved。
 
 ## systemd 服务失败

@@ -11,8 +11,9 @@ let
   # Hermes chmods state.db, its WAL sidecars, and sometimes .hermes itself
   # back to owner-only within seconds of a timer. Token Tracker runs as the
   # login user, which is in the hermes group. A daemon restores directory
-  # 2750 and group read as soon as the mode changes. Skip chmod when the
-  # mode is already right so the watch does not retrigger itself.
+  # 2750 and the hermes group as soon as the mode or group changes. Skip both
+  # when they are already right so the watch does not retrigger itself.
+  # Do not make the directory group-writable, and do not touch .env.
   hermesStateGroupRead = pkgs.writeShellApplication {
     name = "hermes-state-group-read";
     runtimeInputs = [
@@ -29,31 +30,54 @@ let
         printf '%s' "''${perm:1:1}"
       }
 
-      restore() {
-        local path digit mode
-        if [ -d "$dir" ] && [ ! -L "$dir" ]; then
-          mode="$(stat -c %a -- "$dir")"
-          if [ "$mode" != "2750" ]; then
-            chmod 2750 -- "$dir"
-          fi
-        fi
-        for name in state.db state.db-wal; do
-          path="$dir/$name"
-          if [ -f "$path" ] && [ ! -L "$path" ]; then
+      group_name() {
+        stat -c %G -- "$1"
+      }
+
+      restore_path() {
+        local path="$1" kind="$2" mode group digit
+        mode="$(stat -c %a -- "$path")"
+        group="$(group_name "$path")"
+        case "$kind" in
+          dir)
+            if [ "$mode" != 2750 ]; then
+              chmod 2750 -- "$path"
+            fi
+            ;;
+          read)
             digit="$(group_digit "$path")"
             case "$digit" in
               4|5|6|7) ;;
               *) chmod g+r -- "$path" ;;
             esac
+            ;;
+          write)
+            digit="$(group_digit "$path")"
+            case "$digit" in
+              2|3|6|7) ;;
+              *) chmod g+rw -- "$path" ;;
+            esac
+            ;;
+        esac
+        if [ "$group" != hermes ]; then
+          chgrp hermes -- "$path"
+        fi
+      }
+
+      restore() {
+        local path
+        if [ -d "$dir" ] && [ ! -L "$dir" ]; then
+          restore_path "$dir" dir
+        fi
+        for name in state.db state.db-wal; do
+          path="$dir/$name"
+          if [ -f "$path" ] && [ ! -L "$path" ]; then
+            restore_path "$path" read
           fi
         done
         path="$dir/state.db-shm"
         if [ -f "$path" ] && [ ! -L "$path" ]; then
-          digit="$(group_digit "$path")"
-          case "$digit" in
-            2|3|6|7) ;;
-            *) chmod g+rw -- "$path" ;;
-          esac
+          restore_path "$path" write
         fi
       }
 
@@ -132,6 +156,7 @@ in
       description = "Keep Hermes state.db group-readable";
       wantedBy = [ "multi-user.target" ];
       after = [ "local-fs.target" ];
+      unitConfig.RequiresMountsFor = [ "/data/apps" ];
       serviceConfig = {
         Type = "simple";
         ExecStart = "${hermesStateGroupRead}/bin/hermes-state-group-read";

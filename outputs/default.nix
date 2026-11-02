@@ -367,6 +367,27 @@ in
         touch $out
       '';
 
+      public-network-accounting =
+        let
+          collector = nixosConfigurations.Test-NixOS.config.systemd.services.public-network-accounting.serviceConfig.ExecStart;
+          rules = ../modules/nixos/base/monitoring/public-network-rules.sh;
+          proof = ../modules/nixos/base/monitoring/public-network-rule-proof.sh;
+        in
+        pkgs.runCommand "public-network-accounting"
+          {
+            nativeBuildInputs = [
+              pkgs.bash
+              pkgs.shellcheck
+            ];
+          } ''
+          cp ${rules} public-network-rules.sh
+          cp ${proof} public-network-rule-proof.sh
+          shellcheck -x public-network-rule-proof.sh
+          bash public-network-rule-proof.sh
+          test -x ${collector}
+          touch $out
+        '';
+
       deployment-rollout = pkgs.runCommand "deployment-rollout"
         {
           nativeBuildInputs = [ pkgs.nushell ];

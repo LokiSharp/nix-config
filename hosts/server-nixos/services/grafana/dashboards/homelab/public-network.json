@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Per-service bytes on non-overlay default-route interfaces, excluding private and overlay addresses.",
+  "description": "Per-service bytes on non-overlay default-route interfaces, excluding private and overlay addresses. Rootful bridge containers are charged to the owning systemd service.",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
